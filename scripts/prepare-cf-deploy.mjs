@@ -23,7 +23,7 @@ if (!existsSync(generatedPath) || !existsSync(entryPath) || !existsSync(clientDi
  * Remove bindings that trigger Wrangler auto-provisioning without resource IDs.
  * Incomplete SESSION KV bindings are the common Workers Builds failure mode (API 10014).
  */
-function sanitizeBindings(config) {
+function sanitizeBindings(config, { log = true } = {}) {
   const next = { ...config };
 
   // Drop Astro/Wrangler merge metadata — deploy should use this file as-is.
@@ -38,7 +38,7 @@ function sanitizeBindings(config) {
     const before = next.kv_namespaces;
     next.kv_namespaces = before.filter((ns) => Boolean(ns?.id));
     const removed = before.length - next.kv_namespaces.length;
-    if (removed > 0) {
+    if (log && removed > 0) {
       console.warn(
         `[prepare-cf-deploy] Removed ${removed} KV binding(s) without id (avoids API 10014 auto-provision).`,
       );
@@ -53,7 +53,7 @@ function sanitizeBindings(config) {
       (db) => db?.database_id && db.database_id !== PLACEHOLDER_DB,
     );
     const omitted = next.d1_databases.length - usable.length;
-    if (omitted > 0) {
+    if (log && omitted > 0) {
       console.warn(
         [
           `[prepare-cf-deploy] Omitting ${omitted} D1 binding(s) with missing/placeholder database_id.`,
@@ -76,22 +76,28 @@ function sanitizeBindings(config) {
 const generated = JSON.parse(readFileSync(generatedPath, 'utf8'));
 
 // Keep Astro-relative paths in dist/server/wrangler.json (main: entry.mjs, assets: ../client).
-const serverConfig = sanitizeBindings({
-  ...generated,
-  name: 'che-xu-studio-site',
-});
+const serverConfig = sanitizeBindings(
+  {
+    ...generated,
+    name: 'che-xu-studio-site',
+  },
+  { log: true },
+);
 
 // Root wrangler.json is preferred by Workers Builds when present (gitignored).
-const rootConfig = sanitizeBindings({
-  ...generated,
-  name: 'che-xu-studio-site',
-  main: './dist/server/entry.mjs',
-  assets: {
-    ...(generated.assets || {}),
-    directory: './dist/client',
-    binding: generated.assets?.binding || 'ASSETS',
+const rootConfig = sanitizeBindings(
+  {
+    ...generated,
+    name: 'che-xu-studio-site',
+    main: './dist/server/entry.mjs',
+    assets: {
+      ...(generated.assets || {}),
+      directory: './dist/client',
+      binding: generated.assets?.binding || 'ASSETS',
+    },
   },
-});
+  { log: false },
+);
 
 const serverJson = `${JSON.stringify(serverConfig, null, 2)}\n`;
 const rootJson = `${JSON.stringify(rootConfig, null, 2)}\n`;

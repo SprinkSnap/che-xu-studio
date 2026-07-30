@@ -13,8 +13,9 @@ type AiBinding = {
 };
 
 interface CloudflareEnv {
-  DB: D1Database;
-  AI: AiBinding;
+  /** Present only after a real D1 database_id is committed and deployed. */
+  DB?: D1Database;
+  AI?: AiBinding;
   ASSETS: Fetcher;
   CHAT_RATE_LIMITER?: RateLimitBinding;
   CONTACT_RATE_LIMITER?: RateLimitBinding;

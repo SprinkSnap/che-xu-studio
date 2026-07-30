@@ -22,11 +22,11 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
 
 ## Cloudflare
 
-- [ ] Create D1 database and paste real `database_id` into `wrangler.jsonc`
+- [ ] First marketing deploy can proceed **without** D1 (placeholder `database_id` is omitted automatically)
+- [ ] Before enabling contact leads / Stripe order persistence: create D1 and commit real `database_id`
   - Run `npx wrangler login && npm run db:create && npm run db:migrate:remote`
-  - Commit the updated `database_id` (deploy fails on the placeholder UUID)
-- [ ] Run remote D1 migrations
-- [ ] Confirm Workers AI enabled for the account
+  - Commit the updated `database_id`, then redeploy
+- [ ] Confirm Workers AI enabled for the account (chat returns 503 without `AI`)
 - [ ] Confirm rate-limit bindings / namespace IDs
 - [ ] Create production Turnstile keys and set secrets/vars
 - [ ] Set `PUBLIC_SITE_URL` to the production origin

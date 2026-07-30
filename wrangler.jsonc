@@ -18,8 +18,9 @@
   },
 
   // D1 database for consented leads and verified order records.
-  // REQUIRED before production deploy — placeholder IDs are rejected by Cloudflare.
-  // Create + write with: npm run db:create
+  // Optional for marketing-site deploys: prepare-cf-deploy.mjs omits this binding while
+  // database_id is still the placeholder (Cloudflare rejects the placeholder UUID).
+  // Create + write with: npm run db:create && npm run db:migrate:remote
   "d1_databases": [
     {
       "binding": "DB",

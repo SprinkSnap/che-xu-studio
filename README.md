@@ -124,17 +124,19 @@ If you later need Astro sessions, add the existing KV namespace id under `kv_nam
 in `wrangler.jsonc` (do not leave `id` blank) and switch the session driver back to
 `sessionDrivers.cloudflareKVBinding({ binding: 'SESSION' })`.
 
-### D1 creation and migrations
+### D1 creation and migrations (optional for first deploy)
 
-The deploy will fail while `database_id` is still the placeholder
-`00000000-0000-0000-0000-000000000000`.
+Workers Builds **succeeds without D1**. While `database_id` is still the placeholder
+`00000000-0000-0000-0000-000000000000`, `prepare-cf-deploy.mjs` omits the `DB` binding
+so Cloudflare does not reject the deploy. Marketing pages go live; contact lead storage
+and Stripe order persistence return **503** until D1 is wired.
 
 On a machine logged into the Cloudflare account that owns `che-xu-studio-site`:
 
 ```bash
 npx wrangler login
 npm run db:create          # creates che-xu-studio-db and writes database_id into wrangler.jsonc
-npm run db:migrate:remote  # applies migrations/0001_init.sql
+npm run db:migrate:remote  # applies migrations/0001_init.sql (--config wrangler.jsonc)
 git add wrangler.jsonc && git commit -m "Add production D1 database id" && git push
 ```
 
@@ -145,6 +147,15 @@ npx wrangler d1 create che-xu-studio-db
 # paste the returned database_id into wrangler.jsonc
 npm run db:migrate:remote
 ```
+
+API endpoints already degrade without Cloudflare resources:
+
+| Endpoint | Without resource |
+| --- | --- |
+| `/api/contact` | 503 if `DB` missing |
+| `/api/webhooks/stripe` | 503 if `DB` or Stripe secrets missing |
+| `/api/checkout` | Works without `DB` (skips pending order row); needs Stripe secrets |
+| `/api/chat` | 503 if `AI` missing |
 
 ### Workers AI binding
 

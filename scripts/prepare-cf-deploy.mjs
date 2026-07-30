@@ -19,29 +19,6 @@ if (!existsSync(generatedPath) || !existsSync(entryPath) || !existsSync(clientDi
 }
 
 const generated = JSON.parse(readFileSync(generatedPath, 'utf8'));
-const databaseId = generated.d1_databases?.[0]?.database_id;
-const isCi = Boolean(process.env.CI || process.env.WORKERS_CI || process.env.CF_PAGES);
-
-if (!databaseId || databaseId === PLACEHOLDER_DB) {
-  const message = [
-    `[prepare-cf-deploy] D1 database_id is still the placeholder (${PLACEHOLDER_DB}).`,
-    'Cloudflare rejects deploy until a real database exists for binding DB.',
-    '',
-    'On an authenticated machine run:',
-    '  npx wrangler login',
-    '  npm run db:create',
-    '  npm run db:migrate:remote',
-    'Then commit the updated wrangler.jsonc and redeploy.',
-  ].join('\n');
-
-  if (isCi) {
-    console.error(message);
-    process.exit(1);
-  }
-
-  console.warn(message);
-  console.warn('[prepare-cf-deploy] Continuing locally, but production deploy will fail until fixed.');
-}
 
 const deployConfig = {
   ...generated,
@@ -71,6 +48,31 @@ if (Array.isArray(deployConfig.kv_namespaces)) {
   }
   if (deployConfig.kv_namespaces.length === 0) {
     delete deployConfig.kv_namespaces;
+  }
+}
+
+// D1 is optional for marketing-site deploys. A placeholder database_id is rejected by
+// the Cloudflare API and previously failed Workers Builds. Omit the binding until a
+// real id is committed; contact/webhook persistence returns 503 without DB.
+if (Array.isArray(deployConfig.d1_databases)) {
+  const usable = deployConfig.d1_databases.filter(
+    (db) => db?.database_id && db.database_id !== PLACEHOLDER_DB,
+  );
+  const omitted = deployConfig.d1_databases.length - usable.length;
+  if (omitted > 0) {
+    console.warn(
+      [
+        `[prepare-cf-deploy] Omitting ${omitted} D1 binding(s) with missing/placeholder database_id.`,
+        'Marketing pages still deploy. Contact leads + Stripe order persistence stay offline until you run:',
+        '  npx wrangler login && npm run db:create && npm run db:migrate:remote',
+        'Then commit the updated wrangler.jsonc and redeploy.',
+      ].join('\n'),
+    );
+  }
+  if (usable.length > 0) {
+    deployConfig.d1_databases = usable;
+  } else {
+    delete deployConfig.d1_databases;
   }
 }
 

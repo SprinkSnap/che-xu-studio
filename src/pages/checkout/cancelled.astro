@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+---
+
+<BaseLayout
+  title="Checkout cancelled"
+  description="Online card checkout is not enabled yet. Continue with a quote request through Che Xu Studio."
+  path="/checkout/cancelled"
+  noindex={true}
+  showMobileCta={false}
+>
+  <section class="section">
+    <div class="container-shell max-w-2xl">
+      <Breadcrumbs
+        items={[
+          { name: 'Home', href: '/' },
+          { name: 'Checkout', href: '/contact' },
+          { name: 'Cancelled' },
+        ]}
+      />
+      <h1 class="font-display text-4xl font-bold text-navy-900">No checkout was completed</h1>
+      <p class="lead mt-4">
+        Online card payments are not enabled on this website yet. Use the contact form to request a
+        package quote or monthly plan.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/contact?intent=quote" class="btn-primary">Request a quote</a>
+        <a href="/#package-finder" class="btn-secondary">Find My Best Package</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

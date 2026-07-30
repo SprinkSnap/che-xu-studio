@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -105,14 +105,13 @@ const rootJson = `${JSON.stringify(rootConfig, null, 2)}\n`;
 writeFileSync(generatedPath, serverJson);
 writeFileSync(rootWranglerPath, rootJson);
 
-// Prefer the root cleaned config. Remove Astro's deploy redirect so Wrangler cannot
-// fall back to a stale/generated path that still carries incomplete SESSION bindings.
+// Point Astro/Wrangler redirect at the cleaned root config (Workers Builds + preview).
 const redirectDir = resolve(root, '.wrangler/deploy');
-const redirectPath = resolve(redirectDir, 'config.json');
-if (existsSync(redirectPath)) {
-  rmSync(redirectPath);
-  console.warn('[prepare-cf-deploy] Removed .wrangler/deploy/config.json redirect');
-}
+mkdirSync(redirectDir, { recursive: true });
+writeFileSync(
+  resolve(redirectDir, 'config.json'),
+  `${JSON.stringify({ configPath: '../../wrangler.json', auxiliaryWorkers: [] }, null, 2)}\n`,
+);
 
 const danglingKv = rootConfig.kv_namespaces?.filter((ns) => !ns?.id) ?? [];
 if (danglingKv.length > 0) {

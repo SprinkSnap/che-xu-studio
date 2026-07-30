@@ -10,15 +10,15 @@ Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Work
 
 ## Architecture overview
 
-| Layer | Responsibility |
-| --- | --- |
-| Astro pages | Statically generated marketing routes, SEO metadata, structured data |
-| React islands | Package finder, contact form, chat, mobile nav, comparison |
-| `src/config/*` | Owner-editable site, package, and FAQ source of truth |
-| `/api/*` Worker endpoints | Contact leads, AI chat (`import { env } from 'cloudflare:workers'`) |
-| Cloudflare D1 | Consented lead records (optional until `database_id` is set) |
-| Workers AI | Chat assistant grounded in package + FAQ data |
-| Turnstile + rate limits | Abuse protection on sensitive endpoints |
+| Layer                     | Responsibility                                                       |
+| ------------------------- | -------------------------------------------------------------------- |
+| Astro pages               | Statically generated marketing routes, SEO metadata, structured data |
+| React islands             | Package finder, contact form, chat, mobile nav, comparison           |
+| `src/config/*`            | Owner-editable site, package, and FAQ source of truth                |
+| `/api/*` Worker endpoints | Contact leads, AI chat (`import { env } from 'cloudflare:workers'`)  |
+| Cloudflare D1             | Consented lead records (optional until `database_id` is set)         |
+| Workers AI                | Chat assistant grounded in package + FAQ data                        |
+| Turnstile + rate limits   | Abuse protection on sensitive endpoints                              |
 
 ### Key routes
 
@@ -45,12 +45,12 @@ Open `http://localhost:4321`.
 
 Copy from `.dev.vars.example`. Never commit `.dev.vars` or real secrets.
 
-| Variable | Purpose |
-| --- | --- |
-| `PUBLIC_SITE_URL` | Canonical origin for SEO and CORS |
-| `PUBLIC_TURNSTILE_SITE_KEY` | Turnstile site key (public) |
-| `TURNSTILE_SECRET_KEY` | Turnstile secret (server) |
-| `AI_MODEL` | Workers AI model id |
+| Variable                        | Purpose                           |
+| ------------------------------- | --------------------------------- |
+| `PUBLIC_SITE_URL`               | Canonical origin for SEO and CORS |
+| `PUBLIC_TURNSTILE_SITE_KEY`     | Turnstile site key (public)       |
+| `TURNSTILE_SECRET_KEY`          | Turnstile secret (server)         |
+| `AI_MODEL`                      | Workers AI model id               |
 | `PUBLIC_CF_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics |
 
 Owner-editable non-secret content lives in:
@@ -112,7 +112,7 @@ auto-provisioning and can fail with API **10014** when `che-xu-studio-site-sessi
 
 ### Sessions / KV note
 
-This site does **not** use Astro sessions. Config sets `sessionDrivers.null()` so
+This site does **not** use Astro sessions. Config sets `sessionDrivers.lruCache()` so
 `@astrojs/cloudflare` does not emit a `SESSION` KV binding. `prepare-cf-deploy.mjs`
 also strips any id-less KV entries, and `cf:deploy` passes `--x-provision=false`.
 
@@ -149,10 +149,10 @@ npm run db:migrate:remote
 
 API endpoints already degrade without Cloudflare resources:
 
-| Endpoint | Without resource |
-| --- | --- |
+| Endpoint       | Without resource    |
+| -------------- | ------------------- |
 | `/api/contact` | 503 if `DB` missing |
-| `/api/chat` | 503 if `AI` missing |
+| `/api/chat`    | 503 if `AI` missing |
 
 Package CTAs use `/contact?plan=…&intent=quote` (no online card checkout yet).
 

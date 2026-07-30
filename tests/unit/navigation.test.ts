@@ -1,0 +1,68 @@
+import { describe, expect, it } from 'vitest';
+import {
+  isCurrentPath,
+  isNavItemActive,
+  normalizePath,
+  type NavItem,
+} from '../../src/lib/navigation';
+import { siteConfig } from '../../src/config/site';
+
+describe('navigation path helpers', () => {
+  it('normalizes trailing slashes and fragments', () => {
+    expect(normalizePath('/pricing/')).toBe('/pricing');
+    expect(normalizePath('/pricing#plans')).toBe('/pricing');
+    expect(normalizePath('/')).toBe('/');
+  });
+
+  it('detects current paths with or without trailing slash', () => {
+    expect(isCurrentPath('/about/', '/about')).toBe(true);
+    expect(isCurrentPath('/about', '/contact')).toBe(false);
+  });
+
+  it('marks Services active for nested service routes', () => {
+    const services = siteConfig.navigation.find((item) => item.label === 'Services') as NavItem;
+    expect(services).toBeTruthy();
+    expect(isNavItemActive('/services/seo/', services)).toBe(true);
+    expect(isNavItemActive('/pricing', services)).toBe(false);
+  });
+});
+
+describe('site navigation integrity', () => {
+  it('exposes required primary destinations without placeholder hashes', () => {
+    const items = siteConfig.navigation as readonly NavItem[];
+    const hrefs = items.flatMap((item) => [
+      ...(item.href ? [item.href] : []),
+      ...(item.children?.map((child) => child.href) ?? []),
+    ]);
+
+    expect(hrefs).toEqual(
+      expect.arrayContaining([
+        '/services/web-design',
+        '/services/seo',
+        '/services/website-care',
+        '/pricing',
+        '/work',
+        '/about',
+        '/contact',
+      ]),
+    );
+    expect(hrefs.every((href) => href !== '#')).toBe(true);
+    expect(siteConfig.cta.primary.href).toBe('/#package-finder');
+  });
+
+  it('structures footer into services, studio, and legal groups', () => {
+    const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
+    const studioHrefs = siteConfig.footer.studio.map((l) => l.href);
+    const legalHrefs = siteConfig.footer.legal.map((l) => l.href);
+
+    expect(serviceHrefs).toEqual(expect.arrayContaining(['/pricing', '/services/web-design']));
+    expect(studioHrefs).toEqual(expect.arrayContaining(['/work', '/about', '/contact']));
+    expect(legalHrefs).toEqual(
+      expect.arrayContaining(['/privacy', '/terms', '/refund-cancellation-policy']),
+    );
+
+    const allFooterHrefs = [...serviceHrefs, ...studioHrefs, ...legalHrefs];
+    expect(allFooterHrefs.includes('/insights' as (typeof allFooterHrefs)[number])).toBe(false);
+    expect(allFooterHrefs.every((href) => !href.includes('#'))).toBe(true);
+  });
+});

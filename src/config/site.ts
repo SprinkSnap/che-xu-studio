@@ -4,6 +4,8 @@
  * Unknown values must remain undefined so they are omitted from markup and schema.
  */
 
+import type { FooterLink, NavItem } from '../lib/navigation';
+
 export const siteConfig = {
   name: 'Che Xu Studio',
   legalName: 'Che Xu Studio',
@@ -46,10 +48,13 @@ export const siteConfig = {
   /** When true, robots meta and sitemap allow indexing. Keep false until launch. */
   allowIndexing: false,
 
+  /**
+   * Primary header navigation.
+   * Services uses a disclosure submenu (no thin /services overview page).
+   */
   navigation: [
     {
       label: 'Services',
-      href: '/services/web-design',
       children: [
         { label: 'Web Design', href: '/services/web-design' },
         { label: 'SEO Strategy', href: '/services/seo' },
@@ -60,7 +65,26 @@ export const siteConfig = {
     { label: 'Work', href: '/work' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
-  ] as const,
+  ] as const satisfies readonly NavItem[],
+
+  footer: {
+    services: [
+      { label: 'Web Design', href: '/services/web-design' },
+      { label: 'SEO Strategy', href: '/services/seo' },
+      { label: 'Website Care', href: '/services/website-care' },
+      { label: 'Pricing', href: '/pricing' },
+    ] as const satisfies readonly FooterLink[],
+    studio: [
+      { label: 'Work', href: '/work' },
+      { label: 'About', href: '/about' },
+      { label: 'Contact', href: '/contact' },
+    ] as const satisfies readonly FooterLink[],
+    legal: [
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+      { label: 'Refund & Cancellation Policy', href: '/refund-cancellation-policy' },
+    ] as const satisfies readonly FooterLink[],
+  },
 
   cta: {
     primary: { label: 'Find My Best Package', href: '/#package-finder' },

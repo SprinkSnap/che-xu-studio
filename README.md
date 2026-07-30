@@ -88,6 +88,23 @@ npx wrangler secret put STRIPE_PRICE_WEBSITE_CARE
 - `AI_MODEL`
 - optional `PUBLIC_CF_WEB_ANALYTICS_TOKEN`
 
+### Deploy note (entrypoint)
+
+Astro generates the Worker during `npm run build`. Always deploy with:
+
+```bash
+npm run deploy
+# or
+npm run deploy:dry-run
+```
+
+Do **not** set `main` to `@astrojs/cloudflare/entrypoints/server` in `wrangler.jsonc`. Wrangler treats that as a filesystem path and fails with “entry-point file … was not found.” This repo uses the concrete package file for config validation, and `npm run deploy` points Wrangler at `dist/server/wrangler.json` after the Astro build.
+
+If you use Cloudflare’s dashboard/CI build settings:
+
+- **Build command:** `npm run build`
+- **Deploy command:** `npx wrangler deploy --config dist/server/wrangler.json`
+
 ### D1 creation and migrations
 
 ```bash

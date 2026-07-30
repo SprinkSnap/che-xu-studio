@@ -30,8 +30,9 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
 - [ ] Set `PUBLIC_SITE_URL` to the production origin
 - [ ] Optional: Cloudflare Web Analytics token
 - [ ] Run `npm run deploy:dry-run` successfully
-- [ ] Deploy only with explicit authorization
+- [ ] Deploy only with explicit authorization (`npm run deploy`, which builds then uses `dist/server/wrangler.json`)
 - [ ] Attach custom domain / DNS (proxied) without guessing records
+- [ ] If using Cloudflare dashboard CI: build `npm run build`, deploy `npx wrangler deploy --config dist/server/wrangler.json`
 
 ## Stripe
 

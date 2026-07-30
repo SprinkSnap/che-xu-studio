@@ -22,7 +22,8 @@
     "test:e2e": "playwright test",
     "db:migrate:local": "wrangler d1 migrations apply che-xu-studio-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply che-xu-studio-db --remote",
-    "deploy:dry-run": "npm run build && wrangler deploy --dry-run",
+    "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
+    "deploy:dry-run": "npm run build && wrangler deploy --dry-run --config dist/server/wrangler.json",
     "cf:typegen": "wrangler types"
   },
   "dependencies": {

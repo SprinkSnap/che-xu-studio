@@ -3,11 +3,18 @@
   "compatibility_date": "2026-07-29",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "name": "che-xu-studio",
-  "main": "@astrojs/cloudflare/entrypoints/server",
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS"
-  },
+
+  // IMPORTANT:
+  // Do not use "@astrojs/cloudflare/entrypoints/server" here.
+  // Wrangler resolves `main` as a filesystem path, so that package-export
+  // string fails with: entry-point file ... was not found.
+  //
+  // Use the concrete package file for local/CI config validation.
+  // Production deploys must still run `astro build` first, then deploy the
+  // generated Worker via: npm run deploy
+  // (uses dist/server/wrangler.json + dist/server/entry.mjs).
+  "main": "./node_modules/@astrojs/cloudflare/dist/entrypoints/server.js",
+
   "observability": {
     "enabled": true
   },
@@ -64,16 +71,9 @@
   // TURNSTILE_SECRET_KEY
   // STRIPE_SECRET_KEY
   // STRIPE_WEBHOOK_SECRET
-  // STRIPE_PRICE_PREMIUM_THEME (optional fixed price)
-  // STRIPE_PRICE_CUSTOM_WEBSITE (optional fixed price)
-  // STRIPE_PRICE_CUSTOM_SEO_LAUNCH (optional fixed price)
-  // STRIPE_PRICE_SEO_GROWTH (subscription)
-  // STRIPE_PRICE_WEBSITE_CARE (subscription)
-  // STRIPE_PRICE_PROJECT_DEPOSIT (optional deposit)
-  //
-  // Public vars (wrangler vars / PUBLIC_* in .dev.vars):
+  // STRIPE_PRICE_*
   // PUBLIC_TURNSTILE_SITE_KEY
   // PUBLIC_SITE_URL
-  // AI_MODEL (e.g. @cf/meta/llama-3.1-8b-instruct)
-  // PUBLIC_CF_WEB_ANALYTICS_TOKEN (optional)
+  // AI_MODEL
+  // PUBLIC_CF_WEB_ANALYTICS_TOKEN
 }

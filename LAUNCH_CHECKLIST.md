@@ -34,9 +34,10 @@ Use this before any production DNS cutover. Do **not** deploy paid resources wit
 - [ ] Run `npm run deploy:dry-run` successfully
 - [ ] Deploy only with explicit authorization (`npm run deploy`, which builds then uses `dist/server/wrangler.json`)
 - [ ] Attach custom domain / DNS (proxied) without guessing records
-- [ ] If using Cloudflare Workers Builds: build command `npm run build`, deploy command `npx wrangler deploy`
+- [ ] If using Cloudflare Workers Builds: build command `npm run build`, deploy command **`npm run cf:deploy`** (not bare `npx wrangler deploy`)
 - [ ] Confirm Worker name is `che-xu-studio-site` (matches wrangler.jsonc)
-- [ ] Confirm deploy config has no id-less `SESSION` KV binding (site uses in-memory session driver; avoids API 10014)
+- [ ] Confirm deploy config has no id-less KV bindings (session driver is null; `cf:deploy` uses `--x-provision=false`)
+- [ ] Optional: delete unused `che-xu-studio-site-session` KV namespace in the Cloudflare dashboard
 
 ## Payments
 

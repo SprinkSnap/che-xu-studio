@@ -32,7 +32,8 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
 - [ ] Run `npm run deploy:dry-run` successfully
 - [ ] Deploy only with explicit authorization (`npm run deploy`, which builds then uses `dist/server/wrangler.json`)
 - [ ] Attach custom domain / DNS (proxied) without guessing records
-- [ ] If using Cloudflare dashboard CI: build `npm run build`, deploy `npx wrangler deploy --config dist/server/wrangler.json`
+- [ ] If using Cloudflare Workers Builds: build command `npm run build`, deploy command `npx wrangler deploy`
+- [ ] Confirm Worker name is `che-xu-studio-site` (matches wrangler.jsonc)
 
 ## Stripe
 

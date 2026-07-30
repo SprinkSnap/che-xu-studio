@@ -90,20 +90,28 @@ npx wrangler secret put STRIPE_PRICE_WEBSITE_CARE
 
 ### Deploy note (entrypoint)
 
-Astro generates the Worker during `npm run build`. Always deploy with:
+Cloudflare Workers Builds often runs `npx wrangler deploy` after `npm run build` **without** Astro’s `.wrangler` redirect. Wrangler also cannot resolve the package-export string `@astrojs/cloudflare/entrypoints/server` as a filesystem path.
+
+This repo therefore:
+
+1. Keeps bindings in `wrangler.jsonc` (no package-export `main`)
+2. Runs `scripts/prepare-cf-deploy.mjs` at the end of `npm run build`
+3. Writes a gitignored root `wrangler.json` with `main: ./dist/server/entry.mjs`
+
+Use:
 
 ```bash
-npm run deploy
+npm run build
+npx wrangler deploy --dry-run
 # or
-npm run deploy:dry-run
+npm run deploy
 ```
 
-Do **not** set `main` to `@astrojs/cloudflare/entrypoints/server` in `wrangler.jsonc`. Wrangler treats that as a filesystem path and fails with “entry-point file … was not found.” This repo uses the concrete package file for config validation, and `npm run deploy` points Wrangler at `dist/server/wrangler.json` after the Astro build.
-
-If you use Cloudflare’s dashboard/CI build settings:
+Cloudflare dashboard / Workers Builds settings:
 
 - **Build command:** `npm run build`
-- **Deploy command:** `npx wrangler deploy --config dist/server/wrangler.json`
+- **Deploy command:** `npx wrangler deploy`
+- Worker name should match `che-xu-studio-site`
 
 ### D1 creation and migrations
 

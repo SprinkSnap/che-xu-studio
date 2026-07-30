@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/prepare-cf-deploy.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types",
@@ -22,8 +22,8 @@
     "test:e2e": "playwright test",
     "db:migrate:local": "wrangler d1 migrations apply che-xu-studio-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply che-xu-studio-db --remote",
-    "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
-    "deploy:dry-run": "npm run build && wrangler deploy --dry-run --config dist/server/wrangler.json",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:dry-run": "npm run build && wrangler deploy --dry-run",
     "cf:typegen": "wrangler types"
   },
   "dependencies": {

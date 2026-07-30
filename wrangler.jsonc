@@ -2,18 +2,16 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "compatibility_date": "2026-07-29",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "name": "che-xu-studio",
+  // Must match the Cloudflare Workers service connected to this repo.
+  "name": "che-xu-studio-site",
 
-  // IMPORTANT:
-  // Do not use "@astrojs/cloudflare/entrypoints/server" here.
-  // Wrangler resolves `main` as a filesystem path, so that package-export
-  // string fails with: entry-point file ... was not found.
+  // Do NOT set:
+  //   "main": "@astrojs/cloudflare/entrypoints/server"
+  // Wrangler on Workers Builds treats that package export as a filesystem path and fails.
   //
-  // Use the concrete package file for local/CI config validation.
-  // Production deploys must still run `astro build` first, then deploy the
-  // generated Worker via: npm run deploy
-  // (uses dist/server/wrangler.json + dist/server/entry.mjs).
-  "main": "./node_modules/@astrojs/cloudflare/dist/entrypoints/server.js",
+  // Leave `main` / `assets` unset here so `astro build` can generate them.
+  // `npm run build` runs scripts/prepare-cf-deploy.mjs afterward, which writes a
+  // gitignored root wrangler.json pointing at dist/server/entry.mjs for deploy.
 
   "observability": {
     "enabled": true
@@ -32,14 +30,12 @@
   ],
 
   // Workers AI binding for the chat assistant.
-  // `remote: true` means local preview talks to Cloudflare AI (may incur usage).
   "ai": {
     "binding": "AI",
     "remote": true
   },
 
   // Rate limiting bindings for sensitive API endpoints.
-  // Namespace IDs are account-local integers; adjust limits as needed.
   "ratelimits": [
     {
       "name": "CHAT_RATE_LIMITER",
@@ -66,14 +62,4 @@
       }
     }
   ]
-
-  // Secrets / vars (set via `wrangler secret put` or `.dev.vars` locally):
-  // TURNSTILE_SECRET_KEY
-  // STRIPE_SECRET_KEY
-  // STRIPE_WEBHOOK_SECRET
-  // STRIPE_PRICE_*
-  // PUBLIC_TURNSTILE_SITE_KEY
-  // PUBLIC_SITE_URL
-  // AI_MODEL
-  // PUBLIC_CF_WEB_ANALYTICS_TOKEN
 }

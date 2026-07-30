@@ -8,7 +8,6 @@ import FaqSection from '../components/FaqSection.astro';
 import FinalCta from '../components/FinalCta.astro';
 import SectionHeading from '../components/ui/SectionHeading.astro';
 import PackageFinder from '../components/react/PackageFinder';
-import CheckoutHost from '../components/CheckoutHost.astro';
 import { packages } from '../config/packages';
 import { faqsForPage } from '../config/faq';
 import { faqPageSchema, offerCatalogSchema } from '../lib/seo';
@@ -218,7 +217,7 @@ const faqItems = faqsForPage('home');
         {[
           { t: 'Decision clarity', d: 'Package finder, comparison views, and plain disclosures reduce guesswork.' },
           { t: 'Practical SEO', d: 'Foundations and monthly growth work that respect how search actually works—no ranking guarantees.' },
-          { t: 'Secure checkout', d: 'Stripe-powered payments for configured plans; quotes first when scope is still variable.' },
+          { t: 'Clear next steps', d: 'Starting prices in CAD with quote-first requests—scope confirmed before any invoice.' },
           { t: 'Human when you need it', d: 'AI assistant for quick answers; contact form when you want a person.' },
         ].map((item) => (
           <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
@@ -233,5 +232,4 @@ const faqItems = faqsForPage('home');
 
   <FaqSection items={faqItems} />
   <FinalCta />
-  <CheckoutHost />
 </BaseLayout>

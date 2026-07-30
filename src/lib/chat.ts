@@ -54,7 +54,7 @@ APPROVED FAQS:
 ${faqDigest}
 
 When recommending a package, explain why in 2–3 sentences and mention that visitors can still compare all packages or talk to a person.
-For payments: explain that checkout uses Stripe for configured packages; starting-at projects may need an exact quote first.
+For payments: explain that packages start with a quote or written confirmation via the contact form—there is no online card checkout on this website yet.
 For human handoff: direct them to /contact or the contact form.`;
 }
 

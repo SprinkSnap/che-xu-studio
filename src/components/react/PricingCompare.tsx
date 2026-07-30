@@ -74,9 +74,12 @@ export default function PricingCompare({ packages }: Props) {
                 <li key={item}>• {item}</li>
               ))}
             </ul>
-            <button type="button" className="btn-primary mt-5 w-full" data-checkout-open={pkg.id}>
-              Get started
-            </button>
+            <a
+              href={`/contact?plan=${encodeURIComponent(pkg.id)}&intent=quote`}
+              className="btn-primary mt-5 w-full text-center"
+            >
+              Get a quote
+            </a>
           </article>
         ))}
       </div>

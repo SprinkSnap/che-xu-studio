@@ -10,9 +10,6 @@ export type FunnelEvent =
   | 'package_recommended'
   | 'pricing_card_viewed'
   | 'pricing_card_selected'
-  | 'checkout_drawer_opened'
-  | 'checkout_started'
-  | 'checkout_completed_verified'
   | 'contact_form_submitted'
   | 'chat_opened'
   | 'human_handoff_requested';

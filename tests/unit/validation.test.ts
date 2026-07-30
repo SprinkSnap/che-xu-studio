@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkoutSchema, chatRequestSchema, contactSchema } from '../../src/lib/validation';
+import { chatRequestSchema, contactSchema } from '../../src/lib/validation';
 
 describe('contact validation', () => {
   it('accepts a valid short form payload', () => {
@@ -23,37 +23,6 @@ describe('contact validation', () => {
       message: 'Hi',
       turnstileToken: 'token',
       website: 'http://spam.test',
-    });
-    expect(parsed.success).toBe(false);
-  });
-});
-
-describe('checkout allowlisting', () => {
-  it('accepts known plan ids only', () => {
-    const good = checkoutSchema.safeParse({
-      planId: 'website-care',
-      name: 'Alex',
-      email: 'alex@example.com',
-      turnstileToken: 'token',
-    });
-    expect(good.success).toBe(true);
-
-    const bad = checkoutSchema.safeParse({
-      planId: 'free-yacht',
-      name: 'Alex',
-      email: 'alex@example.com',
-      turnstileToken: 'token',
-    });
-    expect(bad.success).toBe(false);
-  });
-
-  it('rejects client-supplied price manipulation fields', () => {
-    const parsed = checkoutSchema.safeParse({
-      planId: 'website-care',
-      name: 'Alex',
-      email: 'alex@example.com',
-      turnstileToken: 'token',
-      price: 1,
     });
     expect(parsed.success).toBe(false);
   });

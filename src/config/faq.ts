@@ -11,7 +11,7 @@ export const faqs: FaqItem[] = [
     id: 'starting-at',
     question: 'What does “starting at” mean?',
     answer:
-      '“Starting at” is the published entry price for a typical project in that package. Your final quote depends on pages, features, content readiness, integrations, and SEO scope. We confirm scope in writing before any invoice or checkout for a fixed amount.',
+      '“Starting at” is the published entry price for a typical project in that package. Your final quote depends on pages, features, content readiness, integrations, and SEO scope. We confirm scope in writing before any invoice.',
     pages: ['home', 'pricing', 'web-design', 'contact'],
   },
   {
@@ -67,7 +67,7 @@ export const faqs: FaqItem[] = [
     id: 'subscriptions',
     question: 'How do monthly plans work?',
     answer:
-      'SEO & Conversion Growth starts at CAD $499/month and Website Care & Maintenance starts at CAD $199/month. Plans renew monthly and can be cancelled according to the refund and cancellation policy. Billing is handled securely through Stripe.',
+      'SEO & Conversion Growth starts at CAD $499/month and Website Care & Maintenance starts at CAD $199/month. Plans renew monthly and can be cancelled according to the refund and cancellation policy. Request a plan through the contact form; payment details are confirmed in writing.',
     pages: ['pricing', 'seo', 'website-care'],
   },
   {
@@ -81,7 +81,7 @@ export const faqs: FaqItem[] = [
     id: 'payment',
     question: 'How does payment work?',
     answer:
-      'Approved fixed-price or subscription packages can be paid securely through Stripe Checkout. For starting-at project packages without an approved fixed Stripe price, we provide an exact quote first—or an explicitly described project deposit when configured. We never collect card numbers on this website.',
+      'Start with the contact form to request a quote or monthly plan. Scope and payment terms are confirmed in writing before any invoice. This website does not collect card numbers.',
     pages: ['pricing', 'contact'],
   },
   {

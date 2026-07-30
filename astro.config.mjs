@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, sessionDrivers } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
@@ -14,6 +14,13 @@ export default defineConfig({
     prerenderEnvironment: 'node',
     persistState: true,
   }),
+  // This site does not use Astro.session. Without an explicit non-KV driver,
+  // @astrojs/cloudflare auto-enables cloudflareKVBinding("SESSION"), and
+  // Workers Builds repeatedly tries to create that namespace (API error 10014
+  // when a *-session KV title already exists from a prior deploy).
+  session: {
+    driver: sessionDrivers.lruCache(),
+  },
   integrations: [react()],
   vite: {
     plugins: [tailwindcss()],

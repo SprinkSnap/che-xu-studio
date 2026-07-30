@@ -55,8 +55,30 @@ const deployConfig = {
   },
 };
 
+// Drop auto-provisioned SESSION KV entries that have no namespace id.
+// Wrangler treats `{ binding: "SESSION" }` as "create this namespace", which fails
+// with Cloudflare API 10014 when a namespace with that title already exists.
+if (Array.isArray(deployConfig.kv_namespaces)) {
+  const before = deployConfig.kv_namespaces.length;
+  deployConfig.kv_namespaces = deployConfig.kv_namespaces.filter(
+    (ns) => ns?.id || (ns?.binding && ns.binding !== 'SESSION'),
+  );
+  const removed = before - deployConfig.kv_namespaces.length;
+  if (removed > 0) {
+    console.warn(
+      `[prepare-cf-deploy] Removed ${removed} SESSION KV binding(s) without id (avoids API 10014).`,
+    );
+  }
+  if (deployConfig.kv_namespaces.length === 0) {
+    delete deployConfig.kv_namespaces;
+  }
+}
+
 // wrangler.json is preferred over wrangler.jsonc and is gitignored.
-writeFileSync(resolve(root, 'wrangler.json'), `${JSON.stringify(deployConfig, null, 2)}\n`);
+const deployJson = `${JSON.stringify(deployConfig, null, 2)}\n`;
+writeFileSync(resolve(root, 'wrangler.json'), deployJson);
+// Workers Builds / newer Wrangler may follow .wrangler/deploy/config.json to this path.
+writeFileSync(generatedPath, deployJson);
 
 // Also restore/ensure the Astro deploy redirect used by newer Wrangler versions.
 const redirectDir = resolve(root, '.wrangler/deploy');
@@ -66,4 +88,4 @@ writeFileSync(
   `${JSON.stringify({ configPath: '../../dist/server/wrangler.json', auxiliaryWorkers: [] }, null, 2)}\n`,
 );
 
-console.log('[prepare-cf-deploy] Wrote wrangler.json and .wrangler/deploy/config.json');
+console.log('[prepare-cf-deploy] Wrote wrangler.json and dist/server/wrangler.json');

@@ -36,6 +36,7 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
 - [ ] Attach custom domain / DNS (proxied) without guessing records
 - [ ] If using Cloudflare Workers Builds: build command `npm run build`, deploy command `npx wrangler deploy`
 - [ ] Confirm Worker name is `che-xu-studio-site` (matches wrangler.jsonc)
+- [ ] Confirm deploy config has no id-less `SESSION` KV binding (site uses in-memory session driver; avoids API 10014)
 
 ## Stripe
 

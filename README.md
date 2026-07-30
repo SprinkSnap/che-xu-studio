@@ -113,6 +113,17 @@ Cloudflare dashboard / Workers Builds settings:
 - **Deploy command:** `npx wrangler deploy`
 - Worker name should match `che-xu-studio-site`
 
+### Sessions / KV note
+
+This site does **not** use Astro sessions. Config sets an in-memory session driver so
+`@astrojs/cloudflare` does not auto-provision a `SESSION` KV namespace. That avoids
+Workers Builds failing with Cloudflare API **10014** (`a namespace with this account ID
+and title already exists`) on redeploys after an earlier auto-created `*-session` KV.
+
+If you later need Astro sessions, add the existing KV namespace id under `kv_namespaces`
+in `wrangler.jsonc` (do not leave `id` blank) and switch the session driver back to
+`sessionDrivers.cloudflareKVBinding({ binding: 'SESSION' })`.
+
 ### D1 creation and migrations
 
 The deploy will fail while `database_id` is still the placeholder

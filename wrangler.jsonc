@@ -18,8 +18,8 @@
   },
 
   // D1 database for consented leads and verified order records.
-  // Create with: wrangler d1 create che-xu-studio-db
-  // Then replace database_id below with the returned ID.
+  // REQUIRED before production deploy — placeholder IDs are rejected by Cloudflare.
+  // Create + write with: npm run db:create
   "d1_databases": [
     {
       "binding": "DB",

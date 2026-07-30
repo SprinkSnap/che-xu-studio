@@ -115,14 +115,25 @@ Cloudflare dashboard / Workers Builds settings:
 
 ### D1 creation and migrations
 
+The deploy will fail while `database_id` is still the placeholder
+`00000000-0000-0000-0000-000000000000`.
+
+On a machine logged into the Cloudflare account that owns `che-xu-studio-site`:
+
 ```bash
-npx wrangler d1 create che-xu-studio-db
-# paste database_id into wrangler.jsonc
-npm run db:migrate:local
-npm run db:migrate:remote
+npx wrangler login
+npm run db:create          # creates che-xu-studio-db and writes database_id into wrangler.jsonc
+npm run db:migrate:remote  # applies migrations/0001_init.sql
+git add wrangler.jsonc && git commit -m "Add production D1 database id" && git push
 ```
 
-Migrations live in `migrations/0001_init.sql` (`leads`, `orders`, `stripe_events`).
+Manual alternative:
+
+```bash
+npx wrangler d1 create che-xu-studio-db
+# paste the returned database_id into wrangler.jsonc
+npm run db:migrate:remote
+```
 
 ### Workers AI binding
 

@@ -6,6 +6,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const generatedPath = resolve(root, 'dist/server/wrangler.json');
 const entryPath = resolve(root, 'dist/server/entry.mjs');
 const clientDir = resolve(root, 'dist/client');
+const PLACEHOLDER_DB = '00000000-0000-0000-0000-000000000000';
 
 if (!existsSync(generatedPath) || !existsSync(entryPath) || !existsSync(clientDir)) {
   console.error(
@@ -18,10 +19,30 @@ if (!existsSync(generatedPath) || !existsSync(entryPath) || !existsSync(clientDi
 }
 
 const generated = JSON.parse(readFileSync(generatedPath, 'utf8'));
+const databaseId = generated.d1_databases?.[0]?.database_id;
+const isCi = Boolean(process.env.CI || process.env.WORKERS_CI || process.env.CF_PAGES);
 
-// Deploy-ready config for `npx wrangler deploy` from the repo root.
-// Cloudflare Workers Builds often runs deploy without Astro's `.wrangler` redirect,
-// and cannot resolve the package-export main "@astrojs/cloudflare/entrypoints/server".
+if (!databaseId || databaseId === PLACEHOLDER_DB) {
+  const message = [
+    `[prepare-cf-deploy] D1 database_id is still the placeholder (${PLACEHOLDER_DB}).`,
+    'Cloudflare rejects deploy until a real database exists for binding DB.',
+    '',
+    'On an authenticated machine run:',
+    '  npx wrangler login',
+    '  npm run db:create',
+    '  npm run db:migrate:remote',
+    'Then commit the updated wrangler.jsonc and redeploy.',
+  ].join('\n');
+
+  if (isCi) {
+    console.error(message);
+    process.exit(1);
+  }
+
+  console.warn(message);
+  console.warn('[prepare-cf-deploy] Continuing locally, but production deploy will fail until fixed.');
+}
+
 const deployConfig = {
   ...generated,
   // Keep the Cloudflare Workers service name in sync with the dashboard project.

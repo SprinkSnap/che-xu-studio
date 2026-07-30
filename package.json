@@ -20,6 +20,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "db:create": "node scripts/create-d1.mjs",
     "db:migrate:local": "wrangler d1 migrations apply che-xu-studio-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply che-xu-studio-db --remote",
     "deploy": "npm run build && wrangler deploy",

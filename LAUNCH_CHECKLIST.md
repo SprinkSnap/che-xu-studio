@@ -23,6 +23,8 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
 ## Cloudflare
 
 - [ ] Create D1 database and paste real `database_id` into `wrangler.jsonc`
+  - Run `npx wrangler login && npm run db:create && npm run db:migrate:remote`
+  - Commit the updated `database_id` (deploy fails on the placeholder UUID)
 - [ ] Run remote D1 migrations
 - [ ] Confirm Workers AI enabled for the account
 - [ ] Confirm rate-limit bindings / namespace IDs

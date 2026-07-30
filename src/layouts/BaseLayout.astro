@@ -1,0 +1,90 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MobileStickyCta from '../components/MobileStickyCta.astro';
+import ChatIsland from '../components/react/ChatWidget';
+import { siteConfig, getSiteUrl } from '../config/site';
+import { absoluteUrl, jsonLd, organizationSchema, titleTemplate, websiteSchema } from '../lib/seo';
+import { analyticsBootstrap } from '../lib/analytics';
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+  ogImage?: string;
+  noindex?: boolean;
+  schema?: unknown[];
+  showMobileCta?: boolean;
+}
+
+const {
+  title,
+  description,
+  path = Astro.url.pathname,
+  ogImage = '/og-default.svg',
+  noindex,
+  schema = [],
+  showMobileCta = true,
+} = Astro.props;
+
+const siteUrl = getSiteUrl(import.meta.env.PUBLIC_SITE_URL || Astro.site?.toString());
+const canonical = absoluteUrl(path, siteUrl);
+const fullTitle = titleTemplate(title);
+const shouldNoIndex = noindex ?? !siteConfig.allowIndexing;
+const ogImageUrl = absoluteUrl(ogImage, siteUrl);
+const graph = [organizationSchema(siteUrl), websiteSchema(siteUrl), ...schema];
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+const analyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN || '';
+---
+
+<!doctype html>
+<html lang={siteConfig.locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {shouldNoIndex ? (
+      <meta name="robots" content="noindex, nofollow" />
+    ) : (
+      <meta name="robots" content="index, follow" />
+    )}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_CA" />
+    <meta property="og:site_name" content={siteConfig.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <script is:inline type="application/ld+json" set:html={jsonLd(graph)} />
+    <script is:inline set:html={analyticsBootstrap} />
+    {analyticsToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: analyticsToken })}
+      />
+    )}
+  </head>
+  <body class:list={[{ 'pb-20 md:pb-0': showMobileCta }]}>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    {showMobileCta && <MobileStickyCta />}
+    <ChatIsland client:idle turnstileSiteKey={turnstileSiteKey} />
+  </body>
+</html>

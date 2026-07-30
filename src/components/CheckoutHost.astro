@@ -1,0 +1,8 @@
+---
+import CheckoutDrawer from './react/CheckoutDrawer';
+import { packages } from '../config/packages';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+---
+
+<CheckoutDrawer client:idle packages={packages} turnstileSiteKey={turnstileSiteKey} />

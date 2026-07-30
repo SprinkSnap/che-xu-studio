@@ -1,0 +1,46 @@
+---
+import type { FaqItem } from '../config/faq';
+import SectionHeading from './ui/SectionHeading.astro';
+
+interface Props {
+  items: FaqItem[];
+  title?: string;
+  lead?: string;
+}
+
+const {
+  items,
+  title = 'Questions, answered clearly',
+  lead = 'Transparent scope, pricing, and expectations—so you can choose with confidence.',
+} = Astro.props;
+---
+
+{
+  items.length > 0 && (
+    <section class="section bg-surface-muted">
+      <div class="container-shell">
+        <SectionHeading title={title} lead={lead} />
+        <div class="mt-10 divide-y divide-border rounded-[var(--radius-lg)] border border-border bg-white">
+          {items.map((item) => (
+            <details class="group px-5 py-4 sm:px-6">
+              <summary class="cursor-pointer list-none font-semibold text-navy-900 marker:content-none [&::-webkit-details-marker]:hidden">
+                <span class="flex items-start justify-between gap-4">
+                  <span>{item.question}</span>
+                  <span
+                    class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-500 transition group-open:rotate-45"
+                    aria-hidden="true"
+                  >
+                    +
+                  </span>
+                </span>
+              </summary>
+              <p class="mt-3 max-w-3xl text-sm leading-relaxed text-ink-muted sm:text-base">
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}

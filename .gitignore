@@ -1,0 +1,38 @@
+# build output
+dist/
+.wrangler/
+.astro/
+# Keep worker-configuration.d.ts committed as a local stub; regenerate when authenticated.
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables / secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.pem
+*.key
+
+# macOS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# test artifacts
+test-results/
+playwright-report/
+coverage/
+.turbo/
+
+# misc
+*.local

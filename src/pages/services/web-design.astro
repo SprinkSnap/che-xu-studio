@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import PricingCard from '../../components/PricingCard.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import FinalCta from '../../components/FinalCta.astro';
+import CheckoutHost from '../../components/CheckoutHost.astro';
+import SectionHeading from '../../components/ui/SectionHeading.astro';
+import { packages } from '../../config/packages';
+import { faqsForPage } from '../../config/faq';
+import { breadcrumbSchema, faqPageSchema, serviceSchema } from '../../lib/seo';
+
+const webPackages = packages.filter((p) => p.category === 'web-design');
+const faqItems = faqsForPage('web-design');
+---
+
+<BaseLayout
+  title="Web Design Services"
+  description="Premium theme and custom WordPress websites from Che Xu Studio—designed to convert on mobile and desktop."
+  path="/services/web-design"
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Web Design', path: '/services/web-design' },
+    ]),
+    serviceSchema({
+      name: 'Web Design',
+      description: 'Premium theme customization and custom WordPress website design focused on conversion.',
+      path: '/services/web-design',
+    }),
+    faqPageSchema(faqItems),
+  ]}
+>
+  <section class="hero-plane text-white">
+    <div class="container-shell section !pb-16 !pt-12">
+      <Breadcrumbs
+        tone="dark"
+        items={[
+          { name: 'Home', href: '/' },
+          { name: 'Services', href: '/services/web-design' },
+          { name: 'Web Design' },
+        ]}
+      />
+      <p class="eyebrow !text-blue-300">Web Design</p>
+      <h1 class="mt-3 max-w-3xl font-display text-4xl font-bold sm:text-5xl">
+        Websites that make the next step obvious.
+      </h1>
+      <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
+        From brand-aligned premium themes to fully custom WordPress builds—and optional SEO launch—Che Xu Studio focuses on clarity, speed, and conversion.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/pricing" class="btn btn-primary-on-dark">View web design packages</a>
+        <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+          Book a free strategy call
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container-shell grid gap-8 lg:grid-cols-3">
+      {[
+        {
+          title: 'Premium Theme Website',
+          body: 'Faster launches with a customized premium theme, essential pages, forms, and basic SEO setup.',
+        },
+        {
+          title: 'Custom Website',
+          body: 'Built from scratch around your brand and offers—with conversion-focused layouts and SEO-ready architecture.',
+        },
+        {
+          title: 'Custom + SEO Launch',
+          body: 'Custom build plus keyword research, technical SEO, on-page setup, tracking, and 30-day post-launch SEO support.',
+        },
+      ].map((item) => (
+        <article class="surface-card p-6">
+          <h2 class="font-display text-2xl font-bold text-navy-900">{item.title}</h2>
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted">
+    <div class="container-shell">
+      <SectionHeading title="Web design packages" lead="Starting prices in CAD. Final project quotes are confirmed in writing." />
+      <div class="mt-10 grid gap-5 lg:grid-cols-3">
+        {webPackages.map((pkg) => <PricingCard pkg={pkg} />)}
+      </div>
+    </div>
+  </section>
+
+  <FaqSection items={faqItems} />
+  <FinalCta />
+  <CheckoutHost />
+</BaseLayout>

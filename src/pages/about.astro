@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FinalCta from '../components/FinalCta.astro';
+import { siteConfig } from '../config/site';
+import { breadcrumbSchema } from '../lib/seo';
+---
+
+<BaseLayout
+  title="About"
+  description="Learn about Che Xu Studio—high-converting web design, SEO strategy, and website care for growing businesses."
+  path="/about"
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'About', path: '/about' },
+    ]),
+  ]}
+>
+  <section class="section">
+    <div class="container-shell max-w-3xl">
+      <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'About' }]} />
+      <p class="eyebrow">About</p>
+      <h1 class="mt-3 font-display text-4xl font-bold text-navy-900 sm:text-5xl">
+        {siteConfig.name}
+      </h1>
+      <p class="mt-4 text-xl font-medium text-navy-700">{siteConfig.tagline}</p>
+      <div class="prose mt-8 space-y-4 text-base leading-relaxed text-ink-muted">
+        <p>
+          Che Xu Studio helps growing businesses get found, win more customers, and stay online with conversion-focused web design, practical SEO strategy, and dependable website care.
+        </p>
+        <p>
+          We believe trustworthy marketing beats pressure tactics. That means clear scope, transparent starting prices in CAD, honest SEO expectations, and checkout experiences that never invent urgency or hide fees.
+        </p>
+        <p>
+          Whether you need a premium theme website, a custom WordPress build, SEO launch foundations, monthly growth, or ongoing maintenance, we help you choose the right package—not the most expensive one by default.
+        </p>
+      </div>
+      <div class="mt-10 flex flex-col gap-3 sm:flex-row">
+        <a href="/pricing" class="btn-primary">View packages</a>
+        <a href="/contact" class="btn-secondary">Contact Che Xu Studio</a>
+      </div>
+    </div>
+  </section>
+  <FinalCta />
+</BaseLayout>

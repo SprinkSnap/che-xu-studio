@@ -1,0 +1,36 @@
+---
+import { siteConfig } from '../config/site';
+
+interface Props {
+  variant?: 'light' | 'dark';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { variant = 'dark', size = 'md' } = Astro.props;
+const textClass = variant === 'light' ? 'text-white' : 'text-navy-900';
+const markClass = variant === 'light' ? 'bg-blue-400 text-navy-950' : 'bg-navy-900 text-white';
+const sizeClass =
+  size === 'lg' ? 'text-2xl sm:text-3xl' : size === 'sm' ? 'text-base' : 'text-lg sm:text-xl';
+---
+
+<a
+  href="/"
+  class:list={['group inline-flex items-center gap-2.5 font-display font-bold tracking-tight', textClass, sizeClass]}
+  aria-label={`${siteConfig.name} home`}
+>
+  <span
+    class:list={[
+      'inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shadow-soft transition group-hover:scale-[1.03]',
+      markClass,
+      size === 'lg' && 'h-11 w-11 text-base',
+    ]}
+    aria-hidden="true"
+  >
+    CX
+  </span>
+  <span>
+    Che Xu <span class:list={['font-semibold', variant === 'light' ? 'text-blue-300' : 'text-blue-500']}>Studio</span>
+  </span>
+</a>
+
+<!-- Temporary accessible CSS wordmark. Replace with a vector logo asset when available. -->

@@ -1,0 +1,45 @@
+---
+import SectionHeading from './ui/SectionHeading.astro';
+
+const steps = [
+  {
+    title: 'Clarify the goal',
+    body: 'We learn who you serve, what action matters most, and whether you need a new site, SEO growth, or ongoing care.',
+  },
+  {
+    title: 'Recommend the right package',
+    body: 'You get a clear package recommendation or exact quote—with scope, timeline, and starting price explained in plain language.',
+  },
+  {
+    title: 'Build for conversion',
+    body: 'We design and implement a mobile-first experience that makes it easy for visitors to enquire, book, or buy.',
+  },
+  {
+    title: 'Launch and improve',
+    body: 'We launch carefully, set up essentials like analytics where included, and can continue with SEO growth or website care.',
+  },
+];
+---
+
+<section class="section">
+  <div class="container-shell">
+    <SectionHeading
+      eyebrow="Process"
+      title="A clear path from first conversation to launch"
+      lead="No mystery milestones. You always know what happens next."
+    />
+    <ol class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+      {
+        steps.map((step, index) => (
+          <li class="relative rounded-[var(--radius-lg)] border border-border bg-white p-6 shadow-soft">
+            <span class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-md bg-navy-900 font-display text-lg font-bold text-white">
+              {index + 1}
+            </span>
+            <h3 class="font-display text-xl font-bold text-navy-900">{step.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-muted">{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>

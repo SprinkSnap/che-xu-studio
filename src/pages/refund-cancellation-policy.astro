@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { siteConfig } from '../config/site';
+---
+
+<BaseLayout
+  title="Refund & Cancellation Policy"
+  description="Refund and cancellation policy template for Che Xu Studio project deposits and monthly plans."
+  path="/refund-cancellation-policy"
+  noindex={!siteConfig.allowIndexing}
+>
+  <section class="section">
+    <div class="container-shell max-w-3xl">
+      <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Refund & cancellation' }]} />
+      <h1 class="font-display text-4xl font-bold text-navy-900">Refund & Cancellation Policy</h1>
+      <p class="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+        <strong>Owner / legal review required before launch.</strong> Confirm notice periods, deposit rules, and refund eligibility before accepting live payments.
+      </p>
+
+      <div class="mt-8 space-y-6 text-sm leading-relaxed text-ink-muted sm:text-base">
+        <section>
+          <h2 class="font-display text-2xl font-bold text-navy-900">Monthly plans</h2>
+          <p class="mt-2">
+            SEO & Conversion Growth and Website Care & Maintenance are monthly plans. You may request cancellation according to the notice period defined by the studio (to be confirmed by the owner before launch). Cancellations are processed without dark patterns or hidden retention traps.
+          </p>
+        </section>
+        <section>
+          <h2 class="font-display text-2xl font-bold text-navy-900">Project packages and deposits</h2>
+          <p class="mt-2">
+            Project packages priced as “starting at” typically require an exact quote before a fixed charge. If a project deposit Price ID is configured, deposits are applied toward the approved project scope as described in the written quote. Unused deposit handling should be defined by the owner before launch.
+          </p>
+        </section>
+        <section>
+          <h2 class="font-display text-2xl font-bold text-navy-900">Refunds</h2>
+          <p class="mt-2">
+            Because digital project work begins after agreement, refund eligibility depends on work completed and the written statement of work. Duplicate charges caused by technical errors will be investigated and corrected. Contact us via the Contact page for billing questions—do not retry payment unless instructed.
+          </p>
+        </section>
+        <section>
+          <h2 class="font-display text-2xl font-bold text-navy-900">How to cancel</h2>
+          <p class="mt-2">
+            Send a cancellation request through the Contact page (or the studio’s verified email when published). Include the subscription/package name and account email used at checkout.
+          </p>
+        </section>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

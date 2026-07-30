@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import ContactForm from '../components/react/ContactForm';
+import FaqSection from '../components/FaqSection.astro';
+import { siteConfig } from '../config/site';
+import { faqsForPage } from '../config/faq';
+import { breadcrumbSchema, faqPageSchema } from '../lib/seo';
+
+const faqItems = faqsForPage('contact');
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+const initialPlan = Astro.url.searchParams.get('plan') || undefined;
+const initialIntent = Astro.url.searchParams.get('intent') || undefined;
+---
+
+<BaseLayout
+  title="Contact"
+  description="Contact Che Xu Studio for web design, SEO, or website care. Ask for a package recommendation or exact quote."
+  path="/contact"
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Contact', path: '/contact' },
+    ]),
+    faqPageSchema(faqItems),
+  ]}
+>
+  <section class="section">
+    <div class="container-shell grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Contact' }]} />
+        <p class="eyebrow">Contact</p>
+        <h1 class="mt-3 font-display text-4xl font-bold text-navy-900 sm:text-5xl">
+          Talk with Che Xu Studio
+        </h1>
+        <p class="lead mt-4">
+          Prefer a person over the AI assistant? Send a short message or a detailed brief. We’ll help you choose the right package—or prepare an exact quote.
+        </p>
+        <div class="mt-6 space-y-3 text-sm text-ink-muted">
+          <p><strong class="text-navy-900">What happens next:</strong> we review your goals, confirm fit, and reply with clear next steps.</p>
+          {
+            siteConfig.contact.email && (
+              <p>
+                Email:{' '}
+                <a class="font-semibold text-blue-500" href={`mailto:${siteConfig.contact.email}`}>
+                  {siteConfig.contact.email}
+                </a>
+              </p>
+            )
+          }
+          {
+            siteConfig.contact.phone && (
+              <p>
+                Phone:{' '}
+                <a class="font-semibold text-blue-500" href={`tel:${siteConfig.contact.phone}`}>
+                  {siteConfig.contact.phoneDisplay || siteConfig.contact.phone}
+                </a>
+              </p>
+            )
+          }
+          {
+            siteConfig.contact.bookingUrl && (
+              <p>
+                <a class="btn-secondary mt-2 inline-flex" href={siteConfig.contact.bookingUrl}>
+                  Book a free strategy call
+                </a>
+              </p>
+            )
+          }
+          {
+            !siteConfig.contact.email &&
+              !siteConfig.contact.phone &&
+              !siteConfig.contact.bookingUrl && (
+                <p class="rounded-md border border-border bg-surface-muted p-3">
+                  Verified phone, email, and booking links will appear here once added in site configuration.
+                  The form below is the primary contact path.
+                </p>
+              )
+          }
+        </div>
+      </div>
+
+      <ContactForm
+        client:load
+        turnstileSiteKey={turnstileSiteKey}
+        initialPlan={initialPlan}
+        initialIntent={initialIntent}
+      />
+    </div>
+  </section>
+
+  <FaqSection items={faqItems} />
+</BaseLayout>

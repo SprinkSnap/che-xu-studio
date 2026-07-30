@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import PricingCard from '../components/PricingCard.astro';
+import FaqSection from '../components/FaqSection.astro';
+import FinalCta from '../components/FinalCta.astro';
+import CheckoutHost from '../components/CheckoutHost.astro';
+import SectionHeading from '../components/ui/SectionHeading.astro';
+import PricingCompare from '../components/react/PricingCompare';
+import { packages } from '../config/packages';
+import { faqsForPage } from '../config/faq';
+import { breadcrumbSchema, faqPageSchema, offerCatalogSchema } from '../lib/seo';
+
+const faqItems = faqsForPage('pricing');
+---
+
+<BaseLayout
+  title="Pricing Packages"
+  description="Compare Che Xu Studio web design, SEO, and website care packages with transparent CAD starting prices."
+  path="/pricing"
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Pricing', path: '/pricing' },
+    ]),
+    offerCatalogSchema(),
+    faqPageSchema(faqItems),
+  ]}
+>
+  <section class="section !pb-10">
+    <div class="container-shell">
+      <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Pricing' }]} />
+      <SectionHeading
+        level={1}
+        eyebrow="Pricing"
+        title="Clear packages. CAD starting prices. No dark patterns."
+        lead="Choose a package below, compare inclusions, or use the finder if you want a guided recommendation. Starting prices are confirmed after scope review for project work."
+      />
+      <p class="mt-6 max-w-3xl text-sm text-ink-muted">
+        Monthly plans can be cancelled according to the
+        <a class="font-semibold text-blue-500 underline" href="/refund-cancellation-policy">refund & cancellation policy</a>.
+        Project packages show “starting at” amounts—not guaranteed final invoices—unless a fixed Stripe price has been configured by the studio.
+      </p>
+    </div>
+  </section>
+
+  <section class="pb-16">
+    <div class="container-shell grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+      {packages.map((pkg) => <PricingCard pkg={pkg} />)}
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted" aria-labelledby="compare-heading">
+    <div class="container-shell">
+      <SectionHeading
+        title="Compare packages without tiny columns"
+        lead="On phones, compare with stacked cards. On larger screens, use a feature table for up to three packages at a time."
+      />
+      <div class="mt-8">
+        <PricingCompare client:visible packages={packages} />
+      </div>
+      <h2 id="compare-heading" class="sr-only">Compare packages</h2>
+    </div>
+  </section>
+
+  <FaqSection items={faqItems} />
+  <FinalCta />
+  <CheckoutHost />
+</BaseLayout>

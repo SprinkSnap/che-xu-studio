@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import PricingCard from '../../components/PricingCard.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import FinalCta from '../../components/FinalCta.astro';
+import CheckoutHost from '../../components/CheckoutHost.astro';
+import SectionHeading from '../../components/ui/SectionHeading.astro';
+import { packages } from '../../config/packages';
+import { faqsForPage } from '../../config/faq';
+import { breadcrumbSchema, faqPageSchema, serviceSchema } from '../../lib/seo';
+
+const seoPackages = packages.filter((p) => p.id === 'seo-growth' || p.id === 'custom-seo-launch');
+const faqItems = faqsForPage('seo');
+---
+
+<BaseLayout
+  title="SEO Strategy Services"
+  description="SEO launch foundations and monthly SEO & conversion growth from Che Xu Studio—without ranking guarantees."
+  path="/services/seo"
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'SEO Strategy', path: '/services/seo' },
+    ]),
+    serviceSchema({
+      name: 'SEO Strategy',
+      description: 'SEO launch foundations and ongoing SEO & conversion growth plans.',
+      path: '/services/seo',
+    }),
+    faqPageSchema(faqItems),
+  ]}
+>
+  <section class="hero-plane text-white">
+    <div class="container-shell section !pb-16 !pt-12">
+      <Breadcrumbs tone="dark" items={[{ name: 'Home', href: '/' }, { name: 'SEO Strategy' }]} />
+      <p class="eyebrow !text-green-100">SEO Strategy</p>
+      <h1 class="mt-3 max-w-3xl font-display text-4xl font-bold sm:text-5xl">
+        Get found—and make visits count.
+      </h1>
+      <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
+        Practical SEO that improves foundations, visibility opportunities, and conversion pathways. We never promise specific rankings.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/pricing#seo-growth" class="btn btn-primary-on-dark">View SEO Growth plan</a>
+        <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+          Talk about SEO goals
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container-shell">
+      <SectionHeading
+        title="Two ways to approach SEO"
+        lead="Launch foundations with a new custom website, or invest in ongoing monthly growth for an existing site."
+      />
+      <div class="mt-10 grid gap-5 lg:grid-cols-2">
+        {seoPackages.map((pkg) => <PricingCard pkg={pkg} />)}
+      </div>
+    </div>
+  </section>
+
+  <FaqSection items={faqItems} />
+  <FinalCta />
+  <CheckoutHost />
+</BaseLayout>

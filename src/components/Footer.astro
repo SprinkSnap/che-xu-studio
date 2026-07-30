@@ -1,0 +1,96 @@
+---
+import { siteConfig } from '../config/site';
+import Wordmark from './Wordmark.astro';
+import { packages } from '../config/packages';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-navy-800 bg-navy-950 text-blue-100">
+  <div class="container-shell section !pb-10 !pt-14">
+    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+      <div class="space-y-4 lg:col-span-1">
+        <Wordmark variant="light" />
+        <p class="max-w-sm text-sm leading-relaxed text-blue-100/80">
+          {siteConfig.tagline}
+        </p>
+        <p class="text-sm font-medium text-white">{siteConfig.supportingMessage}</p>
+      </div>
+
+      <div>
+        <h2 class="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white">
+          Services
+        </h2>
+        <ul class="space-y-2 text-sm">
+          <li><a class="hover:text-white" href="/services/web-design">Web Design</a></li>
+          <li><a class="hover:text-white" href="/services/seo">SEO Strategy</a></li>
+          <li><a class="hover:text-white" href="/services/website-care">Website Care</a></li>
+          <li><a class="hover:text-white" href="/pricing">Pricing packages</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white">
+          Packages
+        </h2>
+        <ul class="space-y-2 text-sm">
+          {
+            packages.map((pkg) => (
+              <li>
+                <a class="hover:text-white" href={pkg.href}>
+                  {pkg.shortName}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white">
+          Company
+        </h2>
+        <ul class="space-y-2 text-sm">
+          <li><a class="hover:text-white" href="/about">About</a></li>
+          <li><a class="hover:text-white" href="/work">Work</a></li>
+          <li><a class="hover:text-white" href="/contact">Contact</a></li>
+          <li><a class="hover:text-white" href="/insights">Insights</a></li>
+          <li><a class="hover:text-white" href="/privacy">Privacy</a></li>
+          <li><a class="hover:text-white" href="/terms">Terms</a></li>
+          <li>
+            <a class="hover:text-white" href="/refund-cancellation-policy">
+              Refund & cancellation
+            </a>
+          </li>
+        </ul>
+        {
+          (siteConfig.contact.email || siteConfig.contact.phone) && (
+            <div class="mt-5 space-y-1 text-sm">
+              {siteConfig.contact.email && (
+                <p>
+                  <a class="hover:text-white" href={`mailto:${siteConfig.contact.email}`}>
+                    {siteConfig.contact.email}
+                  </a>
+                </p>
+              )}
+              {siteConfig.contact.phone && (
+                <p>
+                  <a class="hover:text-white" href={`tel:${siteConfig.contact.phone}`}>
+                    {siteConfig.contact.phoneDisplay || siteConfig.contact.phone}
+                  </a>
+                </p>
+              )}
+            </div>
+          )
+        }
+      </div>
+    </div>
+
+    <div
+      class="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-blue-100/70 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>© {year} {siteConfig.legalName}. All rights reserved.</p>
+      <p>Prices shown in CAD. “Starting at” prices are confirmed after scope review.</p>
+    </div>
+  </div>
+</footer>

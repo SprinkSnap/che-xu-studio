@@ -1,0 +1,237 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/site';
+import OutcomeCards from '../components/OutcomeCards.astro';
+import ProcessSteps from '../components/ProcessSteps.astro';
+import PricingCard from '../components/PricingCard.astro';
+import FaqSection from '../components/FaqSection.astro';
+import FinalCta from '../components/FinalCta.astro';
+import SectionHeading from '../components/ui/SectionHeading.astro';
+import PackageFinder from '../components/react/PackageFinder';
+import CheckoutHost from '../components/CheckoutHost.astro';
+import { packages } from '../config/packages';
+import { faqsForPage } from '../config/faq';
+import { faqPageSchema, offerCatalogSchema } from '../lib/seo';
+
+const featured = packages.filter((p) =>
+  ['premium-theme', 'custom-seo-launch', 'seo-growth', 'website-care'].includes(p.id),
+);
+const faqItems = faqsForPage('home');
+---
+
+<BaseLayout
+  title="High-Converting Web Design & SEO"
+  description="Che Xu Studio designs fast, conversion-focused websites and SEO foundations that help Canadian businesses get found and win more customers."
+  path="/"
+  schema={[offerCatalogSchema(), faqPageSchema(faqItems)]}
+>
+  <!-- Announcement / trust strip -->
+  <div class="border-b border-white/10 bg-navy-950">
+    <div class="container-shell flex min-h-10 items-center justify-center py-2 text-center text-xs font-medium tracking-wide text-blue-100 sm:text-sm">
+      {siteConfig.trustStrip}
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero-plane relative overflow-hidden text-white">
+    <div class="container-shell relative grid min-h-[min(88vh,820px)] items-center gap-10 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-20">
+      <div class="reveal max-w-2xl">
+        <p class="eyebrow !text-blue-300">Web Design & SEO for Growing Businesses</p>
+        <h1 class="mt-4 font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+          Turn More Searches Into Customers.
+        </h1>
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-blue-100/90 sm:text-lg">
+          Che Xu Studio designs fast, conversion-focused websites and SEO foundations that help businesses get found—and make it easy for customers to take action.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a
+            href={siteConfig.cta.primary.href}
+            class="btn btn-primary-on-dark"
+            data-track="hero_cta_selected"
+            onclick="window.__cxTrack && window.__cxTrack({ event: 'hero_cta_selected', props: { cta: 'finder' } })"
+          >
+            Find My Best Package
+          </a>
+          <a href={siteConfig.cta.exploreServices.href} class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+            Explore Services
+          </a>
+        </div>
+        <p class="mt-5 text-sm text-blue-100/80">
+          Clear scope · Transparent starting prices · Mobile-first delivery
+        </p>
+      </div>
+
+      <div class="reveal reveal-delay-2 relative hidden lg:block" aria-hidden="true">
+        <div class="absolute inset-0 rounded-[var(--radius-xl)] bg-gradient-to-br from-blue-400/20 via-purple-500/10 to-transparent"></div>
+        <div class="relative overflow-hidden rounded-[var(--radius-xl)] border border-white/15 bg-white/5 p-6 backdrop-blur-sm">
+          <p class="font-display text-2xl font-bold">{siteConfig.name}</p>
+          <p class="mt-2 text-sm text-blue-100/85">{siteConfig.supportingMessage}</p>
+          <dl class="mt-8 space-y-4">
+            <div class="rounded-lg border border-white/10 bg-navy-950/40 p-4">
+              <dt class="text-xs uppercase tracking-[0.14em] text-blue-300">Web Design</dt>
+              <dd class="mt-1 text-sm text-blue-50">Premium themes & custom WordPress builds</dd>
+            </div>
+            <div class="rounded-lg border border-white/10 bg-navy-950/40 p-4">
+              <dt class="text-xs uppercase tracking-[0.14em] text-green-100">SEO Strategy</dt>
+              <dd class="mt-1 text-sm text-blue-50">Launch foundations & monthly growth plans</dd>
+            </div>
+            <div class="rounded-lg border border-white/10 bg-navy-950/40 p-4">
+              <dt class="text-xs uppercase tracking-[0.14em] text-gold-100">Website Care</dt>
+              <dd class="mt-1 text-sm text-blue-50">Updates, backups, security, and uptime</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <OutcomeCards />
+
+  <!-- Services overview -->
+  <section class="section bg-surface-muted" aria-labelledby="services-heading">
+    <div class="container-shell">
+      <SectionHeading
+        eyebrow="Services"
+        title="Web design, SEO, and care—connected to growth"
+        lead="Choose a focused engagement or combine launch and growth when your business is ready."
+      />
+      <div class="mt-10 grid gap-5 lg:grid-cols-3">
+        <a href="/services/web-design" class="surface-card accent-purple block p-6 transition hover:shadow-lift">
+          <h3 class="font-display text-2xl font-bold text-navy-900">Web Design</h3>
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+            Premium theme sites and custom WordPress builds designed to convert—not just look finished.
+          </p>
+          <span class="mt-5 inline-flex text-sm font-semibold text-purple-600">Explore web design →</span>
+        </a>
+        <a href="/services/seo" class="surface-card accent-green block p-6 transition hover:shadow-lift">
+          <h3 class="font-display text-2xl font-bold text-navy-900">SEO Strategy</h3>
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+            Launch SEO foundations and ongoing SEO & conversion growth with clear reporting—no ranking promises.
+          </p>
+          <span class="mt-5 inline-flex text-sm font-semibold text-green-600">Explore SEO →</span>
+        </a>
+        <a href="/services/website-care" class="surface-card accent-gold block p-6 transition hover:shadow-lift">
+          <h3 class="font-display text-2xl font-bold text-navy-900">Website Care</h3>
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+            Updates, backups, security monitoring, and priority support so your site stays online and healthy.
+          </p>
+          <span class="mt-5 inline-flex text-sm font-semibold text-gold-600">Explore website care →</span>
+        </a>
+      </div>
+      <h2 id="services-heading" class="sr-only">Services</h2>
+    </div>
+  </section>
+
+  <!-- Package finder -->
+  <section id="package-finder" class="section" aria-labelledby="finder-heading">
+    <div class="container-shell grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <SectionHeading
+        eyebrow="Package finder"
+        title="Not sure where to start?"
+        lead="Answer a few guided questions and get one clear recommendation—with every package still available to compare."
+      />
+      <PackageFinder client:visible />
+      <h2 id="finder-heading" class="sr-only">Package finder</h2>
+    </div>
+  </section>
+
+  <!-- Featured packages -->
+  <section class="section bg-surface-muted" aria-labelledby="pricing-heading">
+    <div class="container-shell">
+      <SectionHeading
+        eyebrow="Pricing"
+        title="Featured packages with transparent starting prices"
+        lead="All prices are in CAD. “Starting at” means a typical scope—your exact quote is confirmed before any fixed charge."
+      />
+      <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {featured.map((pkg) => <PricingCard pkg={pkg} />)}
+      </div>
+      <div class="mt-8">
+        <a href="/pricing" class="btn-secondary">Compare all five packages</a>
+      </div>
+      <h2 id="pricing-heading" class="sr-only">Featured pricing</h2>
+    </div>
+  </section>
+
+  <ProcessSteps />
+
+  <!-- What every project includes / work -->
+  <section class="section bg-surface-muted" aria-labelledby="includes-heading">
+    <div class="container-shell">
+      {
+        siteConfig.projects.length > 0 ? (
+          <>
+            <SectionHeading
+              eyebrow="Work"
+              title="Selected projects"
+              lead="Verified client work approved for publication."
+            />
+            <div class="mt-10 grid gap-5 md:grid-cols-2">
+              {siteConfig.projects.map((project) => (
+                <article class="surface-card p-6">
+                  <h3 class="font-display text-2xl font-bold text-navy-900">{project.title}</h3>
+                  <p class="mt-3 text-sm text-ink-muted">{project.summary}</p>
+                </article>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <SectionHeading
+              eyebrow="Delivery standards"
+              title="What every project includes"
+              lead="Until verified case studies are published, here is the baseline you can expect from Che Xu Studio."
+            />
+            <ul class="mt-10 grid gap-4 sm:grid-cols-2">
+              {[
+                'Mobile-first layouts that prioritize the primary customer action',
+                'Clear scope summaries before build or subscription work begins',
+                'Performance-minded implementation and sensible SEO foundations',
+                'Launch support and plain-language next-step guidance',
+                'Transparent starting prices in CAD with written confirmations for fixed fees',
+                'A human path to ask questions—never pressure tactics or fake urgency',
+              ].map((item) => (
+                <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 text-sm leading-relaxed text-ink">
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p class="mt-6 text-sm text-ink-muted">
+              Looking for examples? Visit the <a class="font-semibold text-blue-500 underline" href="/work">Work page</a> for our publication policy.
+            </p>
+          </>
+        )
+      }
+      <h2 id="includes-heading" class="sr-only">Project standards</h2>
+    </div>
+  </section>
+
+  <!-- Why Che Xu Studio -->
+  <section class="section" aria-labelledby="why-heading">
+    <div class="container-shell grid gap-10 lg:grid-cols-2 lg:items-center">
+      <SectionHeading
+        eyebrow="Why Che Xu Studio"
+        title="Conversion-minded craft without the fluff"
+        lead="We focus on clarity, speed, and trustworthy decision-making—so choosing a package feels straightforward."
+      />
+      <ul class="space-y-4">
+        {[
+          { t: 'Decision clarity', d: 'Package finder, comparison views, and plain disclosures reduce guesswork.' },
+          { t: 'Practical SEO', d: 'Foundations and monthly growth work that respect how search actually works—no ranking guarantees.' },
+          { t: 'Secure checkout', d: 'Stripe-powered payments for configured plans; quotes first when scope is still variable.' },
+          { t: 'Human when you need it', d: 'AI assistant for quick answers; contact form when you want a person.' },
+        ].map((item) => (
+          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+            <h3 class="font-semibold text-navy-900">{item.t}</h3>
+            <p class="mt-1 text-sm text-ink-muted">{item.d}</p>
+          </li>
+        ))}
+      </ul>
+      <h2 id="why-heading" class="sr-only">Why Che Xu Studio</h2>
+    </div>
+  </section>
+
+  <FaqSection items={faqItems} />
+  <FinalCta />
+  <CheckoutHost />
+</BaseLayout>

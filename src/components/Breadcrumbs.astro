@@ -1,0 +1,37 @@
+---
+interface Props {
+  items: Array<{ name: string; href?: string }>;
+  tone?: 'light' | 'dark';
+}
+
+const { items, tone = 'light' } = Astro.props;
+const muted = tone === 'dark' ? 'text-blue-100/75' : 'text-ink-muted';
+const current = tone === 'dark' ? 'text-white' : 'text-ink';
+const link = tone === 'dark' ? 'hover:text-white' : 'hover:text-blue-500';
+const sep = tone === 'dark' ? 'text-white/30' : 'text-border-strong';
+---
+
+<nav aria-label="Breadcrumb" class="mb-6">
+  <ol class:list={['flex flex-wrap items-center gap-2 text-sm', muted]}>
+    {
+      items.map((item, index) => (
+        <li class="inline-flex items-center gap-2">
+          {index > 0 && (
+            <span aria-hidden="true" class={sep}>
+              /
+            </span>
+          )}
+          {item.href && index < items.length - 1 ? (
+            <a href={item.href} class={link}>
+              {item.name}
+            </a>
+          ) : (
+            <span aria-current={index === items.length - 1 ? 'page' : undefined} class={current}>
+              {item.name}
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

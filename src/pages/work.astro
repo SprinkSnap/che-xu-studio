@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FinalCta from '../components/FinalCta.astro';
+import { siteConfig } from '../config/site';
+import { breadcrumbSchema } from '../lib/seo';
+
+const projects = siteConfig.projects;
+---
+
+<BaseLayout
+  title="Work"
+  description="Verified Che Xu Studio projects and results. Empty sections stay hidden until approved case studies are available."
+  path="/work"
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Work', path: '/work' },
+    ]),
+  ]}
+>
+  <section class="section">
+    <div class="container-shell">
+      <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Work' }]} />
+      <p class="eyebrow">Work</p>
+      <h1 class="mt-3 font-display text-4xl font-bold text-navy-900 sm:text-5xl">
+        Selected work
+      </h1>
+      <p class="lead mt-4 max-w-2xl">
+        We only publish projects, logos, testimonials, and metrics that are verified and approved. No fabricated case studies.
+      </p>
+
+      {
+        projects.length === 0 ? (
+          <div class="mt-10 max-w-2xl rounded-[var(--radius-lg)] border border-border bg-surface-muted p-6">
+            <h2 class="font-display text-2xl font-bold text-navy-900">Case studies coming after owner approval</h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+              This page intentionally has no sample portfolio items yet. When verified projects are added in
+              <code class="rounded bg-white px-1.5 py-0.5 text-xs">src/config/site.ts</code>, they will appear here automatically.
+            </p>
+            <ul class="mt-5 list-disc space-y-2 pl-5 text-sm text-ink-muted">
+              <li>Mobile-first conversion design</li>
+              <li>SEO-ready information architecture</li>
+              <li>Clear calls to action and contact paths</li>
+              <li>Performance-minded WordPress delivery</li>
+            </ul>
+            <a href="/contact" class="btn-primary mt-6 inline-flex">Discuss your project</a>
+          </div>
+        ) : (
+          <div class="mt-10 grid gap-5 md:grid-cols-2">
+            {projects.map((project) => (
+              <article class="surface-card p-6">
+                <h2 class="font-display text-2xl font-bold text-navy-900">{project.title}</h2>
+                {project.industry && <p class="mt-1 text-sm font-medium text-blue-500">{project.industry}</p>}
+                <p class="mt-3 text-sm text-ink-muted">{project.summary}</p>
+                {project.results && project.results.length > 0 && (
+                  <ul class="mt-4 space-y-1 text-sm text-navy-800">
+                    {project.results.map((r) => (
+                      <li>
+                        <strong>{r.value}</strong> — {r.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+  <FinalCta />
+</BaseLayout>

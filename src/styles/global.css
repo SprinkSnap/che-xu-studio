@@ -1,0 +1,255 @@
+@import "tailwindcss";
+
+/* -------------------------------------------------------------------------
+   Design tokens — Che Xu Studio
+   Deep navy base · Electric blue · Purple (custom) · Green (SEO) · Gold (care)
+   ------------------------------------------------------------------------- */
+
+@theme {
+  --font-display: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --font-sans: "DM Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-navy-950: #06101f;
+  --color-navy-900: #0b1c33;
+  --color-navy-800: #122744;
+  --color-navy-700: #1a3558;
+  --color-navy-600: #24456e;
+
+  /* Brand palette (custom names avoid clashing with default Tailwind scales) */
+  --color-brand: #0f4fd1;
+  --color-brand-bright: #3d86ff;
+  --color-brand-soft: #9cc2ff;
+  --color-brand-tint: #e8f1ff;
+  --color-brand-wash: #f4f8ff;
+
+  --color-blue-500: #0f4fd1;
+  --color-blue-400: #3d86ff;
+  --color-blue-300: #9cc2ff;
+  --color-blue-100: #e8f1ff;
+  --color-blue-50: #f4f8ff;
+
+  --color-purple-600: #4c2fc4;
+  --color-purple-500: #5b3fd6;
+  --color-purple-100: #efeaff;
+
+  --color-green-600: #0b6f3c;
+  --color-green-500: #0f8a4b;
+  --color-green-100: #e8f8ef;
+
+  --color-gold-600: #92400e;
+  --color-gold-500: #b45309;
+  --color-gold-100: #fff6e0;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f8ff;
+  --color-ink: #0b1c33;
+  --color-ink-muted: #3d516b;
+  --color-border: #d7e3f4;
+  --color-border-strong: #b7c9e2;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-soft: 0 10px 30px -18px rgb(6 16 31 / 0.35);
+  --shadow-lift: 0 18px 40px -24px rgb(6 16 31 / 0.45);
+
+  --breakpoint-xs: 390px;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --header-height: 4.25rem;
+    --mobile-cta-height: 4.25rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-surface text-ink font-sans antialiased;
+    font-feature-settings: "ss01" on, "kern" on;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-brand-bright) 35%, white);
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-3 focus:text-navy-900 focus:shadow-lift;
+  }
+
+  .container-shell {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-primary-on-dark,
+  .btn-secondary,
+  .btn-ghost {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] px-5 py-2.5 text-sm font-semibold transition duration-200;
+  }
+
+  .btn-primary {
+    background-color: #0b45bf;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .btn-primary:hover {
+    background-color: #0939a0;
+  }
+
+  /* High-contrast CTA for navy / gradient surfaces (avoids anti-alias blend fails). */
+  .btn-primary-on-dark {
+    background-color: #ffffff;
+    color: #06101f;
+    font-weight: 700;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .btn-primary-on-dark:hover {
+    background-color: #e8f1ff;
+    color: #06101f;
+  }
+
+  .btn-secondary {
+    @apply border border-border-strong bg-white text-navy-900 hover:border-brand hover:text-brand;
+  }
+
+  .btn-ghost {
+    @apply text-blue-100 hover:bg-white/10;
+  }
+
+  .section {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-brand;
+  }
+
+  .lead {
+    @apply text-base leading-relaxed text-ink-muted sm:text-lg;
+  }
+
+  .surface-card {
+    @apply rounded-[var(--radius-lg)] border border-border bg-white shadow-soft;
+  }
+
+  .accent-blue {
+    --accent: var(--color-brand);
+    --accent-soft: var(--color-brand-tint);
+  }
+  .accent-purple {
+    --accent: var(--color-purple-600);
+    --accent-soft: var(--color-purple-100);
+  }
+  .accent-green {
+    --accent: var(--color-green-600);
+    --accent-soft: var(--color-green-100);
+  }
+  .accent-gold {
+    --accent: var(--color-gold-600);
+    --accent-soft: var(--color-gold-100);
+  }
+
+  .hero-plane {
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgb(61 134 255 / 0.28), transparent 60%),
+      radial-gradient(900px 420px at 10% 10%, rgb(109 77 255 / 0.18), transparent 55%),
+      linear-gradient(165deg, var(--color-navy-950) 0%, var(--color-navy-900) 45%, var(--color-navy-800) 100%);
+  }
+
+  .reveal {
+    animation: rise-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .reveal-delay-1 {
+    animation-delay: 120ms;
+  }
+  .reveal-delay-2 {
+    animation-delay: 220ms;
+  }
+  .reveal-delay-3 {
+    animation-delay: 320ms;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Self-hosted font faces (files in /public/fonts). Fallback stacks remain strong if files are absent. */
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/dm-sans-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/dm-sans-latin-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/source-serif-4-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/source-serif-4-latin-700.woff2") format("woff2");
+}

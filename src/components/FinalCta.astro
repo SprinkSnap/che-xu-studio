@@ -1,0 +1,25 @@
+---
+import { siteConfig } from '../config/site';
+---
+
+<section class="section">
+  <div class="container-shell">
+    <div class="hero-plane overflow-hidden rounded-[var(--radius-xl)] px-6 py-12 text-white sm:px-10 sm:py-14">
+      <div class="max-w-2xl">
+        <p class="eyebrow !text-blue-300">Ready when you are</p>
+        <h2 class="mt-3 font-display text-3xl font-bold sm:text-4xl">
+          Let’s choose the package that fits your next step.
+        </h2>
+        <p class="mt-4 text-base text-blue-100/90 sm:text-lg">
+          Use the package finder for a guided recommendation, or talk with us first if you want a human perspective before deciding.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a href={siteConfig.cta.primary.href} class="btn btn-primary-on-dark">{siteConfig.cta.primary.label}</a>
+          <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+            Talk to a person
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

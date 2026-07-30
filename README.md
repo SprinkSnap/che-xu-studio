@@ -79,37 +79,45 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
 - `AI_MODEL`
 - optional `PUBLIC_CF_WEB_ANALYTICS_TOKEN`
 
-### Deploy note (entrypoint)
+### Deploy note (entrypoint + SESSION KV)
 
-Cloudflare Workers Builds often runs `npx wrangler deploy` after `npm run build` **without** Astro’s `.wrangler` redirect. Wrangler also cannot resolve the package-export string `@astrojs/cloudflare/entrypoints/server` as a filesystem path.
+Cloudflare Workers Builds must use this repo’s deploy wrapper (not bare `wrangler deploy`).
 
-This repo therefore:
+This repo:
 
 1. Keeps bindings in `wrangler.jsonc` (no package-export `main`)
 2. Runs `scripts/prepare-cf-deploy.mjs` at the end of `npm run build`
 3. Writes a gitignored root `wrangler.json` with `main: ./dist/server/entry.mjs`
+4. Strips id-less KV bindings and disables Wrangler auto-provisioning on deploy
 
 Use:
 
 ```bash
 npm run build
-npx wrangler deploy --dry-run
+npm run deploy:dry-run
 # or
 npm run deploy
 ```
 
-Cloudflare dashboard / Workers Builds settings:
+**Cloudflare dashboard / Workers Builds settings (required):**
 
 - **Build command:** `npm run build`
-- **Deploy command:** `npx wrangler deploy`
+- **Deploy command:** `npm run cf:deploy`  
+  (`node scripts/cf-deploy.mjs` — runs `wrangler deploy --config wrangler.json --x-provision=false`)
 - Worker name should match `che-xu-studio-site`
+
+Do **not** set Deploy command to bare `npx wrangler deploy`. That re-enables resource
+auto-provisioning and can fail with API **10014** when `che-xu-studio-site-session`
+(or similar) already exists from an earlier Astro SESSION KV auto-create.
 
 ### Sessions / KV note
 
-This site does **not** use Astro sessions. Config sets an in-memory session driver so
-`@astrojs/cloudflare` does not auto-provision a `SESSION` KV namespace. That avoids
-Workers Builds failing with Cloudflare API **10014** (`a namespace with this account ID
-and title already exists`) on redeploys after an earlier auto-created `*-session` KV.
+This site does **not** use Astro sessions. Config sets `sessionDrivers.null()` so
+`@astrojs/cloudflare` does not emit a `SESSION` KV binding. `prepare-cf-deploy.mjs`
+also strips any id-less KV entries, and `cf:deploy` passes `--x-provision=false`.
+
+Optional one-time cleanup in the Cloudflare dashboard: delete the unused
+`che-xu-studio-site-session` KV namespace if it exists (safe — this site does not use it).
 
 If you later need Astro sessions, add the existing KV namespace id under `kv_namespaces`
 in `wrangler.jsonc` (do not leave `id` blank) and switch the session driver back to

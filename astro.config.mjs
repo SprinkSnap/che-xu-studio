@@ -19,7 +19,7 @@ export default defineConfig({
   // Workers Builds repeatedly tries to create that namespace (API error 10014
   // when a *-session KV title already exists from a prior deploy).
   session: {
-    driver: sessionDrivers.lruCache(),
+    driver: sessionDrivers.null(),
   },
   integrations: [react()],
   vite: {

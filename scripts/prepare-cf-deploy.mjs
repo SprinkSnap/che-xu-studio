@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,6 +6,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const generatedPath = resolve(root, 'dist/server/wrangler.json');
 const entryPath = resolve(root, 'dist/server/entry.mjs');
 const clientDir = resolve(root, 'dist/client');
+const rootWranglerPath = resolve(root, 'wrangler.json');
 const PLACEHOLDER_DB = '00000000-0000-0000-0000-000000000000';
 
 if (!existsSync(generatedPath) || !existsSync(entryPath) || !existsSync(clientDir)) {
@@ -18,76 +19,114 @@ if (!existsSync(generatedPath) || !existsSync(entryPath) || !existsSync(clientDi
   process.exit(1);
 }
 
+/**
+ * Remove bindings that trigger Wrangler auto-provisioning without resource IDs.
+ * Incomplete SESSION KV bindings are the common Workers Builds failure mode (API 10014).
+ */
+function sanitizeBindings(config, { log = true } = {}) {
+  const next = { ...config };
+
+  // Drop Astro/Wrangler merge metadata — deploy should use this file as-is.
+  delete next.configPath;
+  delete next.userConfigPath;
+  delete next.topLevelName;
+  delete next.definedEnvironments;
+  delete next.previews;
+  delete next.dev;
+
+  if (Array.isArray(next.kv_namespaces)) {
+    const before = next.kv_namespaces;
+    next.kv_namespaces = before.filter((ns) => Boolean(ns?.id));
+    const removed = before.length - next.kv_namespaces.length;
+    if (log && removed > 0) {
+      console.warn(
+        `[prepare-cf-deploy] Removed ${removed} KV binding(s) without id (avoids API 10014 auto-provision).`,
+      );
+    }
+    if (next.kv_namespaces.length === 0) {
+      delete next.kv_namespaces;
+    }
+  }
+
+  if (Array.isArray(next.d1_databases)) {
+    const usable = next.d1_databases.filter(
+      (db) => db?.database_id && db.database_id !== PLACEHOLDER_DB,
+    );
+    const omitted = next.d1_databases.length - usable.length;
+    if (log && omitted > 0) {
+      console.warn(
+        [
+          `[prepare-cf-deploy] Omitting ${omitted} D1 binding(s) with missing/placeholder database_id.`,
+          'Marketing pages still deploy. Contact lead persistence stays offline until you run:',
+          '  npx wrangler login && npm run db:create && npm run db:migrate:remote',
+          'Then commit the updated wrangler.jsonc and redeploy.',
+        ].join('\n'),
+      );
+    }
+    if (usable.length > 0) {
+      next.d1_databases = usable;
+    } else {
+      delete next.d1_databases;
+    }
+  }
+
+  return next;
+}
+
 const generated = JSON.parse(readFileSync(generatedPath, 'utf8'));
 
-const deployConfig = {
-  ...generated,
-  // Keep the Cloudflare Workers service name in sync with the dashboard project.
-  name: 'che-xu-studio-site',
-  main: './dist/server/entry.mjs',
-  assets: {
-    ...(generated.assets || {}),
-    directory: './dist/client',
-    binding: generated.assets?.binding || 'ASSETS',
+// Keep Astro-relative paths in dist/server/wrangler.json (main: entry.mjs, assets: ../client).
+const serverConfig = sanitizeBindings(
+  {
+    ...generated,
+    name: 'che-xu-studio-site',
   },
-};
-
-// Drop auto-provisioned SESSION KV entries that have no namespace id.
-// Wrangler treats `{ binding: "SESSION" }` as "create this namespace", which fails
-// with Cloudflare API 10014 when a namespace with that title already exists.
-if (Array.isArray(deployConfig.kv_namespaces)) {
-  const before = deployConfig.kv_namespaces.length;
-  deployConfig.kv_namespaces = deployConfig.kv_namespaces.filter(
-    (ns) => ns?.id || (ns?.binding && ns.binding !== 'SESSION'),
-  );
-  const removed = before - deployConfig.kv_namespaces.length;
-  if (removed > 0) {
-    console.warn(
-      `[prepare-cf-deploy] Removed ${removed} SESSION KV binding(s) without id (avoids API 10014).`,
-    );
-  }
-  if (deployConfig.kv_namespaces.length === 0) {
-    delete deployConfig.kv_namespaces;
-  }
-}
-
-// D1 is optional for marketing-site deploys. A placeholder database_id is rejected by
-// the Cloudflare API and previously failed Workers Builds. Omit the binding until a
-// real id is committed; contact/webhook persistence returns 503 without DB.
-if (Array.isArray(deployConfig.d1_databases)) {
-  const usable = deployConfig.d1_databases.filter(
-    (db) => db?.database_id && db.database_id !== PLACEHOLDER_DB,
-  );
-  const omitted = deployConfig.d1_databases.length - usable.length;
-  if (omitted > 0) {
-    console.warn(
-      [
-        `[prepare-cf-deploy] Omitting ${omitted} D1 binding(s) with missing/placeholder database_id.`,
-        'Marketing pages still deploy. Contact lead persistence stays offline until you run:',
-        '  npx wrangler login && npm run db:create && npm run db:migrate:remote',
-        'Then commit the updated wrangler.jsonc and redeploy.',
-      ].join('\n'),
-    );
-  }
-  if (usable.length > 0) {
-    deployConfig.d1_databases = usable;
-  } else {
-    delete deployConfig.d1_databases;
-  }
-}
-
-// wrangler.json is preferred over wrangler.jsonc and is gitignored.
-const deployJson = `${JSON.stringify(deployConfig, null, 2)}\n`;
-writeFileSync(resolve(root, 'wrangler.json'), deployJson);
-// Workers Builds / newer Wrangler may follow .wrangler/deploy/config.json to this path.
-writeFileSync(generatedPath, deployJson);
-
-// Also restore/ensure the Astro deploy redirect used by newer Wrangler versions.
-const redirectDir = resolve(root, '.wrangler/deploy');
-mkdirSync(redirectDir, { recursive: true });
-writeFileSync(
-  resolve(redirectDir, 'config.json'),
-  `${JSON.stringify({ configPath: '../../dist/server/wrangler.json', auxiliaryWorkers: [] }, null, 2)}\n`,
+  { log: true },
 );
 
-console.log('[prepare-cf-deploy] Wrote wrangler.json and dist/server/wrangler.json');
+// Root wrangler.json is preferred by Workers Builds when present (gitignored).
+const rootConfig = sanitizeBindings(
+  {
+    ...generated,
+    name: 'che-xu-studio-site',
+    main: './dist/server/entry.mjs',
+    assets: {
+      ...(generated.assets || {}),
+      directory: './dist/client',
+      binding: generated.assets?.binding || 'ASSETS',
+    },
+  },
+  { log: false },
+);
+
+const serverJson = `${JSON.stringify(serverConfig, null, 2)}\n`;
+const rootJson = `${JSON.stringify(rootConfig, null, 2)}\n`;
+
+writeFileSync(generatedPath, serverJson);
+writeFileSync(rootWranglerPath, rootJson);
+
+// Prefer the root cleaned config. Remove Astro's deploy redirect so Wrangler cannot
+// fall back to a stale/generated path that still carries incomplete SESSION bindings.
+const redirectDir = resolve(root, '.wrangler/deploy');
+const redirectPath = resolve(redirectDir, 'config.json');
+if (existsSync(redirectPath)) {
+  rmSync(redirectPath);
+  console.warn('[prepare-cf-deploy] Removed .wrangler/deploy/config.json redirect');
+}
+
+const danglingKv = rootConfig.kv_namespaces?.filter((ns) => !ns?.id) ?? [];
+if (danglingKv.length > 0) {
+  console.error('[prepare-cf-deploy] Refusing to write deploy config with id-less KV bindings:');
+  console.error(JSON.stringify(danglingKv, null, 2));
+  process.exit(1);
+}
+
+console.log(
+  [
+    '[prepare-cf-deploy] Wrote cleaned deploy configs:',
+    `  ${rootWranglerPath}`,
+    `  ${generatedPath}`,
+    `  kv_namespaces: ${JSON.stringify(rootConfig.kv_namespaces ?? null)}`,
+    `  d1_databases: ${rootConfig.d1_databases ? rootConfig.d1_databases.length : 0}`,
+  ].join('\n'),
+);

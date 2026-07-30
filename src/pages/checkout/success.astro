@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+---
+
+<BaseLayout
+  title="Checkout confirmation"
+  description="Online card checkout is not enabled yet. Request a quote through the Che Xu Studio contact form."
+  path="/checkout/success"
+  noindex={true}
+  showMobileCta={false}
+>
+  <section class="section">
+    <div class="container-shell max-w-2xl">
+      <Breadcrumbs
+        items={[
+          { name: 'Home', href: '/' },
+          { name: 'Checkout', href: '/contact' },
+          { name: 'Confirmation' },
+        ]}
+      />
+      <h1 class="font-display text-4xl font-bold text-navy-900">
+        Online checkout isn’t available yet
+      </h1>
+      <p class="lead mt-4">
+        Package requests currently start with a quote through our contact form. No payment was
+        collected on this page.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/contact?intent=quote" class="btn-primary">Request a quote</a>
+        <a href="/pricing" class="btn-secondary">View packages</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

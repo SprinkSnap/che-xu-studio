@@ -6,7 +6,7 @@ import { siteConfig } from '../config/site';
 
 <BaseLayout
   title="Privacy Policy"
-  description="Privacy policy template for Che Xu Studio covering forms, checkout, analytics, and AI chat."
+  description="Privacy policy template for Che Xu Studio covering forms, analytics, and AI chat."
   path="/privacy"
   noindex={!siteConfig.allowIndexing}
 >
@@ -33,9 +33,6 @@ import { siteConfig } from '../config/site';
               <strong>Contact / lead forms:</strong> name, email, service interest, message, optional phone, optional project brief fields, marketing consent status, and timestamps.
             </li>
             <li>
-              <strong>Checkout:</strong> name, email, optional company/website/goal, and Stripe-handled payment details (card data never touches our servers).
-            </li>
-            <li>
               <strong>Security signals:</strong> Cloudflare Turnstile tokens, IP-based rate-limit keys, and standard request metadata for abuse prevention.
             </li>
             <li>
@@ -51,7 +48,6 @@ import { siteConfig } from '../config/site';
           <h2 class="font-display text-2xl font-bold text-navy-900">How we use information</h2>
           <ul class="mt-2 list-disc space-y-2 pl-5">
             <li>Respond to enquiries and prepare quotes</li>
-            <li>Create Stripe Checkout sessions and fulfil verified orders</li>
             <li>Provide AI assistant answers based on published site content</li>
             <li>Prevent spam and abuse</li>
             <li>Send marketing updates only when you give separate marketing consent</li>
@@ -61,14 +57,14 @@ import { siteConfig } from '../config/site';
         <section>
           <h2 class="font-display text-2xl font-bold text-navy-900">Processors</h2>
           <p class="mt-2">
-            Depending on configuration, we use Cloudflare (hosting, D1, Workers AI, Turnstile, optional Web Analytics) and Stripe (payments). Their processing is subject to their respective terms and privacy policies.
+            Depending on configuration, we use Cloudflare (hosting, D1, Workers AI, Turnstile, optional Web Analytics). Their processing is subject to their respective terms and privacy policies.
           </p>
         </section>
 
         <section>
           <h2 class="font-display text-2xl font-bold text-navy-900">Retention</h2>
           <p class="mt-2">
-            Consented lead records and verified order records are stored in Cloudflare D1 for business operations and accounting needs. Exact retention periods should be set by the business owner and documented here before launch.
+            Consented lead records may be stored in Cloudflare D1 for business operations. Exact retention periods should be set by the business owner and documented here before launch.
           </p>
         </section>
 

@@ -186,22 +186,18 @@ export default function PackageFinder() {
               {recommendation.reason}
             </p>
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <a href={recommendation.pkg.href} className="btn-primary">
+              <a
+                href={`/contact?plan=${encodeURIComponent(recommendation.pkg.id)}&intent=quote`}
+                className="btn-primary"
+              >
+                Continue with this package
+              </a>
+              <a href={recommendation.pkg.href} className="btn-secondary">
                 View full package
               </a>
               <a href="/pricing" className="btn-secondary">
                 Compare all packages
               </a>
-              <a href="/contact" className="btn-secondary">
-                Talk to us first
-              </a>
-              <button
-                type="button"
-                className="btn-primary"
-                data-checkout-open={recommendation.pkg.id}
-              >
-                Continue with this package
-              </button>
             </div>
             <button type="button" className="mt-4 text-sm text-ink-muted underline" onClick={reset}>
               Start over

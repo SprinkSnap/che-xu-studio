@@ -1,24 +1,11 @@
 # Copy to `.dev.vars` for local development. Never commit real secrets.
 
-# Public site URL used for canonical URLs, CORS, and Stripe redirects
+# Public site URL used for canonical URLs and CORS
 PUBLIC_SITE_URL=http://localhost:4321
 
 # Cloudflare Turnstile (create keys at https://dash.cloudflare.com/?to=/:account/turnstile)
 PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
 TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
-
-# Stripe test-mode keys (https://dashboard.stripe.com/test/apikeys)
-STRIPE_SECRET_KEY=sk_test_replace_me
-STRIPE_WEBHOOK_SECRET=whsec_replace_me
-
-# Optional: fixed Stripe Price IDs for packages approved for direct checkout.
-# Leave blank to force "Get My Exact Quote" for starting-at project packages.
-STRIPE_PRICE_PREMIUM_THEME=
-STRIPE_PRICE_CUSTOM_WEBSITE=
-STRIPE_PRICE_CUSTOM_SEO_LAUNCH=
-STRIPE_PRICE_SEO_GROWTH=price_test_seo_growth
-STRIPE_PRICE_WEBSITE_CARE=price_test_website_care
-STRIPE_PRICE_PROJECT_DEPOSIT=
 
 # Workers AI model (must be a currently supported Workers AI instruction model)
 AI_MODEL=@cf/meta/llama-3.1-8b-instruct

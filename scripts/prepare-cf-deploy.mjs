@@ -63,7 +63,7 @@ if (Array.isArray(deployConfig.d1_databases)) {
     console.warn(
       [
         `[prepare-cf-deploy] Omitting ${omitted} D1 binding(s) with missing/placeholder database_id.`,
-        'Marketing pages still deploy. Contact leads + Stripe order persistence stay offline until you run:',
+        'Marketing pages still deploy. Contact lead persistence stays offline until you run:',
         '  npx wrangler login && npm run db:create && npm run db:migrate:remote',
         'Then commit the updated wrangler.jsonc and redeploy.',
       ].join('\n'),

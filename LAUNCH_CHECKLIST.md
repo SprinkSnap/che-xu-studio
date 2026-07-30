@@ -1,6 +1,6 @@
 # Launch checklist — Che Xu Studio
 
-Use this before any production DNS cutover or live Stripe charges. Do **not** deploy paid resources without explicit authorization.
+Use this before any production DNS cutover. Do **not** deploy paid resources without explicit authorization.
 
 ## Content & brand
 
@@ -18,12 +18,12 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
   - `/terms`
   - `/refund-cancellation-policy`
 - [ ] Confirm cancellation notice periods and deposit/refund rules
-- [ ] Confirm retention periods for leads and orders
+- [ ] Confirm retention periods for leads
 
 ## Cloudflare
 
 - [ ] First marketing deploy can proceed **without** D1 (placeholder `database_id` is omitted automatically)
-- [ ] Before enabling contact leads / Stripe order persistence: create D1 and commit real `database_id`
+- [ ] Before enabling contact lead persistence: create D1 and commit real `database_id`
   - Run `npx wrangler login && npm run db:create && npm run db:migrate:remote`
   - Commit the updated `database_id`, then redeploy
 - [ ] Confirm Workers AI enabled for the account (chat returns 503 without `AI`)
@@ -38,14 +38,11 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
 - [ ] Confirm Worker name is `che-xu-studio-site` (matches wrangler.jsonc)
 - [ ] Confirm deploy config has no id-less `SESSION` KV binding (site uses in-memory session driver; avoids API 10014)
 
-## Stripe
+## Payments
 
-- [ ] Create test products/prices and verify checkout end-to-end
-- [ ] Configure webhook in test mode; verify signature + idempotency
-- [ ] Decide which project packages use fixed Price IDs vs quote-only vs deposit
-- [ ] Create live mode products/prices only when authorized
-- [ ] Configure live webhook endpoint and `STRIPE_WEBHOOK_SECRET`
-- [ ] Confirm wallets / payment methods in Stripe Dashboard settings
+- [ ] Online card checkout is intentionally **not** enabled yet
+- [ ] Confirm package CTAs route to `/contact?plan=…&intent=quote`
+- [ ] Confirm invoice / payment process used offline until a processor is added later
 
 ## Security & quality
 
@@ -55,13 +52,12 @@ Use this before any production DNS cutover or live Stripe charges. Do **not** de
 - [ ] `npm run build` passes
 - [ ] `npm run deploy:dry-run` passes
 - [ ] Spot-check mobile widths: 360, 390, 768, 1024, 1440
-- [ ] Keyboard-test nav, package finder, checkout drawer, chat, contact form
+- [ ] Keyboard-test nav, package finder, chat, contact form
 - [ ] Confirm no secrets in client bundles or git history
-- [ ] Confirm CSP still allows Stripe + Turnstile after any script changes
+- [ ] Confirm CSP still allows Turnstile after any script changes
 
 ## Go-live
 
 - [ ] Explicit authorization to deploy and point DNS
-- [ ] Explicit authorization for live Stripe charges
-- [ ] Monitor first contact submissions and a test live/small transaction if authorized
+- [ ] Monitor first contact submissions
 - [ ] Submit sitemap in Search Console after indexing is enabled

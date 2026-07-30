@@ -4,8 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import PricingCard from '../../components/PricingCard.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import FinalCta from '../../components/FinalCta.astro';
-import CheckoutHost from '../../components/CheckoutHost.astro';
-import { packages } from '../../config/packages';
+import { packages, quoteContactHref } from '../../config/packages';
 import { faqsForPage } from '../../config/faq';
 import { breadcrumbSchema, faqPageSchema, serviceSchema } from '../../lib/seo';
 
@@ -41,7 +40,7 @@ const faqItems = faqsForPage('website-care');
         Proactive WordPress care for businesses that want fewer surprises—updates, backups, monitoring, and priority issue resolution.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <button type="button" class="btn btn-primary-on-dark" data-checkout-open={care.id}>Start Website Care</button>
+        <a href={quoteContactHref(care.id)} class="btn btn-primary-on-dark">Start Website Care</a>
         <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
           Ask about your stack
         </a>
@@ -61,5 +60,4 @@ const faqItems = faqsForPage('website-care');
 
   <FaqSection items={faqItems} />
   <FinalCta />
-  <CheckoutHost />
 </BaseLayout>

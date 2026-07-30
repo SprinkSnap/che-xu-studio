@@ -1,5 +1,5 @@
 ---
-import type { ServicePackage } from '../config/packages';
+import { quoteContactHref, type ServicePackage } from '../config/packages';
 
 interface Props {
   pkg: ServicePackage;
@@ -9,6 +9,7 @@ interface Props {
 
 const { pkg, featured = pkg.popular, showCta = true } = Astro.props;
 const accentClass = `accent-${pkg.accent}`;
+const quoteHref = quoteContactHref(pkg.id);
 ---
 
 <article
@@ -76,15 +77,14 @@ const accentClass = `accent-${pkg.accent}`;
   {
     showCta && (
       <div class="mt-6 flex flex-col gap-2">
-        <button
-          type="button"
-          class="btn-primary w-full"
-          data-checkout-open={pkg.id}
+        <a
+          href={quoteHref}
+          class="btn-primary w-full text-center"
           data-track="pricing_card_selected"
           data-track-prop={pkg.id}
         >
-          {pkg.billing === 'monthly' ? 'Start this plan' : 'Get started'}
-        </button>
+          {pkg.billing === 'monthly' ? 'Request this plan' : 'Get a quote'}
+        </a>
         <a href={pkg.serviceHref} class="btn-secondary w-full text-center">
           Learn about this service
         </a>

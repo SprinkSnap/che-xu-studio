@@ -1,12 +1,11 @@
 /**
  * Single source of truth for service packages.
- * Pricing cards, comparison tables, checkout, structured data, and AI chat all read from here.
+ * Pricing cards, comparison tables, structured data, and AI chat all read from here.
  */
 
 export type BillingType = 'one_time' | 'monthly';
 export type PackageCategory = 'web-design' | 'seo' | 'website-care';
 export type AccentTone = 'blue' | 'purple' | 'green' | 'gold';
-export type CheckoutMode = 'quote' | 'fixed_price' | 'subscription' | 'deposit';
 
 export interface ServicePackage {
   id: string;
@@ -25,15 +24,6 @@ export interface ServicePackage {
   summary: string;
   disclosures: string[];
   includes: string[];
-  /** Internal Stripe price env key mapped server-side only. */
-  stripePriceEnvKey?:
-    | 'STRIPE_PRICE_PREMIUM_THEME'
-    | 'STRIPE_PRICE_CUSTOM_WEBSITE'
-    | 'STRIPE_PRICE_CUSTOM_SEO_LAUNCH'
-    | 'STRIPE_PRICE_SEO_GROWTH'
-    | 'STRIPE_PRICE_WEBSITE_CARE';
-  /** How checkout behaves when a Stripe Price ID is / is not configured. */
-  defaultCheckoutMode: CheckoutMode;
   href: string;
   serviceHref: string;
 }
@@ -67,8 +57,6 @@ export const packages: ServicePackage[] = [
       'Google Analytics and Search Console setup',
       'Website launch',
     ],
-    stripePriceEnvKey: 'STRIPE_PRICE_PREMIUM_THEME',
-    defaultCheckoutMode: 'quote',
     href: '/pricing#premium-theme',
     serviceHref: '/services/web-design',
   },
@@ -103,8 +91,6 @@ export const packages: ServicePackage[] = [
       'Training session',
       'Website launch',
     ],
-    stripePriceEnvKey: 'STRIPE_PRICE_CUSTOM_WEBSITE',
-    defaultCheckoutMode: 'quote',
     href: '/pricing#custom-website',
     serviceHref: '/services/web-design',
   },
@@ -142,8 +128,6 @@ export const packages: ServicePackage[] = [
       'Conversion tracking',
       '30-day post-launch SEO support',
     ],
-    stripePriceEnvKey: 'STRIPE_PRICE_CUSTOM_SEO_LAUNCH',
-    defaultCheckoutMode: 'quote',
     href: '/pricing#custom-seo-launch',
     serviceHref: '/services/web-design',
   },
@@ -177,8 +161,6 @@ export const packages: ServicePackage[] = [
       'Action plan and recommendations',
       'Email and phone support',
     ],
-    stripePriceEnvKey: 'STRIPE_PRICE_SEO_GROWTH',
-    defaultCheckoutMode: 'subscription',
     href: '/pricing#seo-growth',
     serviceHref: '/services/seo',
   },
@@ -211,8 +193,6 @@ export const packages: ServicePackage[] = [
       'Technical support',
       'Priority issue resolution',
     ],
-    stripePriceEnvKey: 'STRIPE_PRICE_WEBSITE_CARE',
-    defaultCheckoutMode: 'subscription',
     href: '/pricing#website-care',
     serviceHref: '/services/website-care',
   },
@@ -226,6 +206,11 @@ export const ALLOWED_PLAN_IDS = packages.map((pkg) => pkg.id);
 
 export function getPackageById(id: string): ServicePackage | undefined {
   return packageById[id];
+}
+
+/** Contact form deep-link for requesting a quote on a package. */
+export function quoteContactHref(planId: string): string {
+  return `/contact?plan=${encodeURIComponent(planId)}&intent=quote`;
 }
 
 export function formatCad(amount: number): string {

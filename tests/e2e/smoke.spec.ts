@@ -31,13 +31,12 @@ test.describe('critical marketing flows', () => {
     await expect(finder.getByRole('link', { name: 'Compare all packages' })).toBeVisible();
   });
 
-  test('checkout drawer opens from pricing and is dismissible', async ({ page }) => {
+  test('pricing CTAs link to contact quote flow', async ({ page }) => {
     await page.goto('/pricing/');
-    await page.locator('[data-checkout-open="website-care"]').first().click();
-    const dialog = page.getByRole('dialog').filter({ hasText: 'Website Care' });
-    await expect(dialog).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(dialog).toHaveCount(0);
+    const quoteLink = page.locator('[data-package-id="website-care"] a[href*="/contact"]').first();
+    await expect(quoteLink).toBeVisible();
+    await expect(quoteLink).toHaveAttribute('href', /plan=website-care/);
+    await expect(quoteLink).toHaveAttribute('href', /intent=quote/);
   });
 
   test('contact page has accessible form labels', async ({ page }) => {

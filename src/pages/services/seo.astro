@@ -4,7 +4,6 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import PricingCard from '../../components/PricingCard.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import FinalCta from '../../components/FinalCta.astro';
-import CheckoutHost from '../../components/CheckoutHost.astro';
 import SectionHeading from '../../components/ui/SectionHeading.astro';
 import { packages } from '../../config/packages';
 import { faqsForPage } from '../../config/faq';
@@ -64,5 +63,4 @@ const faqItems = faqsForPage('seo');
 
   <FaqSection items={faqItems} />
   <FinalCta />
-  <CheckoutHost />
 </BaseLayout>

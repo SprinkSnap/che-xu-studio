@@ -2,20 +2,21 @@
 
 Premium, mobile-first marketing site for **Che Xu Studio** — high-converting web design, SEO strategy, and website care (CAD / `en-CA`).
 
-Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Workers** (D1, Workers AI, Turnstile, Rate Limiting, Stripe Checkout).
+Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Workers** (D1, Workers AI, Turnstile, Rate Limiting).
 
 > Temporary accessible CSS wordmark is used in the header/footer. Replace with a vector logo when available (`src/components/Wordmark.astro`).
+
+> Online card checkout is **not** enabled yet (no Stripe account). Package CTAs route to `/contact` for quotes.
 
 ## Architecture overview
 
 | Layer | Responsibility |
 | --- | --- |
 | Astro pages | Statically generated marketing routes, SEO metadata, structured data |
-| React islands | Package finder, checkout drawer, contact form, chat, mobile nav, comparison |
+| React islands | Package finder, contact form, chat, mobile nav, comparison |
 | `src/config/*` | Owner-editable site, package, and FAQ source of truth |
-| `/api/*` Worker endpoints | Checkout, contact leads, AI chat, Stripe webhooks (`import { env } from 'cloudflare:workers'`) |
-| Cloudflare D1 | Consented leads + verified order / event records |
-| Stripe Checkout | Card/wallet payments; no raw card data on this app |
+| `/api/*` Worker endpoints | Contact leads, AI chat (`import { env } from 'cloudflare:workers'`) |
+| Cloudflare D1 | Consented lead records (optional until `database_id` is set) |
 | Workers AI | Chat assistant grounded in package + FAQ data |
 | Turnstile + rate limits | Abuse protection on sensitive endpoints |
 
@@ -24,17 +25,16 @@ Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Work
 - `/` homepage
 - `/services/web-design`, `/services/seo`, `/services/website-care`
 - `/pricing`, `/about`, `/work`, `/contact`, `/insights`
-- `/checkout/success`, `/checkout/cancelled`
 - `/privacy`, `/terms`, `/refund-cancellation-policy`
 - Custom `404`
-- `/api/checkout`, `/api/contact`, `/api/chat`, `/api/webhooks/stripe`
+- `/api/contact`, `/api/chat`
 
 ## Local setup
 
 ```bash
 npm install
 cp .dev.vars.example .dev.vars
-# Edit .dev.vars with Stripe test keys, Turnstile test keys, and PUBLIC_SITE_URL
+# Edit .dev.vars with Turnstile test keys and PUBLIC_SITE_URL
 npm run db:migrate:local
 npm run dev
 ```
@@ -47,13 +47,9 @@ Copy from `.dev.vars.example`. Never commit `.dev.vars` or real secrets.
 
 | Variable | Purpose |
 | --- | --- |
-| `PUBLIC_SITE_URL` | Canonical origin for SEO, CORS, Stripe redirects |
+| `PUBLIC_SITE_URL` | Canonical origin for SEO and CORS |
 | `PUBLIC_TURNSTILE_SITE_KEY` | Turnstile site key (public) |
 | `TURNSTILE_SECRET_KEY` | Turnstile secret (server) |
-| `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `STRIPE_PRICE_*` | Allowlisted Price IDs mapped server-side only |
-| `STRIPE_PRICE_PROJECT_DEPOSIT` | Optional deposit price for starting-at projects |
 | `AI_MODEL` | Workers AI model id |
 | `PUBLIC_CF_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics |
 
@@ -74,11 +70,6 @@ Owner-editable non-secret content lives in:
 
 ```bash
 npx wrangler secret put TURNSTILE_SECRET_KEY
-npx wrangler secret put STRIPE_SECRET_KEY
-npx wrangler secret put STRIPE_WEBHOOK_SECRET
-# optional price IDs as secrets or vars
-npx wrangler secret put STRIPE_PRICE_SEO_GROWTH
-npx wrangler secret put STRIPE_PRICE_WEBSITE_CARE
 ```
 
 4. Set public vars in the Cloudflare dashboard or `[vars]` in Wrangler (do not put secrets there):
@@ -129,7 +120,7 @@ in `wrangler.jsonc` (do not leave `id` blank) and switch the session driver back
 Workers Builds **succeeds without D1**. While `database_id` is still the placeholder
 `00000000-0000-0000-0000-000000000000`, `prepare-cf-deploy.mjs` omits the `DB` binding
 so Cloudflare does not reject the deploy. Marketing pages go live; contact lead storage
-and Stripe order persistence return **503** until D1 is wired.
+returns **503** until D1 is wired.
 
 On a machine logged into the Cloudflare account that owns `che-xu-studio-site`:
 
@@ -153,9 +144,9 @@ API endpoints already degrade without Cloudflare resources:
 | Endpoint | Without resource |
 | --- | --- |
 | `/api/contact` | 503 if `DB` missing |
-| `/api/webhooks/stripe` | 503 if `DB` or Stripe secrets missing |
-| `/api/checkout` | Works without `DB` (skips pending order row); needs Stripe secrets |
 | `/api/chat` | 503 if `AI` missing |
+
+Package CTAs use `/contact?plan=…&intent=quote` (no online card checkout yet).
 
 ### Workers AI binding
 
@@ -163,7 +154,7 @@ The `ai.binding = "AI"` entry in `wrangler.jsonc` enables Workers AI. Ensure the
 
 ### Rate-limiter setup
 
-`CHAT_RATE_LIMITER`, `CONTACT_RATE_LIMITER`, and `CHECKOUT_RATE_LIMITER` are declared under `ratelimits` in `wrangler.jsonc`. Adjust `namespace_id`, `limit`, and `period` per account needs.
+`CHAT_RATE_LIMITER` and `CONTACT_RATE_LIMITER` are declared under `ratelimits` in `wrangler.jsonc`. Adjust `namespace_id`, `limit`, and `period` per account needs.
 
 ### Turnstile setup
 
@@ -171,25 +162,6 @@ The `ai.binding = "AI"` entry in `wrangler.jsonc` enables Workers AI. Ensure the
 2. Put the site key in `PUBLIC_TURNSTILE_SITE_KEY`.
 3. Put the secret in `TURNSTILE_SECRET_KEY`.
 4. Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
-
-## Stripe setup
-
-1. Create Products/Prices in Stripe **test mode** for:
-   - SEO Growth (recurring)
-   - Website Care (recurring)
-   - Optional fixed project prices / deposit
-2. Copy Price IDs into env vars (`STRIPE_PRICE_*`).
-3. For starting-at project packages **without** a fixed Price ID, checkout returns `422 quoteRequired` and the UI routes to `/contact` for an exact quote.
-4. Webhook endpoint: `https://YOUR_DOMAIN/api/webhooks/stripe`
-   - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`
-5. Local webhook testing:
-
-```bash
-stripe listen --forward-to localhost:4321/api/webhooks/stripe
-# put the printed whsec_… into .dev.vars as STRIPE_WEBHOOK_SECRET
-```
-
-Checkout never accepts prices, modes, or Price IDs from the browser—only an internal `planId` allowlist.
 
 ## Development and test commands
 
@@ -211,15 +183,12 @@ Install Playwright browsers once:
 npx playwright install chromium
 ```
 
-## Local Stripe test (exact steps)
+## Local quote / contact test
 
-1. Create Stripe test Products/Prices for at least SEO Growth and Website Care.
-2. Put `STRIPE_SECRET_KEY` and Price IDs into `.dev.vars`.
-3. Run `npm run db:migrate:local && npm run build && npm run preview`.
-4. In another terminal: `stripe listen --forward-to localhost:4321/api/webhooks/stripe` and copy `whsec_…` into `.dev.vars`, then restart preview.
-5. Open `/pricing`, start Website Care checkout, complete with Stripe test card `4242 4242 4242 4242`.
-6. Confirm `/checkout/success` verifies the session and the webhook writes/updates the D1 order.
-7. Retry a manipulated client payload (`price` / `stripePriceId` in JSON) and confirm `/api/checkout` rejects it.
+1. Run `npm run build && npm run preview` (or `npm run dev`).
+2. Open `/pricing` and choose **Get a quote** / **Request this plan** on a package.
+3. Confirm you land on `/contact` with the package pre-selected and a quote intent message.
+4. Submit the contact form with Turnstile test keys and confirm success (needs D1 for persistence).
 
 ## Local Workers AI chat test (exact steps)
 
@@ -241,7 +210,6 @@ See [`LAUNCH_CHECKLIST.md`](./LAUNCH_CHECKLIST.md).
 3. Confirm TLS is active.
 4. Set `PUBLIC_SITE_URL` to the production origin.
 5. Set `siteConfig.allowIndexing = true` only when ready to index.
-6. Point Stripe webhook to the production `/api/webhooks/stripe` endpoint with live secrets only after explicit authorization.
 
 ## Owner review still required
 
@@ -249,11 +217,11 @@ Before launch, the business owner (or qualified legal counsel) must supply/revie
 
 - Verified email, phone, booking URL, address, social profiles (`src/config/site.ts`)
 - Vector logo asset
-- Stripe live Price IDs and deposit policy
 - Legal text on Privacy, Terms, and Refund/Cancellation pages
 - Whether `allowIndexing` should be enabled
 - Any verified testimonials, logos, case studies, or metrics (otherwise leave arrays empty)
-- Retention periods for leads/orders
+- Retention periods for leads
+- Whether/when to add online card checkout later
 
 ## Design notes
 

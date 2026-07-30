@@ -4,7 +4,6 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import PricingCard from '../components/PricingCard.astro';
 import FaqSection from '../components/FaqSection.astro';
 import FinalCta from '../components/FinalCta.astro';
-import CheckoutHost from '../components/CheckoutHost.astro';
 import SectionHeading from '../components/ui/SectionHeading.astro';
 import PricingCompare from '../components/react/PricingCompare';
 import { packages } from '../config/packages';
@@ -39,7 +38,7 @@ const faqItems = faqsForPage('pricing');
       <p class="mt-6 max-w-3xl text-sm text-ink-muted">
         Monthly plans can be cancelled according to the
         <a class="font-semibold text-blue-500 underline" href="/refund-cancellation-policy">refund & cancellation policy</a>.
-        Project packages show “starting at” amounts—not guaranteed final invoices—unless a fixed Stripe price has been configured by the studio.
+        Project packages show “starting at” amounts—not guaranteed final invoices. We confirm scope in writing before any invoice.
       </p>
     </div>
   </section>
@@ -65,5 +64,4 @@ const faqItems = faqsForPage('pricing');
 
   <FaqSection items={faqItems} />
   <FinalCta />
-  <CheckoutHost />
 </BaseLayout>

@@ -13,6 +13,10 @@
   // `npm run build` runs scripts/prepare-cf-deploy.mjs afterward, which writes a
   // gitignored root wrangler.json pointing at dist/server/entry.mjs for deploy.
 
+  // Keep dashboard Variables across deploys. Secrets should persist separately;
+  // cf-deploy also re-uploads Builds secrets via --secrets-file.
+  "keep_vars": true,
+
   "observability": {
     "enabled": true
   },

@@ -35,6 +35,9 @@ function sanitizeBindings(config, { log = true } = {}) {
   delete next.previews;
   delete next.dev;
 
+  // Preserve dashboard Variables when Wrangler replaces remote config.
+  next.keep_vars = true;
+
   if (Array.isArray(next.kv_namespaces)) {
     const before = next.kv_namespaces;
     next.kv_namespaces = before.filter((ns) => Boolean(ns?.id));

@@ -6,17 +6,24 @@
  * Wrangler resource auto-provisioning (`--x-provision=false`) so a pre-existing
  * `*-session` KV namespace cannot fail the deploy with API error 10014.
  *
- * Also passes `--keep-vars` so dashboard Variables/Secrets (Turnstile, PUBLIC_SITE_URL)
- * are not wiped on every Workers Builds deploy (wrangler deletes unbound vars by default).
+ * Also passes `--keep-vars` so dashboard Variables/Secrets are not wiped, and
+ * re-injects PUBLIC_* vars from process.env (Workers Builds env) into wrangler.json
+ * so Turnstile works even when dashboard vars were never bound.
  *
  * Workers Builds settings:
  *   Build command:  npm run build
  *   Deploy command: npm run cf:deploy
+ *   Environment variables:
+ *     PUBLIC_TURNSTILE_SITE_KEY
+ *     PUBLIC_SITE_URL=https://chexustudio.com
+ *   Worker secret (Settings → Variables and Secrets):
+ *     TURNSTILE_SECRET_KEY
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { injectPublicWorkerVars } from './inject-public-vars.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const configPath = resolve(root, 'wrangler.json');
@@ -33,6 +40,20 @@ if (danglingKv.length > 0) {
   console.error(JSON.stringify(danglingKv, null, 2));
   console.error('Re-run `npm run build` (prepare-cf-deploy should strip these).');
   process.exit(1);
+}
+
+const { config: withVars, applied } = injectPublicWorkerVars(config, process.env, { log: true });
+writeFileSync(configPath, `${JSON.stringify(withVars, null, 2)}\n`);
+
+if (!applied.includes('PUBLIC_TURNSTILE_SITE_KEY')) {
+  console.warn(
+    [
+      '[cf-deploy] PUBLIC_TURNSTILE_SITE_KEY is not set in this environment.',
+      'Contact form will fall back to mailto until you add it under:',
+      '  Workers Builds → Settings → Variables → PUBLIC_TURNSTILE_SITE_KEY',
+      'Then retry the deployment.',
+    ].join('\n'),
+  );
 }
 
 const args = [

@@ -168,19 +168,20 @@ The `ai.binding = "AI"` entry in `wrangler.jsonc` enables Workers AI. Ensure the
 
 Without these, `/contact` shows “Online form delivery is not fully configured yet” and falls back to mailto.
 
-1. Cloudflare Dashboard → **Turnstile** → **Add widget**
-   - Domains: `chexustudio.com` (and `*.jason-010.workers.dev` if you use the preview URL)
+1. Cloudflare Dashboard → **Turnstile** → **Add widget** (Managed mode)
+   - Domains: `chexustudio.com` (and your `*.workers.dev` preview host if needed)
 2. Copy the **Site Key** and **Secret Key**
-3. Workers & Pages → **`che-xu-studio-site`** → **Settings** → **Variables and Secrets**
-   - Variable (plain text): `PUBLIC_TURNSTILE_SITE_KEY` = site key
-   - Variable (plain text): `PUBLIC_SITE_URL` = `https://chexustudio.com`
+3. **Workers Builds** (connected to `che-xu-studio-site`) → **Settings** → **Variables**
+   - `PUBLIC_TURNSTILE_SITE_KEY` = site key
+   - `PUBLIC_SITE_URL` = `https://chexustudio.com`
+   These are injected into the Worker on every `npm run cf:deploy`.
+4. Worker **`che-xu-studio-site`** → **Settings** → **Variables and Secrets**
    - Secret: `TURNSTILE_SECRET_KEY` = secret key
-4. Also add the same `PUBLIC_*` values under **Workers Builds → Settings → Environment variables** so builds can see them
-5. Redeploy (or Retry deployment). Confirm `/api/public-config` returns a non-empty `turnstileSiteKey`.
-6. Optional but recommended for saving leads: create D1 (`npm run db:create` + migrate) and commit the real `database_id`
+5. Retry deployment. Deploy logs should include: `Injected wrangler vars: PUBLIC_TURNSTILE_SITE_KEY, ...`
+6. Confirm: `https://che-xu-studio-site.<account>.workers.dev/api/public-config` returns a non-empty `turnstileSiteKey`
+7. Optional but recommended for saving leads: create D1 (`npm run db:create` + migrate) and commit the real `database_id`
 
-Note: `npm run cf:deploy` uses `--keep-vars` so dashboard variables are not deleted on each deploy.
-If you previously set vars and still see an empty key, re-add them once after this flag is live, then redeploy.
+Note: `npm run cf:deploy` uses `--keep-vars` and also writes PUBLIC_* values from the Builds environment into `wrangler.json` vars so they are not lost between deploys.
 
 Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
 

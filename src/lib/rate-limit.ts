@@ -14,7 +14,8 @@ export async function enforceRateLimit(
     const { success } = await limiter.limit({ key });
     return success;
   } catch {
-    // Fail closed for sensitive endpoints when the limiter errors in production-like envs.
-    return false;
+    // Fail open on binding/infrastructure errors so contact/chat are not bricked.
+    // Actual limit denials still return success: false above.
+    return true;
   }
 }

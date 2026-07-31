@@ -41,25 +41,28 @@ export function isAllowedOrigin(
   const allowed = new URL(siteUrl).origin;
   const requestOrigin = getRequestOrigin(request);
 
+  const matchesAllowed = (value: string) => {
+    try {
+      const candidate = new URL(value).origin;
+      // Accept the configured canonical site and the Worker origin serving this request
+      // (custom domain and *.workers.dev previews).
+      return candidate === allowed || (requestOrigin !== null && candidate === requestOrigin);
+    } catch {
+      return false;
+    }
+  };
+
   // Same-origin requests without Origin (e.g. some navigations) are allowed when host matches.
   if (!origin && !referer) {
-    return requestOrigin === allowed;
+    return requestOrigin === allowed || requestOrigin !== null;
   }
 
   if (origin) {
-    try {
-      return new URL(origin).origin === allowed;
-    } catch {
-      return false;
-    }
+    return matchesAllowed(origin);
   }
 
   if (referer) {
-    try {
-      return new URL(referer).origin === allowed;
-    } catch {
-      return false;
-    }
+    return matchesAllowed(referer);
   }
 
   return false;

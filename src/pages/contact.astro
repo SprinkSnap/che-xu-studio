@@ -83,6 +83,7 @@ const initialIntent = Astro.url.searchParams.get('intent') || undefined;
       <ContactForm
         client:load
         turnstileSiteKey={turnstileSiteKey}
+        contactEmail={siteConfig.contact.email}
         initialPlan={initialPlan}
         initialIntent={initialIntent}
       />

@@ -171,17 +171,22 @@ Without these, `/contact` shows “Online form delivery is not fully configured 
 1. Cloudflare Dashboard → **Turnstile** → **Add widget** (Managed mode)
    - Domains: `chexustudio.com` (and your `*.workers.dev` preview host if needed)
 2. Copy the **Site Key** and **Secret Key**
-3. **Workers Builds** (connected to `che-xu-studio-site`) → **Settings** → **Variables**
-   - `PUBLIC_TURNSTILE_SITE_KEY` = site key
-   - `PUBLIC_SITE_URL` = `https://chexustudio.com`
-   These are injected into the Worker on every `npm run cf:deploy`.
-4. Worker **`che-xu-studio-site`** → **Settings** → **Variables and Secrets**
-   - Secret: `TURNSTILE_SECRET_KEY` = secret key
-5. Retry deployment. Deploy logs should include: `Injected wrangler vars: PUBLIC_TURNSTILE_SITE_KEY, ...`
+3. Confirm Workers Builds **Deploy command** is `npm run cf:deploy` (not bare `npx wrangler deploy`)
+4. **Workers Builds** → **Settings** → **Variables**
+   - Plain variable: `PUBLIC_TURNSTILE_SITE_KEY` = site key
+   - Plain variable: `PUBLIC_SITE_URL` = `https://chexustudio.com`
+   - **Encrypt secret:** `TURNSTILE_SECRET_KEY` = secret key  
+     Use type **Secret / Encrypt**, not a plain Variable. Plain Variables can be wiped on deploy.
+5. Retry deployment. Deploy logs should include:
+   - `Injected wrangler vars: PUBLIC_TURNSTILE_SITE_KEY, ...`
+   - `Uploading runtime secrets: TURNSTILE_SECRET_KEY`
 6. Confirm: `https://che-xu-studio-site.<account>.workers.dev/api/public-config` returns a non-empty `turnstileSiteKey`
 7. Optional but recommended for saving leads: create D1 (`npm run db:create` + migrate) and commit the real `database_id`
 
-Note: `npm run cf:deploy` uses `--keep-vars` and also writes PUBLIC_* values from the Builds environment into `wrangler.json` vars so they are not lost between deploys.
+Notes:
+
+- `npm run cf:deploy` uses `--keep-vars`, sets `keep_vars: true`, injects PUBLIC_* into `wrangler.json`, and re-uploads Builds secrets via `--secrets-file`.
+- Do **not** store `TURNSTILE_SECRET_KEY` as a plain Worker Variable. If the dashboard offers Type, choose **Secret**.
 
 Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
 
@@ -191,12 +196,13 @@ Successful form submissions are saved in D1 and also emailed to `info@chexustudi
 
 1. Create a free account at [resend.com](https://resend.com) and add an API key
 2. Add and verify domain `chexustudio.com` in Resend (DNS records)
-3. Worker **`che-xu-studio-site`** → **Settings** → **Variables and Secrets**:
-   - Secret: `RESEND_API_KEY` = your Resend API key
+3. **Workers Builds** → **Settings** → **Variables**
+   - **Encrypt secret:** `RESEND_API_KEY`
+4. Worker **`che-xu-studio-site`** → **Settings** → **Variables and Secrets** (plain Variables are OK here):
    - Variable: `CONTACT_FROM_EMAIL` = `Che Xu Studio <info@chexustudio.com>`
    - Optional variable: `CONTACT_NOTIFY_EMAIL` = `info@chexustudio.com` (default)
-4. Redeploy / retry deployment
-5. Submit a test contact — check the `info@chexustudio.com` inbox (and spam)
+5. Redeploy / retry deployment (logs should show `Uploading runtime secrets: ... RESEND_API_KEY`)
+6. Submit a test contact — check the `info@chexustudio.com` inbox (and spam)
 
 Until `RESEND_API_KEY` is set, leads still save in D1; only the inbox email is skipped.
 

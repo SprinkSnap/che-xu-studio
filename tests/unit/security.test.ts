@@ -17,6 +17,14 @@ describe('origin checks', () => {
     });
     expect(isAllowedOrigin(req, 'https://example.com')).toBe(false);
   });
+
+  it('allows the Worker request origin even when it differs from the canonical site URL', () => {
+    const req = new Request('https://che-xu-studio-site.jason-010.workers.dev/api/contact', {
+      method: 'POST',
+      headers: { Origin: 'https://che-xu-studio-site.jason-010.workers.dev' },
+    });
+    expect(isAllowedOrigin(req, 'https://chexustudio.com')).toBe(true);
+  });
 });
 
 describe('security headers', () => {

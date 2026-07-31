@@ -13,12 +13,13 @@ import {
 import { verifyTurnstile } from '../../lib/turnstile';
 import { enforceRateLimit } from '../../lib/rate-limit';
 import { insertLead } from '../../lib/db';
-import { getSiteUrl } from '../../config/site';
+import { getSiteUrl, siteConfig } from '../../config/site';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   const siteUrl = getSiteUrl(env.PUBLIC_SITE_URL || import.meta.env.PUBLIC_SITE_URL);
+  const studioEmail = siteConfig.contact.email;
 
   if (!isAllowedOrigin(request, siteUrl)) {
     return jsonError('Invalid origin', 403);
@@ -52,18 +53,40 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonOk({ ok: true });
   }
 
-  const turnstileOk = await verifyTurnstile(
-    parsed.data.turnstileToken,
-    env.TURNSTILE_SECRET_KEY || '',
-    ip,
-  );
+  const turnstileSecret = env.TURNSTILE_SECRET_KEY || '';
+  if (!turnstileSecret) {
+    return new Response(
+      JSON.stringify({
+        error: 'The contact form is not fully configured yet. Please email us directly.',
+        code: 'TURNSTILE_UNAVAILABLE',
+        email: studioEmail,
+      }),
+      {
+        status: 503,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      },
+    );
+  }
+
+  const turnstileOk = await verifyTurnstile(parsed.data.turnstileToken, turnstileSecret, ip);
   if (!turnstileOk) {
     return jsonError('Security check failed. Please try again.', 400);
   }
 
   if (!env.DB) {
     console.error('Contact form: DB binding missing');
-    return jsonError('Unable to save your message right now.', 503);
+    return new Response(
+      JSON.stringify({
+        error:
+          'We could not save your message in our system right now. Please email us and we will reply promptly.',
+        code: 'STORAGE_UNAVAILABLE',
+        email: studioEmail,
+      }),
+      {
+        status: 503,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      },
+    );
   }
 
   try {
@@ -90,7 +113,17 @@ export const POST: APIRoute = async ({ request }) => {
       err instanceof Error ? err.message : 'unknown',
       redactForLogs({ serviceInterest: parsed.data.serviceInterest }),
     );
-    return jsonError('Unable to save your message right now.', 503);
+    return new Response(
+      JSON.stringify({
+        error: 'Unable to save your message right now. Please email us directly.',
+        code: 'STORAGE_UNAVAILABLE',
+        email: studioEmail,
+      }),
+      {
+        status: 503,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      },
+    );
   }
 
   return jsonOk({ ok: true });

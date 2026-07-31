@@ -71,6 +71,7 @@ export default function PrimaryNav({ items, currentPath }: Props) {
                   aria-hidden="true"
                 />
               </button>
+              {/* Keep submenu links in the DOM when closed for crawlability; toggle with hidden. */}
               <div
                 id={submenuId}
                 hidden={!open}

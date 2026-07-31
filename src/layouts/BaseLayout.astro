@@ -5,7 +5,14 @@ import Footer from '../components/Footer.astro';
 import MobileStickyCta from '../components/MobileStickyCta.astro';
 import ChatIsland from '../components/react/ChatWidget';
 import { siteConfig, getSiteUrl } from '../config/site';
-import { absoluteUrl, jsonLd, organizationSchema, titleTemplate, websiteSchema } from '../lib/seo';
+import {
+  absoluteUrl,
+  jsonLd,
+  organizationSchema,
+  siteNavigationSchema,
+  titleTemplate,
+  websiteSchema,
+} from '../lib/seo';
 import { analyticsBootstrap } from '../lib/analytics';
 
 interface Props {
@@ -33,7 +40,12 @@ const canonical = absoluteUrl(path, siteUrl);
 const fullTitle = titleTemplate(title);
 const shouldNoIndex = noindex ?? !siteConfig.allowIndexing;
 const ogImageUrl = absoluteUrl(ogImage, siteUrl);
-const graph = [organizationSchema(siteUrl), websiteSchema(siteUrl), ...schema];
+const graph = [
+  organizationSchema(siteUrl),
+  websiteSchema(siteUrl),
+  siteNavigationSchema(siteUrl),
+  ...schema,
+];
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 const analyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN || '';
 ---

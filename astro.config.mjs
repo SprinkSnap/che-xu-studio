@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: process.env.PUBLIC_SITE_URL || 'https://example.com',
+  site: process.env.PUBLIC_SITE_URL || 'https://chexustudio.com',
   adapter: cloudflare({
     imageService: 'compile',
     // Avoid requiring Cloudflare API auth during local builds/prerender.

@@ -32,6 +32,7 @@ test.describe('site navigation', () => {
     test.skip(!!isMobile, 'desktop nav');
     await page.goto('/pricing/');
     const nav = page.getByRole('navigation', { name: 'Primary' });
+    await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
     await expect(nav.getByRole('button', { name: 'Services' })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Pricing' })).toHaveAttribute(
       'aria-current',
@@ -64,20 +65,55 @@ test.describe('site navigation', () => {
     await expect(services).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('mobile menu opens, traps focus path via Escape, and restores trigger focus', async ({
+  test('mobile menu lists every primary page, conversion CTAs, and restores focus', async ({
     page,
     isMobile,
   }) => {
     test.skip(!isMobile, 'mobile nav only');
     await page.goto('/about/');
+
+    // Crawlable: destination hrefs exist in the document before the drawer opens.
+    const banner = page.getByRole('banner');
+    for (const href of [
+      '/',
+      '/services/web-design',
+      '/services/seo',
+      '/services/website-care',
+      '/pricing',
+      '/work',
+      '/about',
+      '/contact',
+    ]) {
+      await expect(banner.locator(`a[href="${href}"]`).first()).toBeAttached();
+    }
+
     const openButton = page.getByRole('button', { name: 'Open menu' });
     await openButton.click();
     const dialog = page.getByRole('dialog', { name: 'Mobile navigation' });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole('link', { name: 'Website Care' })).toBeVisible();
-    await expect(dialog.getByRole('link', { name: 'Find My Best Package' })).toBeVisible();
+
+    for (const label of [
+      'Home',
+      'Web Design',
+      'SEO Strategy',
+      'Website Care',
+      'Pricing',
+      'Work',
+      'About',
+      'Contact',
+      'Find My Best Package',
+      'Book a Free Strategy Call',
+    ]) {
+      await expect(dialog.getByRole('link', { name: label })).toBeVisible();
+    }
+
+    await expect(dialog.getByRole('link', { name: 'About' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
     await page.keyboard.press('Escape');
-    await expect(dialog).toHaveCount(0);
+    await expect(dialog).toBeHidden();
     await expect(openButton).toBeFocused();
   });
 

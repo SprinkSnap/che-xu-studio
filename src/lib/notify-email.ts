@@ -64,11 +64,20 @@ export async function notifyLeadByEmail(
     return { sent: false, error: 'not-configured' };
   }
 
+  // Must use a Resend-verified domain. Never default to onboarding@resend.dev —
+  // that sandbox can only deliver to the Resend account owner's email, not info@.
   const from =
-    env.CONTACT_FROM_EMAIL?.trim() || 'Che Xu Studio <onboarding@resend.dev>';
+    env.CONTACT_FROM_EMAIL?.trim() || 'Che Xu Studio <info@chexustudio.com>';
   const to = (env.CONTACT_NOTIFY_EMAIL?.trim() || options.notifyTo).trim();
   if (!to) {
     return { sent: false, error: 'no-recipient' };
+  }
+
+  if (/resend\.dev/i.test(from)) {
+    console.error(
+      '[notify-email] CONTACT_FROM_EMAIL still uses resend.dev; set it to a verified @chexustudio.com address',
+    );
+    return { sent: false, error: 'invalid-from' };
   }
 
   const content = buildLeadNotificationContent(lead, options);
@@ -93,10 +102,17 @@ export async function notifyLeadByEmail(
 
     if (!response.ok) {
       const body = await response.text();
-      console.error('[notify-email] Resend error', response.status, body.slice(0, 500));
+      console.error(
+        '[notify-email] Resend error',
+        response.status,
+        `from=${from}`,
+        `to=${to}`,
+        body.slice(0, 500),
+      );
       return { sent: false, error: `resend-${response.status}` };
     }
 
+    console.log('[notify-email] Sent lead notification', { leadId: options.leadId, to });
     return { sent: true };
   } catch (err) {
     console.error(

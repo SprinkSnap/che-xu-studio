@@ -194,15 +194,28 @@ Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
 
 Successful form submissions are saved in D1 and also emailed to `info@chexustudio.com` when Resend is configured.
 
-1. Create a free account at [resend.com](https://resend.com) and add an API key
-2. Add and verify domain `chexustudio.com` in Resend (DNS records)
+The form can show success even when email fails (lead is still in D1). If inbox alerts are missing, check Resend **Emails** / **Logs** first.
+
+1. Create a free account at [resend.com](https://resend.com) and add an API key (**Sending access**)
+2. Resend → **Domains** → add `chexustudio.com` (or `send.chexustudio.com`) → add DNS → status **Verified**
 3. **Workers Builds** → **Settings** → **Variables**
    - **Encrypt secret:** `RESEND_API_KEY`
-4. Worker **`che-xu-studio-site`** → **Settings** → **Variables and Secrets** (plain Variables are OK here):
-   - Variable: `CONTACT_FROM_EMAIL` = `Che Xu Studio <info@chexustudio.com>`
-   - Optional variable: `CONTACT_NOTIFY_EMAIL` = `info@chexustudio.com` (default)
-5. Redeploy / retry deployment (logs should show `Uploading runtime secrets: ... RESEND_API_KEY`)
-6. Submit a test contact — check the `info@chexustudio.com` inbox (and spam)
+   - Plain variable: `CONTACT_FROM_EMAIL` = `Che Xu Studio <info@chexustudio.com>`  
+     The address domain **must match** the verified Resend domain.  
+     If you verified `send.chexustudio.com`, use e.g. `Che Xu Studio <notify@send.chexustudio.com>`.
+   - Optional plain: `CONTACT_NOTIFY_EMAIL` = `info@chexustudio.com`
+4. Redeploy (logs should show `Uploading runtime secrets: ... RESEND_API_KEY` and injected `CONTACT_FROM_EMAIL`)
+5. Submit a test contact → Resend dashboard should show a delivery (or a clear 403/error)
+6. Check the Microsoft 365 / Outlook inbox for `info@chexustudio.com` (and spam)
+
+Common failures:
+
+| Symptom | Cause |
+| --- | --- |
+| No email, form OK | `RESEND_API_KEY` missing on Worker (add Builds Encrypt secret + redeploy) |
+| Resend 403 / only own email | `from` still `*@resend.dev` or domain not verified — set `CONTACT_FROM_EMAIL` |
+| Resend 403 domain mismatch | Verified `send.…` but From is `@chexustudio.com` (or the reverse) |
+| Resend delivered, inbox empty | `info@` mailbox missing/misconfigured in Microsoft 365 |
 
 Until `RESEND_API_KEY` is set, leads still save in D1; only the inbox email is skipped.
 

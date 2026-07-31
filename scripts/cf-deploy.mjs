@@ -20,7 +20,7 @@
  *   Environment variables (plain):
  *     PUBLIC_TURNSTILE_SITE_KEY
  *     PUBLIC_SITE_URL=https://chexustudio.com
- *     CONTACT_FROM_EMAIL (optional; or set on Worker)
+ *     CONTACT_FROM_EMAIL=Che Xu Studio <info@chexustudio.com>
  *   Environment secrets (Encrypt):
  *     TURNSTILE_SECRET_KEY
  *     RESEND_API_KEY

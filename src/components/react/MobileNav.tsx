@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Menu, X } from 'lucide-react';
 import {
   flattenNavDestinations,
@@ -42,14 +43,23 @@ function buildMobileRows(items: readonly NavItem[], currentPath: string): Mobile
   return rows;
 }
 
-/** Mobile drawer lists primary pages only. Conversion CTAs live in the sticky bar / hero. */
+/**
+ * Full-viewport mobile menu.
+ * Portaled to document.body so header backdrop-filter cannot trap position:fixed
+ * (which previously made the panel open over the logo and scroll inside the header).
+ */
 export default function MobileNav({ items, currentPath }: Props) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const panelId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const openRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const rows = buildMobileRows(items, currentPath);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -86,14 +96,90 @@ export default function MobileNav({ items, currentPath }: Props) {
 
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    document.body.dataset.mobileNavOpen = 'true';
     closeRef.current?.focus();
 
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      delete document.body.dataset.mobileNavOpen;
       openRef.current?.focus();
     };
   }, [open]);
+
+  const panel = (
+    <div
+      ref={dialogRef}
+      id={panelId}
+      className={
+        open
+          ? 'fixed inset-0 z-[100] flex flex-col bg-navy-950 text-white'
+          : 'hidden'
+      }
+      role="dialog"
+      aria-modal={open || undefined}
+      aria-label="Mobile navigation"
+      aria-hidden={open ? undefined : true}
+      inert={open ? undefined : true}
+    >
+      <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-white/10 px-4 pt-[env(safe-area-inset-top)] sm:px-6">
+        <p className="font-display text-lg font-bold tracking-tight">
+          Che Xu <span className="font-semibold text-blue-300">Studio</span>
+        </p>
+        <button
+          ref={closeRef}
+          type="button"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-white/20"
+          tabIndex={open ? 0 : -1}
+          onClick={() => setOpen(false)}
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
+          <span className="sr-only">Close menu</span>
+        </button>
+      </div>
+
+      <nav
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6"
+        aria-label="Mobile primary"
+      >
+        <ul className="mx-auto w-full max-w-lg space-y-1">
+          {rows.map((row) => {
+            if (row.kind === 'group') {
+              return (
+                <li key={`group-${row.label}`} className="list-none">
+                  <p
+                    className={[
+                      'mt-5 px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-[0.14em] first:mt-0',
+                      row.active ? 'text-white' : 'text-blue-200/80',
+                    ].join(' ')}
+                  >
+                    {row.label}
+                  </p>
+                </li>
+              );
+            }
+
+            return (
+              <li key={row.href}>
+                <a
+                  href={row.href}
+                  className={[
+                    'block rounded-md px-3 py-3.5 text-lg font-medium hover:bg-white/10 hover:text-white',
+                    row.current ? 'bg-white/15 font-semibold text-white' : 'text-blue-100',
+                  ].join(' ')}
+                  aria-current={row.current ? 'page' : undefined}
+                  tabIndex={open ? 0 : -1}
+                  onClick={() => setOpen(false)}
+                >
+                  {row.label}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
+  );
 
   return (
     <div className="lg:hidden">
@@ -110,82 +196,10 @@ export default function MobileNav({ items, currentPath }: Props) {
       </button>
 
       {/*
-        Keep destinations in the DOM when closed so mobile-first crawlers still see
-        every primary page link (visibility toggled, not unmounted).
+        SSR / closed: keep crawlable links in the document.
+        Client: portal to body so the panel covers the full viewport above the sticky header.
       */}
-      <div
-        ref={dialogRef}
-        id={panelId}
-        className={open ? 'fixed inset-0 z-[60]' : 'hidden'}
-        role="dialog"
-        aria-modal={open || undefined}
-        aria-label="Mobile navigation"
-        aria-hidden={open ? undefined : true}
-        inert={open ? undefined : true}
-      >
-        <button
-          type="button"
-          className="absolute inset-0 bg-navy-950/70"
-          aria-label="Close menu overlay"
-          tabIndex={open ? 0 : -1}
-          onClick={() => setOpen(false)}
-        />
-        <div className="absolute inset-y-0 right-0 flex w-[min(100%,22rem)] max-w-full flex-col bg-navy-950 pb-[env(safe-area-inset-bottom)] text-white shadow-lift">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <p className="font-display text-lg font-bold">Menu</p>
-            <button
-              ref={closeRef}
-              type="button"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-white/20"
-              tabIndex={open ? 0 : -1}
-              onClick={() => setOpen(false)}
-            >
-              <X className="h-5 w-5" aria-hidden="true" />
-              <span className="sr-only">Close menu</span>
-            </button>
-          </div>
-          <nav
-            className="flex-1 overflow-y-auto overscroll-contain px-3 py-4"
-            aria-label="Mobile primary"
-          >
-            <ul className="space-y-1">
-              {rows.map((row) => {
-                if (row.kind === 'group') {
-                  return (
-                    <li key={`group-${row.label}`} className="list-none">
-                      <p
-                        className={[
-                          'mt-3 px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.14em] first:mt-0',
-                          row.active ? 'text-white' : 'text-blue-200/80',
-                        ].join(' ')}
-                      >
-                        {row.label}
-                      </p>
-                    </li>
-                  );
-                }
-
-                return (
-                  <li key={row.href}>
-                    <a
-                      href={row.href}
-                      className={[
-                        'block rounded-md px-3 py-3 text-base font-medium hover:bg-white/10 hover:text-white',
-                        row.current ? 'bg-white/15 font-semibold text-white' : 'text-blue-100',
-                      ].join(' ')}
-                      aria-current={row.current ? 'page' : undefined}
-                      tabIndex={open ? 0 : -1}
-                      onClick={() => setOpen(false)}
-                    >
-                      {row.label}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-        </div>
-      </div>
+      {mounted ? createPortal(panel, document.body) : panel}
     </div>
   );
 }

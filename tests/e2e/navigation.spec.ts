@@ -65,12 +65,15 @@ test.describe('site navigation', () => {
     await expect(services).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('mobile menu lists every primary page and restores focus', async ({ page, isMobile }) => {
+  test('mobile menu lists every primary page full-screen and restores focus', async ({
+    page,
+    isMobile,
+  }) => {
     test.skip(!isMobile, 'mobile nav only');
     await page.goto('/about/');
 
-    // Crawlable: destination hrefs exist in the document before the drawer opens.
-    const banner = page.getByRole('banner');
+    // Crawlable: destination hrefs exist in the document before the menu opens
+    // (panel is portaled to body after hydration, so check the page — not only the banner).
     for (const href of [
       '/',
       '/services/web-design',
@@ -81,13 +84,21 @@ test.describe('site navigation', () => {
       '/about',
       '/contact',
     ]) {
-      await expect(banner.locator(`a[href="${href}"]`).first()).toBeAttached();
+      await expect(page.locator(`a[href="${href}"]`).first()).toBeAttached();
     }
 
     const openButton = page.getByRole('button', { name: 'Open menu' });
     await openButton.click();
     const dialog = page.getByRole('dialog', { name: 'Mobile navigation' });
     await expect(dialog).toBeVisible();
+
+    // Full-viewport layer above the sticky header (not clipped inside it).
+    const box = await dialog.boundingBox();
+    expect(box).toBeTruthy();
+    expect(box!.x).toBeLessThanOrEqual(1);
+    expect(box!.y).toBeLessThanOrEqual(1);
+    expect(box!.width).toBeGreaterThan(300);
+    expect(box!.height).toBeGreaterThan(500);
 
     for (const label of [
       'Home',

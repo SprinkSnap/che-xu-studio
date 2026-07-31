@@ -88,6 +88,11 @@
     font-feature-settings: "ss01" on, "kern" on;
   }
 
+  /* Hide sticky conversion bar while the full-screen mobile nav is open. */
+  body[data-mobile-nav-open='true'] [data-mobile-sticky-cta] {
+    display: none;
+  }
+
   h1,
   h2,
   h3,

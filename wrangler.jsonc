@@ -18,14 +18,13 @@
   },
 
   // D1 database for consented leads and verified order records.
-  // Optional for marketing-site deploys: prepare-cf-deploy.mjs omits this binding while
-  // database_id is still the placeholder (Cloudflare rejects the placeholder UUID).
-  // Create + write with: npm run db:create && npm run db:migrate:remote
+  // Create + migrate with: npm run db:create && npm run db:migrate:remote
+  // (db:create is only needed when database_id is still a placeholder.)
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "che-xu-studio-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "f1b23218-de32-4d82-a20d-29fa2f0b2eda",
       "migrations_dir": "migrations"
     }
   ],

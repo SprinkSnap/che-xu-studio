@@ -15,6 +15,7 @@ describe('structured data', () => {
     const blob = jsonLd([org, catalog]);
     expect(blob).toContain('ProfessionalService');
     expect(blob).toContain('OfferCatalog');
+    expect(blob).toContain('info@chexustudio.com');
     expect(blob).not.toContain('AggregateRating');
     expect(blob).not.toContain('<');
   });

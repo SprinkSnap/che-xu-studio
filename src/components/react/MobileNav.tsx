@@ -9,8 +9,6 @@ import {
 
 interface Props {
   items: readonly NavItem[];
-  primaryCta: { label: string; href: string };
-  secondaryCta: { label: string; href: string };
   currentPath: string;
 }
 
@@ -44,7 +42,8 @@ function buildMobileRows(items: readonly NavItem[], currentPath: string): Mobile
   return rows;
 }
 
-export default function MobileNav({ items, primaryCta, secondaryCta, currentPath }: Props) {
+/** Mobile drawer lists primary pages only. Conversion CTAs live in the sticky bar / hero. */
+export default function MobileNav({ items, currentPath }: Props) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -185,26 +184,6 @@ export default function MobileNav({ items, primaryCta, secondaryCta, currentPath
               })}
             </ul>
           </nav>
-          <div className="space-y-2 border-t border-white/10 p-4">
-            <a
-              href={primaryCta.href}
-              className="btn btn-primary-on-dark w-full"
-              tabIndex={open ? 0 : -1}
-              data-track="mobile_nav_primary_cta"
-              onClick={() => setOpen(false)}
-            >
-              {primaryCta.label}
-            </a>
-            <a
-              href={secondaryCta.href}
-              className="btn-secondary w-full border-white/20 bg-transparent text-white hover:bg-white/10"
-              tabIndex={open ? 0 : -1}
-              data-track="mobile_nav_secondary_cta"
-              onClick={() => setOpen(false)}
-            >
-              {secondaryCta.label}
-            </a>
-          </div>
         </div>
       </div>
     </div>

@@ -30,12 +30,6 @@ const currentPath = Astro.url.pathname;
       </a>
     </div>
 
-    <MobileNav
-      client:load
-      items={siteConfig.navigation}
-      primaryCta={siteConfig.cta.primary}
-      secondaryCta={siteConfig.cta.secondary}
-      currentPath={currentPath}
-    />
+    <MobileNav client:load items={siteConfig.navigation} currentPath={currentPath} />
   </div>
 </header>

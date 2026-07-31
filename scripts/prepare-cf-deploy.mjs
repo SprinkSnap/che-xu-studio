@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { injectPublicWorkerVars } from './inject-public-vars.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const generatedPath = resolve(root, 'dist/server/wrangler.json');
@@ -99,6 +100,9 @@ const rootConfig = sanitizeBindings(
   { log: false },
 );
 
+injectPublicWorkerVars(serverConfig, process.env, { log: true });
+injectPublicWorkerVars(rootConfig, process.env, { log: false });
+
 const serverJson = `${JSON.stringify(serverConfig, null, 2)}\n`;
 const rootJson = `${JSON.stringify(rootConfig, null, 2)}\n`;
 
@@ -127,5 +131,6 @@ console.log(
     `  ${generatedPath}`,
     `  kv_namespaces: ${JSON.stringify(rootConfig.kv_namespaces ?? null)}`,
     `  d1_databases: ${rootConfig.d1_databases ? rootConfig.d1_databases.length : 0}`,
+    `  vars: ${JSON.stringify(Object.keys(rootConfig.vars || {}))}`,
   ].join('\n'),
 );

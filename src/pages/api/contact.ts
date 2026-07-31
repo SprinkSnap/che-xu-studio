@@ -13,6 +13,7 @@ import {
 import { verifyTurnstile } from '../../lib/turnstile';
 import { enforceRateLimit } from '../../lib/rate-limit';
 import { insertLead } from '../../lib/db';
+import { notifyLeadByEmail } from '../../lib/notify-email';
 import { getSiteUrl, siteConfig } from '../../config/site';
 
 export const prerender = false;
@@ -89,9 +90,12 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  const leadId = nanoid();
+  const createdAt = new Date().toISOString();
+
   try {
     await insertLead(env.DB, {
-      id: nanoid(),
+      id: leadId,
       name: parsed.data.name,
       email: parsed.data.email,
       serviceInterest: parsed.data.serviceInterest,
@@ -105,7 +109,7 @@ export const POST: APIRoute = async ({ request }) => {
       budgetRange: parsed.data.budgetRange || undefined,
       targetTimeline: parsed.data.targetTimeline || undefined,
       preferredContact: parsed.data.preferredContact || undefined,
-      createdAt: new Date().toISOString(),
+      createdAt,
     });
   } catch (err) {
     console.error(
@@ -124,6 +128,15 @@ export const POST: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
       },
     );
+  }
+
+  // Soft-fail: lead is already saved in D1 even if inbox notification fails.
+  if (studioEmail) {
+    await notifyLeadByEmail(env, parsed.data, {
+      leadId,
+      createdAt,
+      notifyTo: studioEmail,
+    });
   }
 
   return jsonOk({ ok: true });

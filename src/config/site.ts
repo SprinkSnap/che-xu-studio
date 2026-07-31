@@ -23,7 +23,7 @@ export const siteConfig = {
 
   /** Verified contact details — set only when confirmed by the business owner. */
   contact: {
-    email: undefined as string | undefined,
+    email: 'info@chexustudio.com',
     phone: undefined as string | undefined,
     phoneDisplay: undefined as string | undefined,
     /** Calendly / booking URL for strategy calls — set when ready. */

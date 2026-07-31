@@ -66,6 +66,7 @@ describe('site navigation integrity', () => {
     expect(hrefs.every((href) => href !== '#')).toBe(true);
     expect(siteConfig.cta.primary.href).toBe('/#package-finder');
     expect(siteConfig.defaultSiteUrl).toBe('https://chexustudio.com');
+    expect(siteConfig.contact.email).toBe('info@chexustudio.com');
   });
 
   it('structures footer into services, studio, and legal groups', () => {

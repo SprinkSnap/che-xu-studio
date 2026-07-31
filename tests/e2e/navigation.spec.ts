@@ -65,10 +65,7 @@ test.describe('site navigation', () => {
     await expect(services).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('mobile menu lists every primary page, conversion CTAs, and restores focus', async ({
-    page,
-    isMobile,
-  }) => {
+  test('mobile menu lists every primary page and restores focus', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'mobile nav only');
     await page.goto('/about/');
 
@@ -101,11 +98,13 @@ test.describe('site navigation', () => {
       'Work',
       'About',
       'Contact',
-      'Find My Best Package',
-      'Book a Free Strategy Call',
     ]) {
       await expect(dialog.getByRole('link', { name: label })).toBeVisible();
     }
+
+    // Conversion CTAs belong in the sticky bar / hero, not the page menu.
+    await expect(dialog.getByRole('link', { name: 'Find My Best Package' })).toHaveCount(0);
+    await expect(dialog.getByRole('link', { name: 'Book a Free Strategy Call' })).toHaveCount(0);
 
     await expect(dialog.getByRole('link', { name: 'About' })).toHaveAttribute(
       'aria-current',

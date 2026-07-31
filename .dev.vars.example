@@ -8,7 +8,7 @@ PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
 TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 
 # Workers AI model (must be a currently supported Workers AI instruction model)
-AI_MODEL=@cf/meta/llama-3.1-8b-instruct
+AI_MODEL=@cf/meta/llama-3.1-8b-instruct-fast
 
 # Optional Cloudflare Web Analytics token
 PUBLIC_CF_WEB_ANALYTICS_TOKEN=

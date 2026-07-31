@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildSystemPrompt, sanitizeAssistantText } from '../../src/lib/chat';
+import {
+  DEFAULT_AI_MODEL,
+  buildSystemPrompt,
+  sanitizeAssistantText,
+} from '../../src/lib/chat';
 
 describe('chat knowledge grounding', () => {
   it('includes package prices and anti-hallucination rules', () => {
@@ -12,5 +16,9 @@ describe('chat knowledge grounding', () => {
 
   it('strips HTML from model output', () => {
     expect(sanitizeAssistantText('<script>alert(1)</script>Hello')).toBe('alert(1)Hello');
+  });
+
+  it('defaults to an active Workers AI instruct-fast model', () => {
+    expect(DEFAULT_AI_MODEL).toBe('@cf/meta/llama-3.1-8b-instruct-fast');
   });
 });

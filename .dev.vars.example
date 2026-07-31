@@ -12,3 +12,8 @@ AI_MODEL=@cf/meta/llama-3.1-8b-instruct
 
 # Optional Cloudflare Web Analytics token
 PUBLIC_CF_WEB_ANALYTICS_TOKEN=
+
+# Resend (https://resend.com) — emails new leads to info@chexustudio.com
+# RESEND_API_KEY=re_xxxxxxxxx
+# CONTACT_FROM_EMAIL=Che Xu Studio <info@chexustudio.com>
+# CONTACT_NOTIFY_EMAIL=info@chexustudio.com

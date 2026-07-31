@@ -185,6 +185,21 @@ Note: `npm run cf:deploy` uses `--keep-vars` and also writes PUBLIC_* values fro
 
 Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
 
+### Contact email notifications (Resend)
+
+Successful form submissions are saved in D1 and also emailed to `info@chexustudio.com` when Resend is configured.
+
+1. Create a free account at [resend.com](https://resend.com) and add an API key
+2. Add and verify domain `chexustudio.com` in Resend (DNS records)
+3. Worker **`che-xu-studio-site`** → **Settings** → **Variables and Secrets**:
+   - Secret: `RESEND_API_KEY` = your Resend API key
+   - Variable: `CONTACT_FROM_EMAIL` = `Che Xu Studio <info@chexustudio.com>`
+   - Optional variable: `CONTACT_NOTIFY_EMAIL` = `info@chexustudio.com` (default)
+4. Redeploy / retry deployment
+5. Submit a test contact — check the `info@chexustudio.com` inbox (and spam)
+
+Until `RESEND_API_KEY` is set, leads still save in D1; only the inbox email is skipped.
+
 ## Development and test commands
 
 ```bash

@@ -22,6 +22,13 @@ interface CloudflareEnv {
 
   TURNSTILE_SECRET_KEY?: string;
 
+  /** Resend API key for contact-form inbox notifications. */
+  RESEND_API_KEY?: string;
+  /** Verified From address, e.g. "Che Xu Studio <info@chexustudio.com>". */
+  CONTACT_FROM_EMAIL?: string;
+  /** Override notify inbox (defaults to siteConfig.contact.email). */
+  CONTACT_NOTIFY_EMAIL?: string;
+
   PUBLIC_TURNSTILE_SITE_KEY?: string;
   PUBLIC_SITE_URL?: string;
   PUBLIC_CF_WEB_ANALYTICS_TOKEN?: string;

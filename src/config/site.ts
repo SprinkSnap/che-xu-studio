@@ -19,7 +19,7 @@ export const siteConfig = {
    * Canonical production URL without trailing slash.
    * Overridden at runtime by PUBLIC_SITE_URL when present.
    */
-  defaultSiteUrl: 'https://example.com',
+  defaultSiteUrl: 'https://chexustudio.com',
 
   /** Verified contact details — set only when confirmed by the business owner. */
   contact: {
@@ -51,8 +51,10 @@ export const siteConfig = {
   /**
    * Primary header navigation.
    * Services uses a disclosure submenu (no thin /services overview page).
+   * Mobile nav flattens children so every page is visible without an extra tap.
    */
   navigation: [
+    { label: 'Home', href: '/' },
     {
       label: 'Services',
       children: [

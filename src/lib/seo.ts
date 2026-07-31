@@ -1,6 +1,7 @@
 import { siteConfig, getSiteUrl } from '../config/site';
 import { packages } from '../config/packages';
 import type { FaqItem } from '../config/faq';
+import { flattenNavDestinations } from './navigation';
 
 export interface PageSeo {
   title: string;
@@ -64,6 +65,23 @@ export function websiteSchema(siteUrl?: string) {
     description: siteConfig.tagline,
     inLanguage: siteConfig.locale,
     publisher: { '@id': `${url}/#organization` },
+  };
+}
+
+/** Primary destinations for SiteNavigationElement (matches header / mobile nav). */
+export function siteNavigationSchema(siteUrl?: string) {
+  const url = getSiteUrl(siteUrl || import.meta.env.PUBLIC_SITE_URL);
+  const destinations = flattenNavDestinations(siteConfig.navigation);
+  return {
+    '@type': 'SiteNavigationElement',
+    '@id': `${url}/#site-navigation`,
+    name: 'Primary',
+    hasPart: destinations.map((destination, index) => ({
+      '@type': 'WebPage',
+      position: index + 1,
+      name: destination.label,
+      url: absoluteUrl(destination.href, url),
+    })),
   };
 }
 

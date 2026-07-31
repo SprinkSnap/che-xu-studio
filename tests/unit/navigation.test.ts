@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  flattenNavDestinations,
   isCurrentPath,
   isNavItemActive,
   normalizePath,
@@ -25,6 +26,21 @@ describe('navigation path helpers', () => {
     expect(isNavItemActive('/services/seo/', services)).toBe(true);
     expect(isNavItemActive('/pricing', services)).toBe(false);
   });
+
+  it('flattens Services children into mobile destinations', () => {
+    const destinations = flattenNavDestinations(siteConfig.navigation);
+    expect(destinations.map((d) => d.href)).toEqual([
+      '/',
+      '/services/web-design',
+      '/services/seo',
+      '/services/website-care',
+      '/pricing',
+      '/work',
+      '/about',
+      '/contact',
+    ]);
+    expect(destinations.filter((d) => d.group === 'Services')).toHaveLength(3);
+  });
 });
 
 describe('site navigation integrity', () => {
@@ -37,6 +53,7 @@ describe('site navigation integrity', () => {
 
     expect(hrefs).toEqual(
       expect.arrayContaining([
+        '/',
         '/services/web-design',
         '/services/seo',
         '/services/website-care',
@@ -48,6 +65,7 @@ describe('site navigation integrity', () => {
     );
     expect(hrefs.every((href) => href !== '#')).toBe(true);
     expect(siteConfig.cta.primary.href).toBe('/#package-finder');
+    expect(siteConfig.defaultSiteUrl).toBe('https://chexustudio.com');
   });
 
   it('structures footer into services, studio, and legal groups', () => {

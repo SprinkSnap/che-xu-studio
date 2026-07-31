@@ -176,8 +176,11 @@ Without these, `/contact` shows “Online form delivery is not fully configured 
    - Variable (plain text): `PUBLIC_SITE_URL` = `https://chexustudio.com`
    - Secret: `TURNSTILE_SECRET_KEY` = secret key
 4. Also add the same `PUBLIC_*` values under **Workers Builds → Settings → Environment variables** so builds can see them
-5. Redeploy (or Retry deployment)
+5. Redeploy (or Retry deployment). Confirm `/api/public-config` returns a non-empty `turnstileSiteKey`.
 6. Optional but recommended for saving leads: create D1 (`npm run db:create` + migrate) and commit the real `database_id`
+
+Note: `npm run cf:deploy` uses `--keep-vars` so dashboard variables are not deleted on each deploy.
+If you previously set vars and still see an empty key, re-add them once after this flag is live, then redeploy.
 
 Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
 

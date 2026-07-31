@@ -6,6 +6,9 @@
  * Wrangler resource auto-provisioning (`--x-provision=false`) so a pre-existing
  * `*-session` KV namespace cannot fail the deploy with API error 10014.
  *
+ * Also passes `--keep-vars` so dashboard Variables/Secrets (Turnstile, PUBLIC_SITE_URL)
+ * are not wiped on every Workers Builds deploy (wrangler deletes unbound vars by default).
+ *
  * Workers Builds settings:
  *   Build command:  npm run build
  *   Deploy command: npm run cf:deploy
@@ -38,6 +41,8 @@ const args = [
   '--config',
   configPath,
   '--x-provision=false',
+  // Preserve Variables/Secrets set in the Cloudflare dashboard (not in wrangler.json).
+  '--keep-vars',
   ...process.argv.slice(2),
 ];
 

@@ -56,79 +56,35 @@ export const POST: APIRoute = async ({ request }) => {
   ];
 
   try {
-    const streamResult = (await env.AI.run(model, {
+    // Non-streaming JSON response (widget accepts { reply }).
+    const result = (await env.AI.run(model, {
       messages,
       max_tokens: 512,
       temperature: 0.3,
-      stream: true,
-    })) as ReadableStream | { response?: string } | string;
-
-    if (streamResult && typeof streamResult === 'object' && 'getReader' in streamResult) {
-      const reader = (streamResult as ReadableStream).getReader();
-      const decoder = new TextDecoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              const chunk = typeof value === 'string' ? value : decoder.decode(value, { stream: true });
-              const text = extractStreamText(chunk);
-              if (text) controller.enqueue(new TextEncoder().encode(text));
-            }
-            controller.close();
-          } catch {
-            controller.error(new Error('stream failed'));
-          }
-        },
-      });
-
-      return new Response(stream, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/plain; charset=utf-8',
-          'Cache-Control': 'no-store',
-        },
-      });
-    }
+      stream: false,
+    })) as { response?: string } | string;
 
     let reply = '';
-    if (typeof streamResult === 'string') {
-      reply = streamResult;
-    } else if (streamResult && typeof streamResult === 'object' && 'response' in streamResult) {
-      reply = String(streamResult.response || '');
+    if (typeof result === 'string') {
+      reply = result;
+    } else if (result && typeof result === 'object' && 'response' in result) {
+      reply = String(result.response || '');
     }
 
     reply = sanitizeAssistantText(reply);
     if (!reply) {
+      console.error('Chat AI empty response', { model });
       return jsonError('AI assistant is temporarily unavailable.', 503);
     }
 
     return jsonOk({ reply });
   } catch (err) {
-    console.error('Chat AI failure', err instanceof Error ? err.message : 'unknown');
+    console.error(
+      'Chat AI failure',
+      { model },
+      err instanceof Error ? err.message : 'unknown',
+    );
     return jsonError('AI assistant is temporarily unavailable.', 503);
   }
 };
 
-function extractStreamText(chunk: string): string {
-  const lines = chunk.split('\n');
-  let out = '';
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    const payload = trimmed.startsWith('data:') ? trimmed.slice(5).trim() : trimmed;
-    if (payload === '[DONE]') continue;
-    try {
-      const json = JSON.parse(payload) as {
-        response?: string;
-        delta?: { content?: string };
-      };
-      if (json.response) out += json.response;
-      else if (json.delta?.content) out += json.delta.content;
-    } catch {
-      out += payload;
-    }
-  }
-  return sanitizeAssistantText(out) ? out.replace(/<[^>]*>/g, '') : '';
-}

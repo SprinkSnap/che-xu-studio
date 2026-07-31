@@ -2,7 +2,8 @@ import { packages } from '../config/packages';
 import { faqs } from '../config/faq';
 import { siteConfig } from '../config/site';
 
-export const DEFAULT_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+/** Active Workers AI chat model (base llama-3.1-8b-instruct was deprecated 2026-05-30). */
+export const DEFAULT_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct-fast';
 
 export function buildSystemPrompt(): string {
   const packageDigest = packages

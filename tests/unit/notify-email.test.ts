@@ -45,7 +45,9 @@ describe('notifyLeadByEmail', () => {
   });
 
   it('defaults From to info@chexustudio.com (not resend.dev sandbox)', async () => {
-    const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }));
+    const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async () => new Response('{}', { status: 200 }),
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     const result = await notifyLeadByEmail(
@@ -59,7 +61,9 @@ describe('notifyLeadByEmail', () => {
     );
 
     expect(result.sent).toBe(true);
-    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const init = fetchMock.mock.calls[0]?.[1];
+    const body = JSON.parse(String(init?.body));
     expect(body.from).toBe('Che Xu Studio <info@chexustudio.com>');
     expect(body.to).toEqual(['info@chexustudio.com']);
   });

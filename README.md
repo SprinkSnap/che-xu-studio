@@ -158,7 +158,7 @@ Package CTAs use `/contact?plan=…&intent=quote` (no online card checkout yet).
 
 ### Workers AI binding
 
-The `ai.binding = "AI"` entry in `wrangler.jsonc` enables Workers AI. Ensure the account has Workers AI access. Default model: `@cf/meta/llama-3.1-8b-instruct` (override with `AI_MODEL`).
+The `ai.binding = "AI"` entry in `wrangler.jsonc` enables Workers AI. Ensure the account has Workers AI access. Default model: `@cf/meta/llama-3.1-8b-instruct-fast` (override with `AI_MODEL`). Do not set `AI_MODEL` to the deprecated `@cf/meta/llama-3.1-8b-instruct`.
 
 ### Rate-limiter setup
 
@@ -249,7 +249,7 @@ npx playwright install chromium
 ## Local Workers AI chat test (exact steps)
 
 1. Ensure the Cloudflare account has Workers AI enabled and `npx wrangler login` has been completed.
-2. Set `AI_MODEL=@cf/meta/llama-3.1-8b-instruct` (or another supported instruction model) in `.dev.vars`.
+2. Set `AI_MODEL=@cf/meta/llama-3.1-8b-instruct-fast` (or another supported instruction model) in `.dev.vars`.
 3. Run `npm run preview` (AI binding uses remote Workers AI).
 4. Open the site, click **Chat with AI**, accept the privacy note, try a quick reply such as “How much does a website cost?”
 5. Confirm the assistant identifies as the Che Xu Studio AI assistant and quotes CAD package data without inventing discounts or rankings.

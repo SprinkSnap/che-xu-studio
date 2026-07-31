@@ -164,12 +164,22 @@ The `ai.binding = "AI"` entry in `wrangler.jsonc` enables Workers AI. Ensure the
 
 `CHAT_RATE_LIMITER` and `CONTACT_RATE_LIMITER` are declared under `ratelimits` in `wrangler.jsonc`. Adjust `namespace_id`, `limit`, and `period` per account needs.
 
-### Turnstile setup
+### Turnstile setup (required for online contact form)
 
-1. Create a widget in Cloudflare Turnstile.
-2. Put the site key in `PUBLIC_TURNSTILE_SITE_KEY`.
-3. Put the secret in `TURNSTILE_SECRET_KEY`.
-4. Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
+Without these, `/contact` shows “Online form delivery is not fully configured yet” and falls back to mailto.
+
+1. Cloudflare Dashboard → **Turnstile** → **Add widget**
+   - Domains: `chexustudio.com` (and `*.jason-010.workers.dev` if you use the preview URL)
+2. Copy the **Site Key** and **Secret Key**
+3. Workers & Pages → **`che-xu-studio-site`** → **Settings** → **Variables and Secrets**
+   - Variable (plain text): `PUBLIC_TURNSTILE_SITE_KEY` = site key
+   - Variable (plain text): `PUBLIC_SITE_URL` = `https://chexustudio.com`
+   - Secret: `TURNSTILE_SECRET_KEY` = secret key
+4. Also add the same `PUBLIC_*` values under **Workers Builds → Settings → Environment variables** so builds can see them
+5. Redeploy (or Retry deployment)
+6. Optional but recommended for saving leads: create D1 (`npm run db:create` + migrate) and commit the real `database_id`
+
+Local test keys from Cloudflare docs are listed in `.dev.vars.example`.
 
 ## Development and test commands
 

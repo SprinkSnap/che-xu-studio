@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import ContactForm from '../components/react/ContactForm';
@@ -6,9 +8,14 @@ import FaqSection from '../components/FaqSection.astro';
 import { siteConfig } from '../config/site';
 import { faqsForPage } from '../config/faq';
 import { breadcrumbSchema, faqPageSchema } from '../lib/seo';
+import { resolvePublicTurnstileSiteKey } from '../lib/public-config';
+import { env } from 'cloudflare:workers';
 
 const faqItems = faqsForPage('contact');
-const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+const turnstileSiteKey = resolvePublicTurnstileSiteKey({
+  runtime: env.PUBLIC_TURNSTILE_SITE_KEY,
+  build: import.meta.env.PUBLIC_TURNSTILE_SITE_KEY,
+});
 const initialPlan = Astro.url.searchParams.get('plan') || undefined;
 const initialIntent = Astro.url.searchParams.get('intent') || undefined;
 ---

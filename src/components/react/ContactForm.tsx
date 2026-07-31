@@ -44,8 +44,12 @@ export default function ContactForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [resolvedSiteKey, setResolvedSiteKey] = useState(turnstileSiteKey.trim());
+  const [configStatus, setConfigStatus] = useState<'idle' | 'loading' | 'done'>(
+    turnstileSiteKey.trim() ? 'done' : 'loading',
+  );
   const [turnstileStatus, setTurnstileStatus] = useState<TurnstileStatus>(
-    turnstileSiteKey ? 'loading' : 'missing',
+    turnstileSiteKey.trim() ? 'loading' : 'loading',
   );
   const [values, setValues] = useState({
     name: '',
@@ -71,8 +75,42 @@ export default function ContactForm({
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
 
+  // Load Turnstile site key from the Worker at runtime when build-time env was empty.
   useEffect(() => {
-    if (!turnstileSiteKey) {
+    if (resolvedSiteKey) {
+      setConfigStatus('done');
+      return;
+    }
+
+    let cancelled = false;
+    setConfigStatus('loading');
+
+    fetch('/api/public-config')
+      .then(async (res) => {
+        if (!res.ok) throw new Error('config unavailable');
+        return (await res.json()) as { turnstileSiteKey?: string };
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const key = (data.turnstileSiteKey || '').trim();
+        setResolvedSiteKey(key);
+        setConfigStatus('done');
+        setTurnstileStatus(key ? 'loading' : 'missing');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setConfigStatus('done');
+        setTurnstileStatus('missing');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedSiteKey]);
+
+  useEffect(() => {
+    if (configStatus !== 'done') return;
+    if (!resolvedSiteKey) {
       setTurnstileStatus('missing');
       return;
     }
@@ -91,7 +129,7 @@ export default function ContactForm({
       if (cancelled || !turnstileRef.current || !window.turnstile) return;
       try {
         widgetId.current = window.turnstile.render(turnstileRef.current, {
-          sitekey: turnstileSiteKey,
+          sitekey: resolvedSiteKey,
           callback: (token: string) => {
             setTurnstileToken(token);
             setTurnstileStatus('ready');
@@ -124,6 +162,8 @@ export default function ContactForm({
           if (!cancelled) setTurnstileStatus('error');
         };
         document.head.appendChild(script);
+      } else if (existing.dataset.loaded === 'true' || window.turnstile) {
+        mount();
       } else {
         existing.addEventListener('load', mount);
         existing.addEventListener('error', () => {
@@ -140,7 +180,7 @@ export default function ContactForm({
         widgetId.current = null;
       }
     };
-  }, [turnstileSiteKey]);
+  }, [configStatus, resolvedSiteKey]);
 
   function update<K extends keyof typeof values>(key: K, value: (typeof values)[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -158,7 +198,7 @@ export default function ContactForm({
     setFieldErrors({});
 
     // No Turnstile key configured: email client fallback so the button still works.
-    if (!turnstileSiteKey) {
+    if (!resolvedSiteKey) {
       if (!contactEmail) {
         setError('The contact form is not configured yet. Please try again later.');
         setSubmitting(false);
@@ -212,12 +252,14 @@ export default function ContactForm({
     }
   }
 
-  const needsToken = Boolean(turnstileSiteKey);
+  const needsToken = Boolean(resolvedSiteKey);
   const canSubmit =
     !submitting &&
+    configStatus === 'done' &&
     (!needsToken || Boolean(turnstileToken) || turnstileStatus === 'missing');
   const showEmailFallback =
     Boolean(contactEmail) &&
+    configStatus === 'done' &&
     (turnstileStatus === 'missing' ||
       turnstileStatus === 'error' ||
       Boolean(error?.toLowerCase().includes('email')));
@@ -425,7 +467,9 @@ export default function ContactForm({
         </div>
       )}
 
-      {turnstileSiteKey ? (
+      {configStatus !== 'done' ? (
+        <p className="text-sm text-ink-muted">Checking form delivery settings…</p>
+      ) : resolvedSiteKey ? (
         <div>
           <div ref={turnstileRef} className="min-h-[65px]" />
           {turnstileStatus === 'loading' && (

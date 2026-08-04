@@ -90,6 +90,26 @@ describe('site navigation integrity', () => {
     expect(northline?.hrefLabel).toBe('View live demo');
   });
 
+  it('includes the hospitality restaurant portfolio concept', () => {
+    const hospitality = siteConfig.projects.find((p) => p.id === 'seasonal-restaurant-concept');
+    expect(hospitality).toBeDefined();
+    expect(hospitality?.title).toBe('Seasonal Community Restaurant');
+    expect(hospitality?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(hospitality?.industry).toBe('Hospitality & Food Service');
+    expect(hospitality?.industryDetail).toMatch(/seasonal, community-focused restaurant/i);
+    expect(hospitality?.websiteGoal).toMatch(/book a table/i);
+    expect(hospitality?.roles).toEqual(
+      expect.arrayContaining([
+        'Interactive Reservation & Ordering Experiences',
+        'Cloudflare Deployment & Security',
+      ]),
+    );
+    expect(hospitality?.technologies).toEqual(
+      expect.arrayContaining(['Astro', 'Cloudflare Workers', 'Workers AI']),
+    );
+    expect(hospitality?.note).toMatch(/reservations and ordering flows/i);
+  });
+
   it('structures footer into services, studio, and legal groups', () => {
     const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);

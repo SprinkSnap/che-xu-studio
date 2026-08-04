@@ -112,6 +112,30 @@ describe('site navigation integrity', () => {
     expect(hospitality?.note).toMatch(/reservations and ordering flows/i);
   });
 
+  it('includes a home-services concept after Tablekind Kitchen', () => {
+    const projects = siteConfig.projects;
+    const tablekindIndex = projects.findIndex((p) => p.id === 'seasonal-restaurant-concept');
+    const residentialIndex = projects.findIndex((p) => p.id === 'residential-home-services-concept');
+    expect(tablekindIndex).toBeGreaterThanOrEqual(0);
+    expect(residentialIndex).toBe(tablekindIndex + 1);
+
+    const residential = projects[residentialIndex];
+    expect(residential?.title).toBe('Residential Home Services');
+    expect(residential?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(residential?.industry).toBe('Home Services');
+    expect(residential?.industryDetail).toMatch(/residential home services/i);
+    expect(residential?.websiteGoal).toMatch(/conversion-focused website/i);
+    expect(residential?.roles).toEqual(
+      expect.arrayContaining(['WordPress Development', 'Performance Optimization']),
+    );
+    expect(residential?.technologies).toEqual(
+      expect.arrayContaining(['WordPress', 'PHP', 'Accessibility (WCAG)']),
+    );
+    expect(residential?.conversionFocus).toMatch(/qualified leads/i);
+    expect(residential?.seoImplementation).toMatch(/local SEO foundations/i);
+    expect(residential?.note).toMatch(/showcase conversion-focused home-services/i);
+  });
+
   it('structures footer into services, studio, and legal groups', () => {
     const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);

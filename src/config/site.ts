@@ -137,6 +137,51 @@ export const hospitalityConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
 } as const satisfies SiteProject;
 
+/**
+ * Additional home-services WordPress portfolio concept (after Tablekind Kitchen).
+ * Framed as a demonstration / portfolio concept — not a live client engagement.
+ */
+export const residentialHomeServicesConcept = {
+  id: 'residential-home-services-concept',
+  title: 'Residential Home Services',
+  summary:
+    'Desktop view, mobile-responsive conversion & SEO — a multi-device home-services experience built to turn visitors into qualified leads.',
+  industry: 'Home Services',
+  industryDetail:
+    'A residential home services business providing reliable solutions for homeowners, with a focus on making it easy to request services and connect with the company.',
+  websiteGoal:
+    'Design and develop a modern, conversion-focused website that builds trust, improves user experience, supports local SEO, and encourages visitors to become qualified leads through clear calls to action and a mobile-first experience.',
+  roles: [
+    'UX Research & Strategy',
+    'Information Architecture',
+    'UI/Visual Design',
+    'Responsive Web Design',
+    'WordPress Development',
+    'Technical SEO Implementation',
+    'Performance Optimization',
+    'Accessibility Best Practices',
+  ],
+  technologies: [
+    'WordPress',
+    'PHP',
+    'HTML5',
+    'CSS3',
+    'JavaScript',
+    'Responsive Design',
+    'Technical SEO',
+    'Performance Optimization',
+    'Accessibility (WCAG)',
+    'Google Fonts',
+    'SVG Icons',
+  ],
+  conversionFocus:
+    'Conversion work focused on clear service messaging, trust-building content, prominent calls to action, streamlined contact and quote request flows, and a mobile-first user experience designed to convert visitors into qualified leads.',
+  seoImplementation:
+    'SEO implementation included technical SEO best practices, semantic HTML, local SEO foundations, responsive performance optimization, accessible markup, optimized assets, and a search-friendly site architecture that improves discoverability and user experience.',
+  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase conversion-focused home-services design, mobile UX, and local SEO approach.',
+  services: ['Web Design', 'SEO Strategy', 'Website Care'],
+} as const satisfies SiteProject;
+
 /** True when a project link should open in a new tab. */
 export function isExternalProjectHref(href: string | undefined): boolean {
   return Boolean(href && /^https?:\/\//i.test(href));
@@ -237,7 +282,7 @@ export const siteConfig = {
    * Leave empty to hide the Work gallery and show the transparent inclusions section instead.
    * Do not invent client metrics — only include results that are verified and approved.
    */
-  projects: [northlineConcept, hospitalityConcept] as SiteProject[],
+  projects: [northlineConcept, hospitalityConcept, residentialHomeServicesConcept] as SiteProject[],
 
   /** Verified testimonials only. Leave empty to omit the section. */
   testimonials: [] as Array<{

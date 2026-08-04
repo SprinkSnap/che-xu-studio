@@ -93,7 +93,7 @@ describe('site navigation integrity', () => {
   it('includes the hospitality restaurant portfolio concept', () => {
     const hospitality = siteConfig.projects.find((p) => p.id === 'seasonal-restaurant-concept');
     expect(hospitality).toBeDefined();
-    expect(hospitality?.title).toBe('Seasonal Community Restaurant');
+    expect(hospitality?.title).toBe('Tablekind Kitchen');
     expect(hospitality?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
     expect(hospitality?.industry).toBe('Hospitality & Food Service');
     expect(hospitality?.industryDetail).toMatch(/seasonal, community-focused restaurant/i);

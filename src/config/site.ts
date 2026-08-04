@@ -29,12 +29,12 @@ export type SiteProject = {
 };
 
 /**
- * Northway portfolio concept brief + mockup.
+ * NorthLine HOME SERVICES portfolio concept brief + mockup.
  * Live demo is hosted on a dedicated studio subdomain (not the marketing apex).
  */
-export const northwayConcept = {
-  id: 'northway-home-services',
-  title: 'Northway',
+export const northlineConcept = {
+  id: 'northline-home-services',
+  title: 'NorthLine HOME SERVICES',
   industry:
     'Home services — HVAC / home heating & cooling, with related plumbing, electrical, and maintenance.',
   websiteGoal:
@@ -56,7 +56,7 @@ export const northwayConcept = {
   hrefLabel: 'View live demo',
   imageSrc: '/images/work/northway-responsive-mockup.png',
   imageAlt:
-    'Northway responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
+    'NorthLine HOME SERVICES responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
   summary:
     'Desktop and mobile-responsive HVAC demo focused on conversion and local SEO: clear service paths, quote/request flows, and a multi-device layout that shows how the experience holds from laptop to phone.',
 } as const satisfies SiteProject;
@@ -161,7 +161,7 @@ export const siteConfig = {
    * Leave empty to hide the Work gallery and show the transparent inclusions section instead.
    * Do not invent client metrics — only include results that are verified and approved.
    */
-  projects: [northwayConcept] as SiteProject[],
+  projects: [northlineConcept] as SiteProject[],
 
   /** Verified testimonials only. Leave empty to omit the section. */
   testimonials: [] as Array<{

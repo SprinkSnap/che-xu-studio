@@ -120,7 +120,7 @@ describe('site navigation integrity', () => {
     expect(residentialIndex).toBe(tablekindIndex + 1);
 
     const residential = projects[residentialIndex];
-    expect(residential?.title).toBe('Residential Home Services');
+    expect(residential?.title).toBe('Harbour & Pine Home');
     expect(residential?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
     expect(residential?.industry).toBe('Home Services');
     expect(residential?.industryDetail).toMatch(/residential home services/i);

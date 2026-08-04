@@ -143,7 +143,7 @@ export const hospitalityConcept = {
  */
 export const residentialHomeServicesConcept = {
   id: 'residential-home-services-concept',
-  title: 'Residential Home Services',
+  title: 'Harbour & Pine Home',
   summary:
     'Desktop view, mobile-responsive conversion & SEO — a multi-device home-services experience built to turn visitors into qualified leads.',
   industry: 'Home Services',

@@ -6,6 +6,55 @@
 
 import type { FooterLink, NavItem } from '../lib/navigation';
 
+export type SiteProject = {
+  id: string;
+  title: string;
+  summary: string;
+  industry?: string;
+  /** Lead-gen / education goal for this portfolio concept. */
+  websiteGoal?: string;
+  /** Studio role / scope for the concept build. */
+  role?: string;
+  /** Implementation stack called out for this concept. */
+  technologies?: string[];
+  services: string[];
+  href?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  /** Only include metrics that are verified and approved for publication. */
+  results?: Array<{ label: string; value: string }>;
+};
+
+/**
+ * Northway portfolio concept brief + mockup.
+ * Source material for Work / homepage project cards.
+ */
+export const northwayConcept = {
+  id: 'northway-home-services',
+  title: 'Northway',
+  industry:
+    'Home services — HVAC / home heating & cooling, with related plumbing, electrical, and maintenance.',
+  websiteGoal:
+    'Lead generation and education — make services clear, guide visitors (especially mobile) into a quote/request flow, and demonstrate conversion-focused design and local SEO.',
+  role: 'Build and refine this as a portfolio website concept (Che Xu Studio) — implement the responsive landing experience, request flow, and supporting pages.',
+  technologies: [
+    'Astro 7',
+    'React islands',
+    'TypeScript',
+    'Tailwind CSS v4',
+    'Cloudflare Workers/D1',
+    'Zod',
+    'Vitest',
+    'Playwright',
+  ],
+  services: ['Web Design', 'SEO Strategy', 'Website Care'],
+  imageSrc: '/images/work/northway-responsive-mockup.png',
+  imageAlt:
+    'Northway responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
+  summary:
+    'Reliable Home Comfort, Without the Runaround. Conversion-focused HVAC / home-comfort landing experience with mobile-first quote and request flows, clear service pathways, and local SEO foundations.',
+} as const satisfies SiteProject;
+
 export const siteConfig = {
   name: 'Che Xu Studio',
   legalName: 'Che Xu Studio',
@@ -101,30 +150,7 @@ export const siteConfig = {
    * Leave empty to hide the Work gallery and show the transparent inclusions section instead.
    * Do not invent client metrics — only include results that are verified and approved.
    */
-  projects: [
-    {
-      id: 'northway-home-services',
-      title: 'Northway',
-      industry: 'Home services — HVAC / home heating & cooling',
-      summary:
-        'Portfolio website concept for a local HVAC and home-comfort brand (with related plumbing, electrical, and maintenance). Built for lead generation and education: clear service pathways, a mobile-first quote/request flow, and conversion-focused layout plus local SEO foundations. Demonstrates responsive landing experience, request flow, and supporting pages using Astro, React islands, TypeScript, Tailwind CSS v4, Cloudflare Workers/D1, Zod, Vitest, and Playwright.',
-      services: ['Web Design', 'SEO Strategy', 'Website Care'],
-      imageSrc: '/images/work/northway-responsive-mockup.png',
-      imageAlt:
-        'Northway responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get a Quote CTAs, and HVAC equipment illustration.',
-    },
-  ] as Array<{
-    id: string;
-    title: string;
-    summary: string;
-    industry?: string;
-    services: string[];
-    href?: string;
-    imageSrc?: string;
-    imageAlt?: string;
-    /** Only include metrics that are verified and approved for publication. */
-    results?: Array<{ label: string; value: string }>;
-  }>,
+  projects: [northwayConcept] as SiteProject[],
 
   /** Verified testimonials only. Leave empty to omit the section. */
   testimonials: [] as Array<{

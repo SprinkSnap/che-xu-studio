@@ -63,11 +63,30 @@ const projects = siteConfig.projects;
                   <h2 class="font-display text-2xl font-bold text-navy-900">{project.title}</h2>
                   {project.industry && <p class="mt-1 text-sm font-medium text-blue-500">{project.industry}</p>}
                   <p class="mt-3 text-sm text-ink-muted">{project.summary}</p>
+                  {project.websiteGoal && (
+                    <p class="mt-3 text-sm text-ink-muted">
+                      <span class="font-semibold text-navy-800">Goal:</span> {project.websiteGoal}
+                    </p>
+                  )}
+                  {project.role && (
+                    <p class="mt-2 text-sm text-ink-muted">
+                      <span class="font-semibold text-navy-800">Role:</span> {project.role}
+                    </p>
+                  )}
                   {project.services.length > 0 && (
                     <ul class="mt-4 flex flex-wrap gap-2">
                       {project.services.map((service) => (
                         <li class="rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-navy-800">
                           {service}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {project.technologies && project.technologies.length > 0 && (
+                    <ul class="mt-3 flex flex-wrap gap-2">
+                      {project.technologies.map((tech) => (
+                        <li class="rounded-full border border-border px-3 py-1 text-xs text-ink-muted">
+                          {tech}
                         </li>
                       ))}
                     </ul>

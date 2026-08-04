@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { siteConfig } from '../config/site';
+import { isExternalProjectHref, siteConfig } from '../config/site';
 import OutcomeCards from '../components/OutcomeCards.astro';
 import ProcessSteps from '../components/ProcessSteps.astro';
 import PricingCard from '../components/PricingCard.astro';
@@ -183,6 +183,18 @@ const faqItems = faqsForPage('home');
                       <p class="mt-1 text-sm font-medium text-blue-500">{project.industry}</p>
                     )}
                     <p class="mt-3 text-sm text-ink-muted">{project.summary}</p>
+                    {project.href && (
+                      <a
+                        href={project.href}
+                        class="btn-primary mt-5 inline-flex"
+                        {...(isExternalProjectHref(project.href)
+                          ? { target: '_blank', rel: 'noopener noreferrer' }
+                          : {})}
+                      >
+                        {project.hrefLabel ??
+                          (isExternalProjectHref(project.href) ? 'View live demo' : 'View project')}
+                      </a>
+                    )}
                   </div>
                 </article>
               ))}

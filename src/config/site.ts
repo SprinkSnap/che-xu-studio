@@ -52,7 +52,7 @@ export const northwayConcept = {
   ],
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   /** Recommended demo host: dedicated subdomain keeps the studio site clean and SEO-safe. */
-  href: 'https://northway-demo.chexustudio.com',
+  href: 'https://northline-demo.chexustudio.com',
   hrefLabel: 'View live demo',
   imageSrc: '/images/work/northway-responsive-mockup.png',
   imageAlt:

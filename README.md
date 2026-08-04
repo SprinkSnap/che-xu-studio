@@ -110,6 +110,24 @@ Do **not** set Deploy command to bare `npx wrangler deploy`. That re-enables res
 auto-provisioning and can fail with API **10014** when `che-xu-studio-site-session`
 (or similar) already exists from an earlier Astro SESSION KV auto-create.
 
+### GitHub Actions deploy (backup when Workers Builds is stale)
+
+If Workers Builds history does not list recent `main` commits (for example `4fb942c`)
+but GitHub already has them, use the **Deploy Worker** workflow instead:
+
+1. Create a Cloudflare API token with **Edit Cloudflare Workers** (include account
+   resources for this account) and add repo secrets:
+   - `CLOUDFLARE_API_TOKEN` (required)
+   - `CLOUDFLARE_ACCOUNT_ID` (required)
+   - optional: `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`
+2. Optional repo **Variables**: `PUBLIC_SITE_URL`, `PUBLIC_TURNSTILE_SITE_KEY`,
+   `CONTACT_FROM_EMAIL`
+3. GitHub → **Actions** → **Deploy Worker** → **Run workflow** (branch `main`)
+
+Verify after deploy: `/work` should show the Northway portfolio card (not the empty
+placeholder). Confirm file content on GitHub:
+`https://github.com/SprinkSnap/che-xu-studio/blob/main/src/config/site.ts`
+
 ### Sessions / KV note
 
 This site does **not** use Astro sessions. Config sets `sessionDrivers.lruCache()` so

@@ -69,20 +69,20 @@ describe('site navigation integrity', () => {
     expect(siteConfig.contact.email).toBe('info@chexustudio.com');
   });
 
-  it('includes the Northway portfolio concept with brief and mockup', () => {
+  it('includes the NorthLine HOME SERVICES portfolio concept with brief and mockup', () => {
     expect(siteConfig.projects.length).toBeGreaterThan(0);
-    const northway = siteConfig.projects.find((p) => p.id === 'northway-home-services');
-    expect(northway).toBeDefined();
-    expect(northway?.title).toBe('Northway');
-    expect(northway?.industry).toMatch(/HVAC/);
-    expect(northway?.websiteGoal).toMatch(/Lead generation/);
-    expect(northway?.role).toMatch(/Che Xu Studio/);
-    expect(northway?.technologies).toEqual(
+    const northline = siteConfig.projects.find((p) => p.id === 'northline-home-services');
+    expect(northline).toBeDefined();
+    expect(northline?.title).toBe('NorthLine HOME SERVICES');
+    expect(northline?.industry).toMatch(/HVAC/);
+    expect(northline?.websiteGoal).toMatch(/Lead generation/);
+    expect(northline?.role).toMatch(/Che Xu Studio/);
+    expect(northline?.technologies).toEqual(
       expect.arrayContaining(['Astro 7', 'Tailwind CSS v4', 'Cloudflare Workers/D1']),
     );
-    expect(northway?.imageSrc).toBe('/images/work/northway-responsive-mockup.png');
-    expect(northway?.href).toBe('https://northline-demo.chexustudio.com');
-    expect(northway?.hrefLabel).toBe('View live demo');
+    expect(northline?.imageSrc).toBe('/images/work/northway-responsive-mockup.png');
+    expect(northline?.href).toBe('https://northline-demo.chexustudio.com');
+    expect(northline?.hrefLabel).toBe('View live demo');
   });
 
   it('structures footer into services, studio, and legal groups', () => {

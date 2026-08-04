@@ -124,7 +124,7 @@ but GitHub already has them, use the **Deploy Worker** workflow instead:
    `CONTACT_FROM_EMAIL`
 3. GitHub → **Actions** → **Deploy Worker** → **Run workflow** (branch `main`)
 
-Verify after deploy: `/work` should show the Northway portfolio card (not the empty
+Verify after deploy: `/work` should show the NorthLine HOME SERVICES portfolio card (not the empty
 placeholder). Confirm file content on GitHub:
 `https://github.com/SprinkSnap/che-xu-studio/blob/main/src/config/site.ts`
 

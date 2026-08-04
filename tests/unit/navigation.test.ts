@@ -146,7 +146,7 @@ describe('site navigation integrity', () => {
     expect(interiorIndex).toBe(harbourIndex + 1);
 
     const interior = projects[interiorIndex];
-    expect(interior?.title).toBe('Interior Design Studio');
+    expect(interior?.title).toBe('Form & Field Interiors');
     expect(interior?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
     expect(interior?.industry).toBe('Interior Design & Home Improvement');
     expect(interior?.industryDetail).toMatch(/visually appealing/i);

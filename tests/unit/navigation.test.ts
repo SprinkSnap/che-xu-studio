@@ -136,6 +136,28 @@ describe('site navigation integrity', () => {
     expect(residential?.note).toMatch(/showcase conversion-focused home-services/i);
   });
 
+  it('includes an interior-design concept after Harbour & Pine Home', () => {
+    const projects = siteConfig.projects;
+    const harbourIndex = projects.findIndex((p) => p.id === 'residential-home-services-concept');
+    const interiorIndex = projects.findIndex(
+      (p) => p.id === 'interior-design-home-improvement-concept',
+    );
+    expect(harbourIndex).toBeGreaterThanOrEqual(0);
+    expect(interiorIndex).toBe(harbourIndex + 1);
+
+    const interior = projects[interiorIndex];
+    expect(interior?.title).toBe('Interior Design Studio');
+    expect(interior?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(interior?.industry).toBe('Interior Design & Home Improvement');
+    expect(interior?.industryDetail).toMatch(/visually appealing/i);
+    expect(interior?.websiteGoal).toMatch(/qualified inquiries/i);
+    expect(interior?.role).toMatch(/front-end experience/i);
+    expect(interior?.technologies).toEqual(
+      expect.arrayContaining(['HTML', 'CSS', 'JavaScript', 'Responsive Design']),
+    );
+    expect(interior?.conversionFocus).toMatch(/prospective clients/i);
+  });
+
   it('structures footer into services, studio, and legal groups', () => {
     const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);

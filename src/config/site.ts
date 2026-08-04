@@ -187,7 +187,7 @@ export const residentialHomeServicesConcept = {
  */
 export const interiorDesignConcept = {
   id: 'interior-design-home-improvement-concept',
-  title: 'Interior Design Studio',
+  title: 'Form & Field Interiors',
   summary:
     'Desktop view, mobile-responsive conversion & SEO — a multi-device interior-design experience built to present services, showcase work, and generate client inquiries.',
   industry: 'Interior Design & Home Improvement',

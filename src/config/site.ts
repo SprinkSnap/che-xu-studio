@@ -182,6 +182,33 @@ export const residentialHomeServicesConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
 } as const satisfies SiteProject;
 
+/**
+ * Interior design / home-improvement portfolio concept (after Harbour & Pine Home).
+ */
+export const interiorDesignConcept = {
+  id: 'interior-design-home-improvement-concept',
+  title: 'Interior Design Studio',
+  summary:
+    'Desktop view, mobile-responsive conversion & SEO — a multi-device interior-design experience built to present services, showcase work, and generate client inquiries.',
+  industry: 'Interior Design & Home Improvement',
+  industryDetail:
+    'Interior design and home-improvement services, focused on creating functional and visually appealing residential or commercial spaces.',
+  websiteGoal:
+    'To present the company’s interior-design services and past work, build trust with potential clients, and generate qualified inquiries through clear calls to action and accessible contact forms.',
+  role: 'I designed and developed the website’s front-end experience, including the page structure, responsive interface, service presentation, lead-generation forms, and conversion-focused user journey.',
+  technologies: [
+    'HTML',
+    'CSS',
+    'JavaScript',
+    'Responsive Design',
+    'Reusable Web Components',
+    'Framework-Based Components',
+  ],
+  conversionFocus:
+    'I structured the site around clear service messaging, prominent inquiry actions, streamlined forms, mobile responsiveness, semantic page hierarchy, descriptive metadata, and search-friendly content. These decisions were intended to reduce friction, improve discoverability, and turn more visitors into prospective clients.',
+  services: ['Web Design', 'SEO Strategy', 'Website Care'],
+} as const satisfies SiteProject;
+
 /** True when a project link should open in a new tab. */
 export function isExternalProjectHref(href: string | undefined): boolean {
   return Boolean(href && /^https?:\/\//i.test(href));
@@ -282,7 +309,12 @@ export const siteConfig = {
    * Leave empty to hide the Work gallery and show the transparent inclusions section instead.
    * Do not invent client metrics — only include results that are verified and approved.
    */
-  projects: [northlineConcept, hospitalityConcept, residentialHomeServicesConcept] as SiteProject[],
+  projects: [
+    northlineConcept,
+    hospitalityConcept,
+    residentialHomeServicesConcept,
+    interiorDesignConcept,
+  ] as SiteProject[],
 
   /** Verified testimonials only. Leave empty to omit the section. */
   testimonials: [] as Array<{

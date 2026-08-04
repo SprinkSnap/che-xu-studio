@@ -80,7 +80,7 @@ describe('site navigation integrity', () => {
     expect(northline?.technologies).toEqual(
       expect.arrayContaining(['Astro 7', 'Tailwind CSS v4', 'Cloudflare Workers/D1']),
     );
-    expect(northline?.imageSrc).toBe('/images/work/northway-responsive-mockup.png');
+    expect(northline?.imageSrc).toBe('/images/work/northline-home-service-responsive-mockup.png');
     expect(northline?.href).toBe('https://northline-demo.chexustudio.com');
     expect(northline?.hrefLabel).toBe('View live demo');
   });

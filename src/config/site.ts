@@ -54,7 +54,7 @@ export const northlineConcept = {
   /** Recommended demo host: dedicated subdomain keeps the studio site clean and SEO-safe. */
   href: 'https://northline-demo.chexustudio.com',
   hrefLabel: 'View live demo',
-  imageSrc: '/images/work/northway-responsive-mockup.png',
+  imageSrc: '/images/work/northline-home-service-responsive-mockup.png',
   imageAlt:
     'NorthLine HOME SERVICES responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
   summary:

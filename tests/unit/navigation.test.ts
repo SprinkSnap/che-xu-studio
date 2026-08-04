@@ -156,6 +156,7 @@ describe('site navigation integrity', () => {
       expect.arrayContaining(['HTML', 'CSS', 'JavaScript', 'Responsive Design']),
     );
     expect(interior?.conversionFocus).toMatch(/prospective clients/i);
+    expect(interior?.note).toMatch(/Fictional demonstration/i);
   });
 
   it('structures footer into services, studio, and legal groups', () => {

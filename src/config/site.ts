@@ -206,6 +206,7 @@ export const interiorDesignConcept = {
   ],
   conversionFocus:
     'I structured the site around clear service messaging, prominent inquiry actions, streamlined forms, mobile responsiveness, semantic page hierarchy, descriptive metadata, and search-friendly content. These decisions were intended to reduce friction, improve discoverability, and turn more visitors into prospective clients.',
+  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase conversion-focused interior-design presentation, mobile UX, and a search-friendly inquiry journey.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
 } as const satisfies SiteProject;
 

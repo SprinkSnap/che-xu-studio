@@ -89,7 +89,7 @@ export const northlineConcept = {
  */
 export const hospitalityConcept = {
   id: 'seasonal-restaurant-concept',
-  title: 'Seasonal Community Restaurant',
+  title: 'Tablekind Kitchen',
   summary:
     'Desktop view, mobile-responsive conversion & SEO — a multi-device restaurant experience built for reservations, ordering, and catering enquiries.',
   industry: 'Hospitality & Food Service',

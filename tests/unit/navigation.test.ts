@@ -74,12 +74,17 @@ describe('site navigation integrity', () => {
     const northline = siteConfig.projects.find((p) => p.id === 'northline-home-services');
     expect(northline).toBeDefined();
     expect(northline?.title).toBe('NorthLine HOME SERVICES');
-    expect(northline?.industry).toMatch(/HVAC/);
-    expect(northline?.websiteGoal).toMatch(/Lead generation/);
-    expect(northline?.role).toMatch(/Che Xu Studio/);
-    expect(northline?.technologies).toEqual(
-      expect.arrayContaining(['Astro 7', 'Tailwind CSS v4', 'Cloudflare Workers/D1']),
+    expect(northline?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(northline?.industry).toBe('Home Services');
+    expect(northline?.industryDetail).toMatch(/residential home services/i);
+    expect(northline?.websiteGoal).toMatch(/conversion-focused website/i);
+    expect(northline?.roles).toEqual(
+      expect.arrayContaining(['WordPress Development', 'Technical SEO Implementation']),
     );
+    expect(northline?.technologies).toEqual(
+      expect.arrayContaining(['WordPress', 'PHP', 'Accessibility (WCAG)']),
+    );
+    expect(northline?.note).toMatch(/Fictional demonstration/i);
     expect(northline?.imageSrc).toBe('/images/work/northline-home-service-responsive-mockup.png');
     expect(northline?.href).toBe('https://northline-demo.chexustudio.com');
     expect(northline?.hrefLabel).toBe('View live demo');

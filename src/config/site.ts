@@ -10,13 +10,20 @@ export type SiteProject = {
   id: string;
   title: string;
   summary: string;
+  /** Short client-industry label (e.g. Home Services). */
   industry?: string;
-  /** Lead-gen / education goal for this portfolio concept. */
+  /** Longer industry / client context under the industry label. */
+  industryDetail?: string;
+  /** Project goal for this portfolio concept. */
   websiteGoal?: string;
-  /** Studio role / scope for the concept build. */
+  /** Studio role / scope for the concept build (single paragraph). */
   role?: string;
+  /** discrete responsibilities when a role list is preferred. */
+  roles?: string[];
   /** Implementation stack called out for this concept. */
   technologies?: string[];
+  /** Honest framing note (e.g. portfolio concept / fictional demo). */
+  note?: string;
   services: string[];
   /** Live demo or case-study URL (external subdomain or internal path). */
   href?: string;
@@ -31,25 +38,42 @@ export type SiteProject = {
 /**
  * NorthLine HOME SERVICES portfolio concept brief + mockup.
  * Live demo is hosted on a dedicated studio subdomain (not the marketing apex).
+ * Framed as a demonstration / portfolio concept — not a live client engagement.
  */
 export const northlineConcept = {
   id: 'northline-home-services',
   title: 'NorthLine HOME SERVICES',
-  industry:
-    'Home services — HVAC / home heating & cooling, with related plumbing, electrical, and maintenance.',
+  summary:
+    'Desktop view, mobile-responsive conversion & SEO — a multi-device home-services experience built to turn visitors into qualified leads.',
+  industry: 'Home Services',
+  industryDetail:
+    'A residential home services business providing reliable solutions for homeowners, with a focus on making it easy to request services and connect with the company.',
   websiteGoal:
-    'Lead generation and education — make services clear, guide visitors (especially mobile) into a quote/request flow, and demonstrate conversion-focused design and local SEO.',
-  role: 'Build and refine this as a portfolio website concept (Che Xu Studio) — implement the responsive landing experience, request flow, and supporting pages.',
-  technologies: [
-    'Astro 7',
-    'React islands',
-    'TypeScript',
-    'Tailwind CSS v4',
-    'Cloudflare Workers/D1',
-    'Zod',
-    'Vitest',
-    'Playwright',
+    'Design and develop a modern, conversion-focused website that builds trust, improves user experience, supports local SEO, and encourages visitors to become qualified leads through clear calls to action and a mobile-first experience.',
+  roles: [
+    'UX Research & Strategy',
+    'Information Architecture',
+    'UI/Visual Design',
+    'Responsive Web Design',
+    'WordPress Development',
+    'Technical SEO Implementation',
+    'Performance Optimization',
+    'Accessibility Best Practices',
   ],
+  technologies: [
+    'WordPress',
+    'PHP',
+    'HTML5',
+    'CSS3',
+    'JavaScript',
+    'Responsive Design',
+    'Technical SEO',
+    'Performance Optimization',
+    'Accessibility (WCAG)',
+    'Google Fonts',
+    'SVG Icons',
+  ],
+  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to show conversion-focused home-services design, mobile UX, and local SEO approach.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   /** Recommended demo host: dedicated subdomain keeps the studio site clean and SEO-safe. */
   href: 'https://northline-demo.chexustudio.com',
@@ -57,8 +81,6 @@ export const northlineConcept = {
   imageSrc: '/images/work/northline-home-service-responsive-mockup.png',
   imageAlt:
     'NorthLine HOME SERVICES responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
-  summary:
-    'Desktop and mobile-responsive HVAC demo focused on conversion and local SEO: clear service paths, quote/request flows, and a multi-device layout that shows how the experience holds from laptop to phone.',
 } as const satisfies SiteProject;
 
 /** True when a project link should open in a new tab. */

@@ -61,18 +61,67 @@ const projects = siteConfig.projects;
                 )}
                 <div class="p-6">
                   <h2 class="font-display text-2xl font-bold text-navy-900">{project.title}</h2>
-                  {project.industry && <p class="mt-1 text-sm font-medium text-blue-500">{project.industry}</p>}
                   <p class="mt-3 text-sm text-ink-muted">{project.summary}</p>
+
+                  {project.industry && (
+                    <div class="mt-5">
+                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
+                        Client Industry
+                      </p>
+                      <p class="mt-1 text-sm font-medium text-blue-500">{project.industry}</p>
+                      {project.industryDetail && (
+                        <p class="mt-2 text-sm text-ink-muted">{project.industryDetail}</p>
+                      )}
+                    </div>
+                  )}
+
                   {project.websiteGoal && (
-                    <p class="mt-3 text-sm text-ink-muted">
-                      <span class="font-semibold text-navy-800">Goal:</span> {project.websiteGoal}
+                    <div class="mt-5">
+                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
+                        Project Goal
+                      </p>
+                      <p class="mt-2 text-sm text-ink-muted">{project.websiteGoal}</p>
+                    </div>
+                  )}
+
+                  {(project.roles?.length || project.role) && (
+                    <div class="mt-5">
+                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
+                        My Role
+                      </p>
+                      {project.roles && project.roles.length > 0 ? (
+                        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-muted">
+                          {project.roles.map((item) => (
+                            <li>{item}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p class="mt-2 text-sm text-ink-muted">{project.role}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {project.technologies && project.technologies.length > 0 && (
+                    <div class="mt-5">
+                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
+                        Technologies Used
+                      </p>
+                      <ul class="mt-3 flex flex-wrap gap-2">
+                        {project.technologies.map((tech) => (
+                          <li class="rounded-full border border-border px-3 py-1 text-xs text-ink-muted">
+                            {tech}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {project.note && (
+                    <p class="mt-5 rounded-[var(--radius-md)] border border-border bg-surface-muted p-3 text-xs leading-relaxed text-ink-muted">
+                      {project.note}
                     </p>
                   )}
-                  {project.role && (
-                    <p class="mt-2 text-sm text-ink-muted">
-                      <span class="font-semibold text-navy-800">Role:</span> {project.role}
-                    </p>
-                  )}
+
                   {project.services.length > 0 && (
                     <ul class="mt-4 flex flex-wrap gap-2">
                       {project.services.map((service) => (
@@ -82,15 +131,7 @@ const projects = siteConfig.projects;
                       ))}
                     </ul>
                   )}
-                  {project.technologies && project.technologies.length > 0 && (
-                    <ul class="mt-3 flex flex-wrap gap-2">
-                      {project.technologies.map((tech) => (
-                        <li class="rounded-full border border-border px-3 py-1 text-xs text-ink-muted">
-                          {tech}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+
                   {project.results && project.results.length > 0 && (
                     <ul class="mt-4 space-y-1 text-sm text-navy-800">
                       {project.results.map((r) => (
@@ -100,6 +141,7 @@ const projects = siteConfig.projects;
                       ))}
                     </ul>
                   )}
+
                   {project.href && (
                     <a
                       href={project.href}

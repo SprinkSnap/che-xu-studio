@@ -18,7 +18,10 @@ export type SiteProject = {
   /** Implementation stack called out for this concept. */
   technologies?: string[];
   services: string[];
+  /** Live demo or case-study URL (external subdomain or internal path). */
   href?: string;
+  /** Button label for href — defaults to “View live demo” for http(s) links. */
+  hrefLabel?: string;
   imageSrc?: string;
   imageAlt?: string;
   /** Only include metrics that are verified and approved for publication. */
@@ -27,7 +30,7 @@ export type SiteProject = {
 
 /**
  * Northway portfolio concept brief + mockup.
- * Source material for Work / homepage project cards.
+ * Live demo is hosted on a dedicated studio subdomain (not the marketing apex).
  */
 export const northwayConcept = {
   id: 'northway-home-services',
@@ -48,12 +51,20 @@ export const northwayConcept = {
     'Playwright',
   ],
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
+  /** Recommended demo host: dedicated subdomain keeps the studio site clean and SEO-safe. */
+  href: 'https://northway-demo.chexustudio.com',
+  hrefLabel: 'View live demo',
   imageSrc: '/images/work/northway-responsive-mockup.png',
   imageAlt:
     'Northway responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
   summary:
-    'Reliable Home Comfort, Without the Runaround. Conversion-focused HVAC / home-comfort landing experience with mobile-first quote and request flows, clear service pathways, and local SEO foundations.',
+    'Desktop and mobile-responsive HVAC demo focused on conversion and local SEO: clear service paths, quote/request flows, and a multi-device layout that shows how the experience holds from laptop to phone.',
 } as const satisfies SiteProject;
+
+/** True when a project link should open in a new tab. */
+export function isExternalProjectHref(href: string | undefined): boolean {
+  return Boolean(href && /^https?:\/\//i.test(href));
+}
 
 export const siteConfig = {
   name: 'Che Xu Studio',

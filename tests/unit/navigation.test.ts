@@ -69,6 +69,20 @@ describe('site navigation integrity', () => {
     expect(siteConfig.contact.email).toBe('info@chexustudio.com');
   });
 
+  it('includes the Northway portfolio concept with brief and mockup', () => {
+    expect(siteConfig.projects.length).toBeGreaterThan(0);
+    const northway = siteConfig.projects.find((p) => p.id === 'northway-home-services');
+    expect(northway).toBeDefined();
+    expect(northway?.title).toBe('Northway');
+    expect(northway?.industry).toMatch(/HVAC/);
+    expect(northway?.websiteGoal).toMatch(/Lead generation/);
+    expect(northway?.role).toMatch(/Che Xu Studio/);
+    expect(northway?.technologies).toEqual(
+      expect.arrayContaining(['Astro 7', 'Tailwind CSS v4', 'Cloudflare Workers/D1']),
+    );
+    expect(northway?.imageSrc).toBe('/images/work/northway-responsive-mockup.png');
+  });
+
   it('structures footer into services, studio, and legal groups', () => {
     const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);

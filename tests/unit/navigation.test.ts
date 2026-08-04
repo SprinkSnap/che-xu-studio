@@ -84,6 +84,8 @@ describe('site navigation integrity', () => {
     expect(northline?.technologies).toEqual(
       expect.arrayContaining(['WordPress', 'PHP', 'Accessibility (WCAG)']),
     );
+    expect(northline?.conversionFocus).toMatch(/qualified leads/i);
+    expect(northline?.seoImplementation).toMatch(/local SEO foundations/i);
     expect(northline?.note).toMatch(/Fictional demonstration/i);
     expect(northline?.imageSrc).toBe('/images/work/northline-home-service-responsive-mockup.png');
     expect(northline?.href).toBe('https://northline-demo.chexustudio.com');

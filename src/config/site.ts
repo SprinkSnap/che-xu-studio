@@ -22,6 +22,10 @@ export type SiteProject = {
   roles?: string[];
   /** Implementation stack called out for this concept. */
   technologies?: string[];
+  /** Conversion strategy narrative for the concept. */
+  conversionFocus?: string;
+  /** SEO implementation narrative for the concept. */
+  seoImplementation?: string;
   /** Honest framing note (e.g. portfolio concept / fictional demo). */
   note?: string;
   services: string[];
@@ -73,7 +77,11 @@ export const northlineConcept = {
     'Google Fonts',
     'SVG Icons',
   ],
-  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to show conversion-focused home-services design, mobile UX, and local SEO approach.',
+  conversionFocus:
+    'Conversion work focused on clear service messaging, trust-building content, prominent calls to action, streamlined contact and quote request flows, and a mobile-first user experience designed to convert visitors into qualified leads.',
+  seoImplementation:
+    'SEO implementation included technical SEO best practices, semantic HTML, local SEO foundations, responsive performance optimization, accessible markup, optimized assets, and a search-friendly site architecture that improves discoverability and user experience.',
+  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase conversion-focused home-services design, mobile UX, and local SEO approach.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   /** Recommended demo host: dedicated subdomain keeps the studio site clean and SEO-safe. */
   href: 'https://northline-demo.chexustudio.com',

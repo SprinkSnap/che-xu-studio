@@ -116,6 +116,20 @@ const projects = siteConfig.projects;
                     </div>
                   )}
 
+                  {(project.conversionFocus || project.seoImplementation) && (
+                    <div class="mt-5">
+                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
+                        Conversion &amp; SEO
+                      </p>
+                      {project.conversionFocus && (
+                        <p class="mt-2 text-sm text-ink-muted">{project.conversionFocus}</p>
+                      )}
+                      {project.seoImplementation && (
+                        <p class="mt-2 text-sm text-ink-muted">{project.seoImplementation}</p>
+                      )}
+                    </div>
+                  )}
+
                   {project.note && (
                     <p class="mt-5 rounded-[var(--radius-md)] border border-border bg-surface-muted p-3 text-xs leading-relaxed text-ink-muted">
                       {project.note}

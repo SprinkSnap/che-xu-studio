@@ -83,6 +83,52 @@ export const northlineConcept = {
     'NorthLine HOME SERVICES responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
 } as const satisfies SiteProject;
 
+/**
+ * Seasonal restaurant / hospitality portfolio concept.
+ * Framed as a demonstration / portfolio concept — not a live client engagement.
+ */
+export const hospitalityConcept = {
+  id: 'seasonal-restaurant-concept',
+  title: 'Seasonal Community Restaurant',
+  summary:
+    'Desktop view, mobile-responsive conversion & SEO — a multi-device restaurant experience built for reservations, ordering, and catering enquiries.',
+  industry: 'Hospitality & Food Service',
+  industryDetail:
+    'A seasonal, community-focused restaurant concept offering dining, reservations, online ordering, and catering experiences designed to bring people together.',
+  websiteGoal:
+    'Design and develop a modern, conversion-focused restaurant website that builds trust, communicates the brand and menu clearly, improves the customer experience, supports SEO, and encourages visitors to book a table, place an order, or submit a catering enquiry through clear calls to action and a mobile-first experience.',
+  roles: [
+    'UX Research & Strategy',
+    'Information Architecture',
+    'UI/Visual Design',
+    'Responsive Web Design',
+    'Full-Stack Development',
+    'Interactive Reservation & Ordering Experiences',
+    'Technical SEO Implementation',
+    'Performance Optimization',
+    'Accessibility Best Practices',
+    'Cloudflare Deployment & Security',
+  ],
+  technologies: [
+    'Astro',
+    'React',
+    'TypeScript',
+    'Tailwind CSS v4',
+    'Cloudflare Workers',
+    'Cloudflare D1',
+    'Cloudflare Turnstile',
+    'Workers AI',
+    'Vitest',
+    'Playwright',
+    'Responsive Design',
+    'Technical SEO',
+    'Performance Optimization',
+    'Accessibility',
+  ],
+  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to demonstrate conversion-focused restaurant design, mobile UX, reservations and ordering flows, catering lead generation, and SEO strategy.',
+  services: ['Web Design', 'SEO Strategy', 'Website Care'],
+} as const satisfies SiteProject;
+
 /** True when a project link should open in a new tab. */
 export function isExternalProjectHref(href: string | undefined): boolean {
   return Boolean(href && /^https?:\/\//i.test(href));
@@ -183,7 +229,7 @@ export const siteConfig = {
    * Leave empty to hide the Work gallery and show the transparent inclusions section instead.
    * Do not invent client metrics — only include results that are verified and approved.
    */
-  projects: [northlineConcept] as SiteProject[],
+  projects: [northlineConcept, hospitalityConcept] as SiteProject[],
 
   /** Verified testimonials only. Leave empty to omit the section. */
   testimonials: [] as Array<{

@@ -81,7 +81,7 @@ describe('site navigation integrity', () => {
       expect.arrayContaining(['Astro 7', 'Tailwind CSS v4', 'Cloudflare Workers/D1']),
     );
     expect(northway?.imageSrc).toBe('/images/work/northway-responsive-mockup.png');
-    expect(northway?.href).toBe('https://northway-demo.chexustudio.com');
+    expect(northway?.href).toBe('https://northline-demo.chexustudio.com');
     expect(northway?.hrefLabel).toBe('View live demo');
   });
 

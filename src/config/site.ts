@@ -97,10 +97,23 @@ export const siteConfig = {
   trustStrip: 'Web Design · SEO Strategy · Website Care',
 
   /**
-   * Verified portfolio / case studies only.
+   * Portfolio concepts and verified case studies.
    * Leave empty to hide the Work gallery and show the transparent inclusions section instead.
+   * Do not invent client metrics — only include results that are verified and approved.
    */
-  projects: [] as Array<{
+  projects: [
+    {
+      id: 'northway-home-services',
+      title: 'Northway',
+      industry: 'Home services — HVAC / home heating & cooling',
+      summary:
+        'Portfolio website concept for a local HVAC and home-comfort brand (with related plumbing, electrical, and maintenance). Built for lead generation and education: clear service pathways, a mobile-first quote/request flow, and conversion-focused layout plus local SEO foundations. Demonstrates responsive landing experience, request flow, and supporting pages using Astro, React islands, TypeScript, Tailwind CSS v4, Cloudflare Workers/D1, Zod, Vitest, and Playwright.',
+      services: ['Web Design', 'SEO Strategy', 'Website Care'],
+      imageSrc: '/images/work/northway-responsive-mockup.png',
+      imageAlt:
+        'Northway responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get a Quote CTAs, and HVAC equipment illustration.',
+    },
+  ] as Array<{
     id: string;
     title: string;
     summary: string;

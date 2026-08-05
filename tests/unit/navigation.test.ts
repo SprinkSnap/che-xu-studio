@@ -112,7 +112,7 @@ describe('site navigation integrity', () => {
     expect(hospitality?.note).toMatch(/reservations and ordering flows/i);
   });
 
-  it('includes a home-services concept after Tablekind Kitchen', () => {
+  it('includes Harbour & Pine Home e-commerce demo after Tablekind Kitchen', () => {
     const projects = siteConfig.projects;
     const tablekindIndex = projects.findIndex((p) => p.id === 'seasonal-restaurant-concept');
     const residentialIndex = projects.findIndex((p) => p.id === 'residential-home-services-concept');
@@ -122,18 +122,16 @@ describe('site navigation integrity', () => {
     const residential = projects[residentialIndex];
     expect(residential?.title).toBe('Harbour & Pine Home');
     expect(residential?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
-    expect(residential?.industry).toBe('Home Services');
-    expect(residential?.industryDetail).toMatch(/residential home services/i);
-    expect(residential?.websiteGoal).toMatch(/conversion-focused website/i);
-    expect(residential?.roles).toEqual(
-      expect.arrayContaining(['WordPress Development', 'Performance Optimization']),
-    );
+    expect(residential?.industry).toBe('Home Décor & Lifestyle E-commerce');
+    expect(residential?.industryDetail).toMatch(/curated furniture/i);
+    expect(residential?.websiteGoal).toMatch(/does not accept real orders/i);
+    expect(residential?.role).toMatch(/storefront experience/i);
     expect(residential?.technologies).toEqual(
-      expect.arrayContaining(['WordPress', 'PHP', 'Accessibility (WCAG)']),
+      expect.arrayContaining(['Astro 7', 'React 19', 'Cloudflare D1', 'Turnstile']),
     );
-    expect(residential?.conversionFocus).toMatch(/qualified leads/i);
-    expect(residential?.seoImplementation).toMatch(/local SEO foundations/i);
-    expect(residential?.note).toMatch(/showcase conversion-focused home-services/i);
+    expect(residential?.conversionFocus).toMatch(/demo checkout/i);
+    expect(residential?.seoImplementation).toMatch(/noindex/i);
+    expect(residential?.note).toMatch(/not a live merchant site/i);
   });
 
   it('includes an interior-design concept after Harbour & Pine Home', () => {

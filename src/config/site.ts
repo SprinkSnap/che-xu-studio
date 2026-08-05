@@ -138,47 +138,40 @@ export const hospitalityConcept = {
 } as const satisfies SiteProject;
 
 /**
- * Additional home-services WordPress portfolio concept (after Tablekind Kitchen).
- * Framed as a demonstration / portfolio concept — not a live client engagement.
+ * Harbour & Pine Home — fictional Canadian home décor e-commerce storefront demo.
+ * Demo only: no real orders or payments; portfolio enquiry focused.
  */
 export const residentialHomeServicesConcept = {
   id: 'residential-home-services-concept',
   title: 'Harbour & Pine Home',
   summary:
-    'Desktop view, mobile-responsive conversion & SEO — a multi-device home-services experience built to turn visitors into qualified leads.',
-  industry: 'Home Services',
+    'Desktop view, mobile-responsive conversion & SEO — a multi-device home décor storefront demo for product discovery, cart flows, and studio enquiries.',
+  industry: 'Home Décor & Lifestyle E-commerce',
   industryDetail:
-    'A residential home services business providing reliable solutions for homeowners, with a focus on making it easy to request services and connect with the company.',
+    'Fictional Canadian home décor and lifestyle e-commerce, selling curated furniture, accessories, collections, and bundles.',
   websiteGoal:
-    'Design and develop a modern, conversion-focused website that builds trust, improves user experience, supports local SEO, and encourages visitors to become qualified leads through clear calls to action and a mobile-first experience.',
-  roles: [
-    'UX Research & Strategy',
-    'Information Architecture',
-    'UI/Visual Design',
-    'Responsive Web Design',
-    'WordPress Development',
-    'Technical SEO Implementation',
-    'Performance Optimization',
-    'Accessibility Best Practices',
-  ],
+    'Create a polished storefront demonstration that showcases product discovery, filtering, wishlists, cart and checkout flows, while generating genuine portfolio enquiries for Che Xu Studio. It is a demo rather than a live merchant site, so it does not accept real orders or payments.',
+  role: 'End-to-end website design and development, including the storefront experience, responsive interface, product architecture, interactive shopping features, accessibility testing, deployment setup, security controls, and lead-generation flow.',
   technologies: [
-    'WordPress',
-    'PHP',
-    'HTML5',
-    'CSS3',
-    'JavaScript',
-    'Responsive Design',
-    'Technical SEO',
-    'Performance Optimization',
-    'Accessibility (WCAG)',
-    'Google Fonts',
-    'SVG Icons',
+    'Astro 7',
+    'React 19',
+    'TypeScript',
+    'Tailwind CSS 4',
+    'Cloudflare Workers',
+    'Cloudflare D1',
+    'Wrangler',
+    'Zod',
+    'Turnstile',
+    'Vitest',
+    'Playwright',
+    'ESLint',
+    'Prettier',
   ],
   conversionFocus:
-    'Conversion work focused on clear service messaging, trust-building content, prominent calls to action, streamlined contact and quote request flows, and a mobile-first user experience designed to convert visitors into qualified leads.',
+    'Conversion work focused on intuitive product navigation, collections, bundles, filters, wishlists, cart interactions, a demo checkout, and prominent enquiry pathways. Lead forms are protected with Turnstile, origin validation, and rate limiting.',
   seoImplementation:
-    'SEO implementation included technical SEO best practices, semantic HTML, local SEO foundations, responsive performance optimization, accessible markup, optimized assets, and a search-friendly site architecture that improves discoverability and user experience.',
-  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase conversion-focused home-services design, mobile UX, and local SEO approach.',
+    'SEO foundations include canonical-site configuration, semantic page structure, optimized image dimensions and loading, reusable SEO utilities, and support for accurate structured data. Because the current storefront is fictional, it deliberately uses noindex, nofollow and suppresses fabricated Product and Offer schema until real merchant, inventory, policy, and checkout data are verified.',
+  note: 'Fictional demonstration / portfolio concept — not a live merchant site and not a real client engagement. Does not accept real orders or payments. Presented to showcase e-commerce UX and generate Che Xu Studio enquiries.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
 } as const satisfies SiteProject;
 

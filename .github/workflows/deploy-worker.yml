@@ -36,11 +36,50 @@ jobs:
           PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
           CONTACT_FROM_EMAIL: ${{ vars.CONTACT_FROM_EMAIL }}
 
+      - name: Sanitize Cloudflare credentials
+        id: cf_creds
+        env:
+          RAW_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RAW_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          token="$(printf '%s' "$RAW_TOKEN" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^Bearer[[:space:]]*//I' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+          account="$(printf '%s' "$RAW_ACCOUNT" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+          if [ -z "$token" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is empty. Add the API token secret (the long token string, not the token name)."
+            exit 1
+          fi
+          if [ -z "$account" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID is empty."
+            exit 1
+          fi
+          # Cloudflare API tokens are opaque strings without spaces.
+          if printf '%s' "$token" | grep -q '[[:space:]]'; then
+            echo "::error::CLOUDFLARE_API_TOKEN contains whitespace. Re-paste the token with no spaces or line breaks."
+            exit 1
+          fi
+          if [ "${#token}" -lt 20 ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN looks too short (${#token} chars). Use the secret value shown once when creating the token — not the display name."
+            exit 1
+          fi
+
+          echo "token_len=${#token}"
+          echo "account_len=${#account}"
+          {
+            echo "token<<CF_EOF"
+            printf '%s\n' "$token"
+            echo "CF_EOF"
+            echo "account<<CF_EOF"
+            printf '%s\n' "$account"
+            echo "CF_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Deploy
         run: npm run cf:deploy
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.cf_creds.outputs.token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.cf_creds.outputs.account }}
           PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
           PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
           CONTACT_FROM_EMAIL: ${{ vars.CONTACT_FROM_EMAIL }}

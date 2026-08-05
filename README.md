@@ -117,12 +117,17 @@ but GitHub already has them, use the **Deploy Worker** workflow instead:
 
 1. Create a Cloudflare API token with **Edit Cloudflare Workers** (include account
    resources for this account) and add repo secrets:
-   - `CLOUDFLARE_API_TOKEN` (required)
+   - `CLOUDFLARE_API_TOKEN` (required) — paste the **secret token string** only  
+     (no `Bearer `, no quotes, no token display name, no spaces/newlines)
    - `CLOUDFLARE_ACCOUNT_ID` (required)
    - optional: `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`
 2. Optional repo **Variables**: `PUBLIC_SITE_URL`, `PUBLIC_TURNSTILE_SITE_KEY`,
    `CONTACT_FROM_EMAIL`
 3. GitHub → **Actions** → **Deploy Worker** → **Run workflow** (branch `main`)
+
+If deploy fails with Authorization header `6111` / auth `9106`, recreate the API
+token and update `CLOUDFLARE_API_TOKEN` — the secret value is malformed or is the
+token name instead of the secret.
 
 Verify after deploy: `/work` should show the NorthLine HOME SERVICES portfolio card (not the empty
 placeholder). Confirm file content on GitHub:

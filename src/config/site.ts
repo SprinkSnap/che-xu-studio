@@ -248,6 +248,44 @@ export const signalFlowCrmConcept = {
   hrefLabel: 'View live demo',
 } as const satisfies SiteProject;
 
+/**
+ * LocalPro Directory — fictional local-services directory and quote-request platform.
+ * Portfolio concept with deliberate noindex until a real production launch.
+ */
+export const localProDirectoryConcept = {
+  id: 'localpro-directory-concept',
+  title: 'LocalPro Directory',
+  summary:
+    'Desktop view, mobile-responsive conversion & SEO — a multi-device local-services directory experience built for provider discovery, comparison, and quote requests.',
+  industry: 'Local Services & Professional Directory Marketplace',
+  industryDetail:
+    'LocalPro Directory is a fictional local-services and professional directory marketplace created as a realistic portfolio demonstration.',
+  websiteGoal:
+    'Help users discover, compare, save, and request quotes from local service providers while demonstrating a production-ready directory platform.',
+  role: 'Full-stack developer and UX designer, responsible for the platform architecture, responsive interface, search experience, conversion flows, data layer, testing, security, and deployment.',
+  technologies: [
+    'Astro 5',
+    'React 19',
+    'TypeScript',
+    'Tailwind CSS',
+    'Cloudflare Workers',
+    'Cloudflare D1',
+    'Zod',
+    'Vitest',
+    'Playwright',
+    'Wrangler',
+    'Optional Workers AI',
+  ],
+  conversionFocus:
+    'Conversion work focused on clear provider discovery, filtering and comparison tools, quote-request journeys, business onboarding, labelled featured placements, and protected studio-enquiry forms.',
+  seoImplementation:
+    'SEO foundations include prerendered category, service-area, and provider pages; sitemap support; canonical configuration; optimized assets; and an SEO-ready page architecture. Because this is a fictional portfolio demo, it intentionally uses noindex, nofollow and avoids misleading business schema until real, verified listings are added.',
+  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase a conversion-focused local-services directory, search and compare UX, quote-request flows, and SEO-ready marketplace architecture.',
+  services: ['Web Design', 'SEO Strategy', 'Website Care'],
+  href: 'https://github.com/SprinkSnap/localpro-directory-demo',
+  hrefLabel: 'View live demo',
+} as const satisfies SiteProject;
+
 /** True when a project link should open in a new tab. */
 export function isExternalProjectHref(href: string | undefined): boolean {
   return Boolean(href && /^https?:\/\//i.test(href));
@@ -354,6 +392,7 @@ export const siteConfig = {
     residentialHomeServicesConcept,
     interiorDesignConcept,
     signalFlowCrmConcept,
+    localProDirectoryConcept,
   ] as SiteProject[],
 
   /** Verified testimonials only. Leave empty to omit the section. */

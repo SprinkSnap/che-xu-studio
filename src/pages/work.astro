@@ -1,4 +1,10 @@
 ---
+/**
+ * SSR so /work is not served from a long-lived static Assets CDN object.
+ * Demo CTA hrefs change in site config and must show up immediately after deploy.
+ */
+export const prerender = false;
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import FinalCta from '../components/FinalCta.astro';
@@ -22,7 +28,7 @@ const projects = siteConfig.projects;
   <section class="section">
     <div class="container-shell">
       <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Work' }]} />
-      <p class="eyebrow">Work</p>
+      <p class="eyebrow" data-work-render="ssr">Work</p>
       <h1 class="mt-3 font-display text-4xl font-bold text-navy-900 sm:text-5xl">
         Selected work
       </h1>

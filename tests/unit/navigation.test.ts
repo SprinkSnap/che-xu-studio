@@ -163,6 +163,38 @@ describe('site navigation integrity', () => {
     expect(interior?.hrefLabel).toBe('View live demo');
   });
 
+  it('includes SignalFlow CRM after Form & Field Interiors', () => {
+    const projects = siteConfig.projects;
+    const interiorIndex = projects.findIndex(
+      (p) => p.id === 'interior-design-home-improvement-concept',
+    );
+    const signalFlowIndex = projects.findIndex((p) => p.id === 'signalflow-crm-concept');
+    expect(interiorIndex).toBeGreaterThanOrEqual(0);
+    expect(signalFlowIndex).toBe(interiorIndex + 1);
+
+    const signalFlow = projects[signalFlowIndex];
+    expect(signalFlow?.title).toBe('SignalFlow CRM');
+    expect(signalFlow?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(signalFlow?.industry).toBe('B2B SaaS / CRM Software');
+    expect(signalFlow?.industryDetail).toMatch(/fictional CRM product/i);
+    expect(signalFlow?.websiteGoal).toMatch(/interactive browser-based demo/i);
+    expect(signalFlow?.role).toMatch(/interactive CRM demo/i);
+    expect(signalFlow?.technologies).toEqual(
+      expect.arrayContaining([
+        'Astro 7',
+        'React 19',
+        'Cloudflare Workers',
+        'Workers AI',
+        'Axe accessibility testing',
+      ]),
+    );
+    expect(signalFlow?.conversionFocus).toMatch(/plan recommendations/i);
+    expect(signalFlow?.seoImplementation).toMatch(/noindex\/nofollow/i);
+    expect(signalFlow?.note).toMatch(/Fictional demonstration/i);
+    expect(signalFlow?.href).toBe('https://signalflowcrm.chexustudio.com/');
+    expect(signalFlow?.hrefLabel).toBe('View live demo');
+  });
+
   it('structures footer into services, studio, and legal groups', () => {
     const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);

@@ -282,7 +282,7 @@ export const localProDirectoryConcept = {
     'SEO foundations include prerendered category, service-area, and provider pages; sitemap support; canonical configuration; optimized assets; and an SEO-ready page architecture. Because this is a fictional portfolio demo, it intentionally uses noindex, nofollow and avoids misleading business schema until real, verified listings are added.',
   note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase a conversion-focused local-services directory, search and compare UX, quote-request flows, and SEO-ready marketplace architecture.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
-  href: 'https://github.com/SprinkSnap/localpro-directory-demo',
+  href: 'https://localprodirectory.chexustudio.com/',
   hrefLabel: 'View live demo',
 } as const satisfies SiteProject;
 

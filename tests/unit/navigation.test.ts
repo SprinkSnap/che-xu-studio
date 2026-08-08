@@ -221,7 +221,7 @@ describe('site navigation integrity', () => {
     expect(localPro?.conversionFocus).toMatch(/quote-request journeys/i);
     expect(localPro?.seoImplementation).toMatch(/noindex, nofollow/i);
     expect(localPro?.note).toMatch(/Fictional demonstration/i);
-    expect(localPro?.href).toBe('https://github.com/SprinkSnap/localpro-directory-demo');
+    expect(localPro?.href).toBe('https://localprodirectory.chexustudio.com/');
     expect(localPro?.hrefLabel).toBe('View live demo');
   });
 

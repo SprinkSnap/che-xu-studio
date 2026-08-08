@@ -195,6 +195,36 @@ describe('site navigation integrity', () => {
     expect(signalFlow?.hrefLabel).toBe('View live demo');
   });
 
+  it('includes LocalPro Directory after SignalFlow CRM', () => {
+    const projects = siteConfig.projects;
+    const signalFlowIndex = projects.findIndex((p) => p.id === 'signalflow-crm-concept');
+    const localProIndex = projects.findIndex((p) => p.id === 'localpro-directory-concept');
+    expect(signalFlowIndex).toBeGreaterThanOrEqual(0);
+    expect(localProIndex).toBe(signalFlowIndex + 1);
+
+    const localPro = projects[localProIndex];
+    expect(localPro?.title).toBe('LocalPro Directory');
+    expect(localPro?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(localPro?.industry).toBe('Local Services & Professional Directory Marketplace');
+    expect(localPro?.industryDetail).toMatch(/fictional local-services/i);
+    expect(localPro?.websiteGoal).toMatch(/discover, compare, save, and request quotes/i);
+    expect(localPro?.role).toMatch(/Full-stack developer and UX designer/i);
+    expect(localPro?.technologies).toEqual(
+      expect.arrayContaining([
+        'Astro 5',
+        'React 19',
+        'Cloudflare Workers',
+        'Cloudflare D1',
+        'Optional Workers AI',
+      ]),
+    );
+    expect(localPro?.conversionFocus).toMatch(/quote-request journeys/i);
+    expect(localPro?.seoImplementation).toMatch(/noindex, nofollow/i);
+    expect(localPro?.note).toMatch(/Fictional demonstration/i);
+    expect(localPro?.href).toBe('https://github.com/SprinkSnap/localpro-directory-demo');
+    expect(localPro?.hrefLabel).toBe('View live demo');
+  });
+
   it('structures footer into services, studio, and legal groups', () => {
     const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);

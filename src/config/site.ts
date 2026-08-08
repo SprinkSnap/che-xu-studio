@@ -209,6 +209,45 @@ export const interiorDesignConcept = {
   hrefLabel: 'View live demo',
 } as const satisfies SiteProject;
 
+/**
+ * SignalFlow CRM — fictional B2B SaaS / CRM marketing site + interactive product demo.
+ * Portfolio concept with deliberate noindex until a real production launch.
+ */
+export const signalFlowCrmConcept = {
+  id: 'signalflow-crm-concept',
+  title: 'SignalFlow CRM',
+  summary:
+    'Desktop view, mobile-responsive conversion & SEO — a multi-device B2B SaaS experience built to explain the CRM, present pricing, and let visitors try an interactive product demo.',
+  industry: 'B2B SaaS / CRM Software',
+  industryDetail:
+    'SignalFlow CRM is a fictional CRM product created as a realistic portfolio demonstration.',
+  websiteGoal:
+    'Create a polished SaaS marketing experience that explains the CRM, presents features and pricing, and lets potential customers experience the product through an interactive browser-based demo.',
+  role: 'End-to-end website and product experience design/development, covering the marketing site, interactive CRM demo, lead-generation flow, responsive UI, accessibility, testing, and Cloudflare deployment architecture.',
+  technologies: [
+    'Astro 7',
+    'React 19',
+    'TypeScript',
+    'Tailwind CSS',
+    'Cloudflare Workers',
+    'D1',
+    'Turnstile',
+    'Workers AI',
+    'Zod',
+    'Vitest',
+    'Playwright',
+    'Axe accessibility testing',
+  ],
+  conversionFocus:
+    'The experience is designed around conversion through clear product positioning, pricing, an interactive CRM demo, plan recommendations, and a protected enquiry/lead-capture flow.',
+  seoImplementation:
+    'SEO foundations include static generation, canonical-site configuration, sitemap support and robots controls. Because this is currently a fictional portfolio demo, indexing is deliberately disabled with noindex/nofollow; those controls can be switched for a real production launch.',
+  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase a conversion-focused B2B SaaS marketing site, interactive CRM demo, and SEO-ready launch architecture.',
+  services: ['Web Design', 'SEO Strategy', 'Website Care'],
+  href: 'https://signalflowcrm.chexustudio.com/',
+  hrefLabel: 'View live demo',
+} as const satisfies SiteProject;
+
 /** True when a project link should open in a new tab. */
 export function isExternalProjectHref(href: string | undefined): boolean {
   return Boolean(href && /^https?:\/\//i.test(href));
@@ -314,6 +353,7 @@ export const siteConfig = {
     hospitalityConcept,
     residentialHomeServicesConcept,
     interiorDesignConcept,
+    signalFlowCrmConcept,
   ] as SiteProject[],
 
   /** Verified testimonials only. Leave empty to omit the section. */

@@ -10,14 +10,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set(key, value);
   }
 
-  // Cache static marketing pages briefly at the edge; APIs remain uncached.
+  // APIs and portfolio Work stay uncached so CTA/link updates are visible immediately.
+  // Other marketing pages may cache briefly at the edge (short SWR — not multi-hour).
   const path = context.url.pathname;
-  if (path.startsWith('/api/')) {
+  const isWork = path === '/work' || path.startsWith('/work/');
+  if (path.startsWith('/api/') || isWork) {
     response.headers.set('Cache-Control', 'no-store');
   } else if (response.headers.get('Cache-Control') == null && response.status === 200) {
     response.headers.set(
       'Cache-Control',
-      'public, max-age=0, s-maxage=600, stale-while-revalidate=86400',
+      'public, max-age=0, s-maxage=60, stale-while-revalidate=30',
     );
   }
 

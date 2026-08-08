@@ -98,6 +98,9 @@ const rootConfig = sanitizeBindings(
       ...(generated.assets || {}),
       directory: './dist/client',
       binding: generated.assets?.binding || 'ASSETS',
+      // Run the Worker (middleware / SSR routes) before static Assets so HTML
+      // Cache-Control from middleware is applied and stale CDN HTML can be bypassed.
+      run_worker_first: true,
     },
   },
   { log: false },

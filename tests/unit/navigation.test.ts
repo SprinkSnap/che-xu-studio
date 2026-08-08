@@ -110,6 +110,8 @@ describe('site navigation integrity', () => {
       expect.arrayContaining(['Astro', 'Cloudflare Workers', 'Workers AI']),
     );
     expect(hospitality?.note).toMatch(/reservations and ordering flows/i);
+    expect(hospitality?.href).toBe('https://tablekindkitchen.chexustudio.com/');
+    expect(hospitality?.hrefLabel).toBe('View live demo');
   });
 
   it('includes Harbour & Pine Home e-commerce demo after Tablekind Kitchen', () => {
@@ -132,6 +134,8 @@ describe('site navigation integrity', () => {
     expect(residential?.conversionFocus).toMatch(/demo checkout/i);
     expect(residential?.seoImplementation).toMatch(/noindex/i);
     expect(residential?.note).toMatch(/not a live merchant site/i);
+    expect(residential?.href).toBe('https://harbourandpinehome.chexustudio.com/');
+    expect(residential?.hrefLabel).toBe('View live demo');
   });
 
   it('includes an interior-design concept after Harbour & Pine Home', () => {
@@ -155,6 +159,8 @@ describe('site navigation integrity', () => {
     );
     expect(interior?.conversionFocus).toMatch(/prospective clients/i);
     expect(interior?.note).toMatch(/Fictional demonstration/i);
+    expect(interior?.href).toBe('https://formandfieldinteriors.chexustudio.com/');
+    expect(interior?.hrefLabel).toBe('View live demo');
   });
 
   it('structures footer into services, studio, and legal groups', () => {

@@ -135,6 +135,8 @@ export const hospitalityConcept = {
   ],
   note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to demonstrate conversion-focused restaurant design, mobile UX, reservations and ordering flows, catering lead generation, and SEO strategy.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
+  href: 'https://tablekindkitchen.chexustudio.com/',
+  hrefLabel: 'View live demo',
 } as const satisfies SiteProject;
 
 /**
@@ -173,6 +175,8 @@ export const residentialHomeServicesConcept = {
     'SEO foundations include canonical-site configuration, semantic page structure, optimized image dimensions and loading, reusable SEO utilities, and support for accurate structured data. Because the current storefront is fictional, it deliberately uses noindex, nofollow and suppresses fabricated Product and Offer schema until real merchant, inventory, policy, and checkout data are verified.',
   note: 'Fictional demonstration / portfolio concept — not a live merchant site and not a real client engagement. Does not accept real orders or payments. Presented to showcase e-commerce UX and generate Che Xu Studio enquiries.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
+  href: 'https://harbourandpinehome.chexustudio.com/',
+  hrefLabel: 'View live demo',
 } as const satisfies SiteProject;
 
 /**
@@ -201,6 +205,8 @@ export const interiorDesignConcept = {
     'I structured the site around clear service messaging, prominent inquiry actions, streamlined forms, mobile responsiveness, semantic page hierarchy, descriptive metadata, and search-friendly content. These decisions were intended to reduce friction, improve discoverability, and turn more visitors into prospective clients.',
   note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase conversion-focused interior-design presentation, mobile UX, and a search-friendly inquiry journey.',
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
+  href: 'https://formandfieldinteriors.chexustudio.com/',
+  hrefLabel: 'View live demo',
 } as const satisfies SiteProject;
 
 /** True when a project link should open in a new tab. */

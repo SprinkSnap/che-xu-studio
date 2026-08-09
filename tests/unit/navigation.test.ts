@@ -87,7 +87,7 @@ describe('site navigation integrity', () => {
     expect(northline?.conversionFocus).toMatch(/qualified leads/i);
     expect(northline?.seoImplementation).toMatch(/local SEO foundations/i);
     expect(northline?.note).toMatch(/Fictional demonstration/i);
-    expect(northline?.imageSrc).toBe('/images/work/northline-home-service-responsive-mockup.png');
+    expect(northline?.imageSrc).toBe('/Images/Work/northline-home-service-responsive-mockup.png');
     expect(northline?.href).toBe('https://northline-demo.chexustudio.com');
     expect(northline?.hrefLabel).toBe('View live demo');
   });

@@ -88,7 +88,7 @@ export const northlineConcept = {
   hrefLabel: 'View live demo',
   imageSrc: '/images/work/northline-home-service-responsive-mockup.png',
   imageAlt:
-    'NorthLine HOME SERVICES responsive landing page mockup across tablet, laptop, and phone — navy hero, blue Request Service and golden Get Instant Quote CTAs, and HVAC equipment illustration.',
+    'NorthLine HOME SERVICES responsive landing page mockup across tablet, laptop, and phone — dusk house hero, Trusted Professionals trust row, blue Request Service and gold Explore Services CTAs.',
 } as const satisfies SiteProject;
 
 /**

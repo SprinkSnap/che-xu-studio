@@ -86,7 +86,7 @@ export const northlineConcept = {
   /** Recommended demo host: dedicated subdomain keeps the studio site clean and SEO-safe. */
   href: 'https://northline-demo.chexustudio.com',
   hrefLabel: 'View live demo',
-  imageSrc: '/Images/Work/northline-home-service-responsive-mockup.png',
+  imageSrc: '/images/work/northline-home-service-responsive-mockup.png',
   imageAlt:
     'NorthLine HOME SERVICES responsive landing page mockup across tablet, laptop, and phone — dusk house hero, Trusted Professionals trust row, blue Request Service and gold Explore Services CTAs.',
 } as const satisfies SiteProject;
@@ -137,6 +137,9 @@ export const hospitalityConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://tablekindkitchen.chexustudio.com/',
   hrefLabel: 'View live demo',
+  imageSrc: '/images/work/tablekind-kitchen-responsive-restaurant-website-design.png',
+  imageAlt:
+    'Tablekind Kitchen responsive restaurant website mockup across tablet, laptop, and phone — seasonal food hero, Reserve a Table and Explore the Menu CTAs, and plated dish photography.',
 } as const satisfies SiteProject;
 
 /**

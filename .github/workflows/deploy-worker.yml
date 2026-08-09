@@ -43,8 +43,10 @@ jobs:
           RAW_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          token="$(printf '%s' "$RAW_TOKEN" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^Bearer[[:space:]]*//I' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
-          account="$(printf '%s' "$RAW_ACCOUNT" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          # Strip BOM/quotes/Bearer and ALL whitespace — pasted secrets often include
+          # accidental spaces/newlines that break Cloudflare auth and block deploys.
+          token="$(printf '%s' "$RAW_TOKEN" | tr -d '\r\n\t\f\v ' | sed -e 's/^\xEF\xBB\xBF//' -e 's/^Bearer//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+          account="$(printf '%s' "$RAW_ACCOUNT" | tr -d '\r\n\t\f\v ' | sed -e 's/^\xEF\xBB\xBF//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
 
           if [ -z "$token" ]; then
             echo "::error::CLOUDFLARE_API_TOKEN is empty. Add the API token secret (the long token string, not the token name)."
@@ -52,11 +54,6 @@ jobs:
           fi
           if [ -z "$account" ]; then
             echo "::error::CLOUDFLARE_ACCOUNT_ID is empty."
-            exit 1
-          fi
-          # Cloudflare API tokens are opaque strings without spaces.
-          if printf '%s' "$token" | grep -q '[[:space:]]'; then
-            echo "::error::CLOUDFLARE_API_TOKEN contains whitespace. Re-paste the token with no spaces or line breaks."
             exit 1
           fi
           if [ "${#token}" -lt 20 ]; then

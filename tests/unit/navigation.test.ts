@@ -111,7 +111,7 @@ describe('site navigation integrity', () => {
     );
     expect(hospitality?.note).toMatch(/reservations and ordering flows/i);
     expect(hospitality?.imageSrc).toBe(
-      '/images/work/tablekind-kitchen-restaurant-website-design-responsive-mockup.png',
+      '/images/work/tablekind-kitchen-restaurant-website-design-responsive-mockup-1.png',
     );
     expect(hospitality?.href).toBe('https://tablekindkitchen.chexustudio.com/');
     expect(hospitality?.hrefLabel).toBe('View live demo');

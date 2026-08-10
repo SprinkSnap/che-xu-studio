@@ -233,6 +233,9 @@ describe('site navigation integrity', () => {
     expect(localPro?.conversionFocus).toMatch(/quote-request journeys/i);
     expect(localPro?.seoImplementation).toMatch(/noindex, nofollow/i);
     expect(localPro?.note).toMatch(/Fictional demonstration/i);
+    expect(localPro?.imageSrc).toBe(
+      '/images/work/localpro-directory-responsive-local-services-website-mockup.webp',
+    );
     expect(localPro?.href).toBe('https://localprodirectory.chexustudio.com/');
     expect(localPro?.hrefLabel).toBe('View live demo');
   });

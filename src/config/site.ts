@@ -296,6 +296,9 @@ export const localProDirectoryConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://localprodirectory.chexustudio.com/',
   hrefLabel: 'View live demo',
+  imageSrc: '/images/work/localpro-directory-responsive-local-services-website-mockup.webp',
+  imageAlt:
+    'LocalPro Directory responsive local-services website mockup across laptop, tablet, and phone — provider discovery hero, search and compare tools, and quote-request focused layout.',
 } as const satisfies SiteProject;
 
 /** True when a project link should open in a new tab. */

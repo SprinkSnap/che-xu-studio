@@ -252,6 +252,9 @@ export const signalFlowCrmConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://signalflowcrm.chexustudio.com/',
   hrefLabel: 'View live demo',
+  imageSrc: '/images/work/signalflow-crm-saas-website-responsive-mockup.png',
+  imageAlt:
+    'SignalFlow CRM responsive SaaS website mockup across tablet, laptop, and phone — lead pipeline hero, Explore the Live Demo CTA, and workspace metrics interface.',
 } as const satisfies SiteProject;
 
 /**

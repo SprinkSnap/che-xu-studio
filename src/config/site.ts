@@ -180,6 +180,9 @@ export const residentialHomeServicesConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://harbourandpinehome.chexustudio.com/',
   hrefLabel: 'View live demo',
+  imageSrc: '/images/work/harbour-pine-home-responsive-ecommerce-website-mockup.png',
+  imageAlt:
+    'Harbour & Pine Home responsive e-commerce mockup across tablet, laptop, and phone — calm home décor hero, Shop the Collection CTA, and lifestyle living-room photography.',
 } as const satisfies SiteProject;
 
 /**

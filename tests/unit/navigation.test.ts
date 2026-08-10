@@ -137,6 +137,9 @@ describe('site navigation integrity', () => {
     expect(residential?.conversionFocus).toMatch(/demo checkout/i);
     expect(residential?.seoImplementation).toMatch(/noindex/i);
     expect(residential?.note).toMatch(/not a live merchant site/i);
+    expect(residential?.imageSrc).toBe(
+      '/images/work/harbour-pine-home-responsive-ecommerce-website-mockup.png',
+    );
     expect(residential?.href).toBe('https://harbourandpinehome.chexustudio.com/');
     expect(residential?.hrefLabel).toBe('View live demo');
   });

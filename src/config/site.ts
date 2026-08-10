@@ -137,7 +137,7 @@ export const hospitalityConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://tablekindkitchen.chexustudio.com/',
   hrefLabel: 'View live demo',
-  imageSrc: '/images/work/tablekind-kitchen-restaurant-website-design-responsive-mockup.png',
+  imageSrc: '/images/work/tablekind-kitchen-restaurant-website-design-responsive-mockup-1.png',
   imageAlt:
     'Tablekind Kitchen responsive restaurant website mockup across tablet, laptop, and phone — seasonal food hero, Reserve a Table and Explore the Menu CTAs, and plated dish photography.',
 } as const satisfies SiteProject;

@@ -165,6 +165,9 @@ describe('site navigation integrity', () => {
     );
     expect(interior?.conversionFocus).toMatch(/prospective clients/i);
     expect(interior?.note).toMatch(/Fictional demonstration/i);
+    expect(interior?.imageSrc).toBe(
+      '/images/work/form-and-field-interiors-responsive-website-mockup.webp',
+    );
     expect(interior?.href).toBe('https://formandfieldinteriors.chexustudio.com/');
     expect(interior?.hrefLabel).toBe('View live demo');
   });

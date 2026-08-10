@@ -213,6 +213,9 @@ export const interiorDesignConcept = {
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://formandfieldinteriors.chexustudio.com/',
   hrefLabel: 'View live demo',
+  imageSrc: '/images/work/form-and-field-interiors-responsive-website-mockup.webp',
+  imageAlt:
+    'Form & Field Interiors responsive website mockup across laptop, tablet, and phone — interior-design hero, project showcase, and inquiry-focused layout.',
 } as const satisfies SiteProject;
 
 /**

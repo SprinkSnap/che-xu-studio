@@ -197,6 +197,9 @@ describe('site navigation integrity', () => {
     expect(signalFlow?.conversionFocus).toMatch(/plan recommendations/i);
     expect(signalFlow?.seoImplementation).toMatch(/noindex\/nofollow/i);
     expect(signalFlow?.note).toMatch(/Fictional demonstration/i);
+    expect(signalFlow?.imageSrc).toBe(
+      '/images/work/signalflow-crm-saas-website-responsive-mockup.png',
+    );
     expect(signalFlow?.href).toBe('https://signalflowcrm.chexustudio.com/');
     expect(signalFlow?.hrefLabel).toBe('View live demo');
   });

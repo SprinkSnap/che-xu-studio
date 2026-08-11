@@ -5,7 +5,9 @@ test.describe('critical marketing flows', () => {
   test('homepage renders brand, hero, and package finder', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('banner').getByRole('link', { name: /Che Xu Studio home/i })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Turn More Searches Into Customers');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      'Websites that win more qualified enquiries',
+    );
     await expect(page.getByRole('heading', { name: /Which service fits your goal/i })).toBeVisible();
   });
 

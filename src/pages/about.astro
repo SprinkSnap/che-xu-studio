@@ -7,8 +7,8 @@ import { breadcrumbSchema } from '../lib/seo';
 ---
 
 <BaseLayout
-  title="About"
-  description="Learn about Che Xu Studio—high-converting web design, SEO strategy, and website care for growing businesses."
+  title="About Che Xu Studio"
+  description="Che Xu Studio provides conversion-focused web design, SEO strategy, and website care for Canadian small businesses—with clear CAD pricing and direct collaboration."
   path="/about"
   schema={[
     breadcrumbSchema([
@@ -27,18 +27,18 @@ import { breadcrumbSchema } from '../lib/seo';
       <p class="mt-4 text-xl font-medium text-navy-700">{siteConfig.tagline}</p>
       <div class="prose mt-8 space-y-4 text-base leading-relaxed text-ink-muted">
         <p>
-          Che Xu Studio helps growing businesses get found, win more customers, and stay online with conversion-focused web design, practical SEO strategy, and dependable website care.
+          Che Xu Studio helps Canadian small and growing businesses get found, win more qualified enquiries, and stay online—with conversion-focused web design, practical SEO strategy, and dependable website care.
         </p>
         <p>
-          We believe trustworthy marketing beats pressure tactics. That means clear scope, transparent starting prices in CAD, honest SEO expectations, and quote requests that never invent urgency or hide fees.
+          You work directly with the person designing and building your website. That means clearer communication, transparent starting prices in CAD, honest SEO expectations, and scope confirmed before invoicing—never pressure tactics or fake urgency.
         </p>
         <p>
           Whether you need a premium theme website, a custom WordPress build, SEO launch foundations, monthly growth, or ongoing maintenance, we help you choose the right package—not the most expensive one by default.
         </p>
       </div>
       <div class="mt-10 flex flex-col gap-3 sm:flex-row">
-        <a href="/pricing" class="btn-primary">View packages</a>
-        <a href="/contact" class="btn-secondary">Contact Che Xu Studio</a>
+        <a href={siteConfig.cta.primary.href} class="btn-primary">{siteConfig.cta.primary.label}</a>
+        <a href="/work" class="btn-secondary">View selected work</a>
       </div>
     </div>
   </section>

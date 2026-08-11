@@ -25,6 +25,7 @@ const currentPath = Astro.url.pathname;
         href={siteConfig.cta.primary.href}
         class="btn btn-primary-on-dark"
         data-track="nav_primary_cta"
+        onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'quote', source: 'header' } })"
       >
         {siteConfig.cta.primary.label}
       </a>

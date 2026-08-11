@@ -6,10 +6,18 @@
 
 import type { FooterLink, NavItem } from '../lib/navigation';
 
+export type ProjectKind = 'concept' | 'client';
+
 export type SiteProject = {
   id: string;
+  /** URL slug under /work/[slug]. */
+  slug: string;
   title: string;
   summary: string;
+  /** Distinguishes portfolio concepts from verified client work. */
+  projectKind: ProjectKind;
+  /** Show on the homepage featured work strip (keep to ~3). */
+  featured?: boolean;
   /** Short client-industry label (e.g. Home Services). */
   industry?: string;
   /** Longer industry / client context under the industry label. */
@@ -39,6 +47,14 @@ export type SiteProject = {
   results?: Array<{ label: string; value: string }>;
 };
 
+/** Concise, non-apologetic disclosure for portfolio concept projects. */
+export const CONCEPT_DISCLOSURE =
+  'Concept project — created to demonstrate Che Xu Studio’s approach to conversion-focused design and SEO.';
+
+export function projectPath(project: Pick<SiteProject, 'slug'>): string {
+  return `/work/${project.slug}`;
+}
+
 /**
  * NorthLine HOME SERVICES portfolio concept brief + mockup.
  * Live demo is hosted on a dedicated studio subdomain (not the marketing apex).
@@ -46,9 +62,12 @@ export type SiteProject = {
  */
 export const northlineConcept = {
   id: 'northline-home-services',
+  slug: 'northline-home-services',
   title: 'NorthLine HOME SERVICES',
   summary:
-    'Desktop view, mobile-responsive conversion & SEO — a multi-device home-services experience built to turn visitors into qualified leads.',
+    'A mobile-first home-services site designed to turn visitors into qualified leads with clear service messaging and quote CTAs.',
+  projectKind: 'concept',
+  featured: true,
   industry: 'Home Services',
   industryDetail:
     'A residential home services business providing reliable solutions for homeowners, with a focus on making it easy to request services and connect with the company.',
@@ -81,7 +100,7 @@ export const northlineConcept = {
     'Conversion work focused on clear service messaging, trust-building content, prominent calls to action, streamlined contact and quote request flows, and a mobile-first user experience designed to convert visitors into qualified leads.',
   seoImplementation:
     'SEO implementation included technical SEO best practices, semantic HTML, local SEO foundations, responsive performance optimization, accessible markup, optimized assets, and a search-friendly site architecture that improves discoverability and user experience.',
-  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase conversion-focused home-services design, mobile UX, and local SEO approach.',
+  note: CONCEPT_DISCLOSURE,
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   /** Recommended demo host: dedicated subdomain keeps the studio site clean and SEO-safe. */
   href: 'https://northline-demo.chexustudio.com',
@@ -97,9 +116,12 @@ export const northlineConcept = {
  */
 export const hospitalityConcept = {
   id: 'seasonal-restaurant-concept',
+  slug: 'tablekind-kitchen',
   title: 'Tablekind Kitchen',
   summary:
-    'Desktop view, mobile-responsive conversion & SEO — a multi-device restaurant experience built for reservations, ordering, and catering enquiries.',
+    'A restaurant website built for reservations, ordering, and catering enquiries—with mobile-first conversion paths.',
+  projectKind: 'concept',
+  featured: true,
   industry: 'Hospitality & Food Service',
   industryDetail:
     'A seasonal, community-focused restaurant concept offering dining, reservations, online ordering, and catering experiences designed to bring people together.',
@@ -133,7 +155,7 @@ export const hospitalityConcept = {
     'Performance Optimization',
     'Accessibility',
   ],
-  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to demonstrate conversion-focused restaurant design, mobile UX, reservations and ordering flows, catering lead generation, and SEO strategy.',
+  note: `${CONCEPT_DISCLOSURE} Focus areas: reservations, ordering, and catering lead generation.`,
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://tablekindkitchen.chexustudio.com/',
   hrefLabel: 'View live demo',
@@ -148,9 +170,11 @@ export const hospitalityConcept = {
  */
 export const residentialHomeServicesConcept = {
   id: 'residential-home-services-concept',
+  slug: 'harbour-pine-home',
   title: 'Harbour & Pine Home',
   summary:
-    'Desktop view, mobile-responsive conversion & SEO — a multi-device home décor storefront demo for product discovery, cart flows, and studio enquiries.',
+    'A home décor storefront demo focused on product discovery, cart flows, and clear enquiry pathways.',
+  projectKind: 'concept',
   industry: 'Home Décor & Lifestyle E-commerce',
   industryDetail:
     'Fictional Canadian home décor and lifestyle e-commerce, selling curated furniture, accessories, collections, and bundles.',
@@ -176,7 +200,7 @@ export const residentialHomeServicesConcept = {
     'Conversion work focused on intuitive product navigation, collections, bundles, filters, wishlists, cart interactions, a demo checkout, and prominent enquiry pathways. Lead forms are protected with Turnstile, origin validation, and rate limiting.',
   seoImplementation:
     'SEO foundations include canonical-site configuration, semantic page structure, optimized image dimensions and loading, reusable SEO utilities, and support for accurate structured data. Because the current storefront is fictional, it deliberately uses noindex, nofollow and suppresses fabricated Product and Offer schema until real merchant, inventory, policy, and checkout data are verified.',
-  note: 'Fictional demonstration / portfolio concept — not a live merchant site and not a real client engagement. Does not accept real orders or payments. Presented to showcase e-commerce UX and generate Che Xu Studio enquiries.',
+  note: `${CONCEPT_DISCLOSURE} Demo storefront only; does not accept real orders or payments.`,
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://harbourandpinehome.chexustudio.com/',
   hrefLabel: 'View live demo',
@@ -190,9 +214,12 @@ export const residentialHomeServicesConcept = {
  */
 export const interiorDesignConcept = {
   id: 'interior-design-home-improvement-concept',
+  slug: 'form-field-interiors',
   title: 'Form & Field Interiors',
   summary:
-    'Desktop view, mobile-responsive conversion & SEO — a multi-device interior-design experience built to present services, showcase work, and generate client inquiries.',
+    'An interior-design site built to present services, showcase work, and generate qualified inquiries.',
+  projectKind: 'concept',
+  featured: true,
   industry: 'Interior Design & Home Improvement',
   industryDetail:
     'Interior design and home-improvement services, focused on creating functional and visually appealing residential or commercial spaces.',
@@ -209,7 +236,7 @@ export const interiorDesignConcept = {
   ],
   conversionFocus:
     'I structured the site around clear service messaging, prominent inquiry actions, streamlined forms, mobile responsiveness, semantic page hierarchy, descriptive metadata, and search-friendly content. These decisions were intended to reduce friction, improve discoverability, and turn more visitors into prospective clients.',
-  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase conversion-focused interior-design presentation, mobile UX, and a search-friendly inquiry journey.',
+  note: CONCEPT_DISCLOSURE,
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://formandfieldinteriors.chexustudio.com/',
   hrefLabel: 'View live demo',
@@ -224,9 +251,11 @@ export const interiorDesignConcept = {
  */
 export const signalFlowCrmConcept = {
   id: 'signalflow-crm-concept',
+  slug: 'signalflow-crm',
   title: 'SignalFlow CRM',
   summary:
-    'Desktop view, mobile-responsive conversion & SEO — a multi-device B2B SaaS experience built to explain the CRM, present pricing, and let visitors try an interactive product demo.',
+    'A B2B SaaS marketing site that explains the product, presents pricing, and offers an interactive CRM demo.',
+  projectKind: 'concept',
   industry: 'B2B SaaS / CRM Software',
   industryDetail:
     'SignalFlow CRM is a fictional CRM product created as a realistic portfolio demonstration.',
@@ -251,7 +280,7 @@ export const signalFlowCrmConcept = {
     'The experience is designed around conversion through clear product positioning, pricing, an interactive CRM demo, plan recommendations, and a protected enquiry/lead-capture flow.',
   seoImplementation:
     'SEO foundations include static generation, canonical-site configuration, sitemap support and robots controls. Because this is currently a fictional portfolio demo, indexing is deliberately disabled with noindex/nofollow; those controls can be switched for a real production launch.',
-  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase a conversion-focused B2B SaaS marketing site, interactive CRM demo, and SEO-ready launch architecture.',
+  note: CONCEPT_DISCLOSURE,
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://signalflowcrm.chexustudio.com/',
   hrefLabel: 'View live demo',
@@ -266,9 +295,11 @@ export const signalFlowCrmConcept = {
  */
 export const localProDirectoryConcept = {
   id: 'localpro-directory-concept',
+  slug: 'localpro-directory',
   title: 'LocalPro Directory',
   summary:
-    'Desktop view, mobile-responsive conversion & SEO — a multi-device local-services directory experience built for provider discovery, comparison, and quote requests.',
+    'A local-services directory built for provider discovery, comparison, and quote requests.',
+  projectKind: 'concept',
   industry: 'Local Services & Professional Directory Marketplace',
   industryDetail:
     'LocalPro Directory is a fictional local-services and professional directory marketplace created as a realistic portfolio demonstration.',
@@ -292,7 +323,7 @@ export const localProDirectoryConcept = {
     'Conversion work focused on clear provider discovery, filtering and comparison tools, quote-request journeys, business onboarding, labelled featured placements, and protected studio-enquiry forms.',
   seoImplementation:
     'SEO foundations include prerendered category, service-area, and provider pages; sitemap support; canonical configuration; optimized assets; and an SEO-ready page architecture. Because this is a fictional portfolio demo, it intentionally uses noindex, nofollow and avoids misleading business schema until real, verified listings are added.',
-  note: 'Fictional demonstration / portfolio concept — not a real client engagement. Presented to showcase a conversion-focused local-services directory, search and compare UX, quote-request flows, and SEO-ready marketplace architecture.',
+  note: CONCEPT_DISCLOSURE,
   services: ['Web Design', 'SEO Strategy', 'Website Care'],
   href: 'https://localprodirectory.chexustudio.com/',
   hrefLabel: 'View live demo',
@@ -309,8 +340,8 @@ export function isExternalProjectHref(href: string | undefined): boolean {
 export const siteConfig = {
   name: 'Che Xu Studio',
   legalName: 'Che Xu Studio',
-  tagline: 'High-Converting Web Design & SEO That Turns Searches Into Customers.',
-  supportingMessage: 'Get Found. Win More Customers. Stay Online.',
+  tagline: 'Conversion-Focused Web Design & SEO for Canadian Small Businesses.',
+  supportingMessage: 'Clear pricing. Direct communication. Websites built to win qualified enquiries.',
   locale: 'en-CA',
   currency: 'CAD',
   currencySymbol: '$',
@@ -389,12 +420,15 @@ export const siteConfig = {
   },
 
   cta: {
-    primary: { label: 'Find My Best Package', href: '/#package-finder' },
-    secondary: { label: 'Book a Free Strategy Call', href: '/contact' },
-    exploreServices: { label: 'Explore Services', href: '/services/web-design' },
+    /** High-intent enquiry path — primary across header, sticky bar, and final CTA. */
+    primary: { label: 'Get a Project Quote', href: '/contact?intent=quote' },
+    /** Lower-intent guided path for visitors who are still choosing. */
+    secondary: { label: 'Find My Best Package', href: '/#package-finder' },
+    exploreServices: { label: 'Explore Web Design', href: '/services/web-design' },
   },
 
-  trustStrip: 'Web Design · SEO Strategy · Website Care',
+  trustStrip:
+    'Work directly with your designer-developer · Transparent CAD starting prices · Scope confirmed before invoicing',
 
   /**
    * Portfolio concepts and verified case studies.
@@ -425,4 +459,14 @@ export type SiteConfig = typeof siteConfig;
 export function getSiteUrl(envUrl?: string | null): string {
   const raw = (envUrl || siteConfig.defaultSiteUrl).replace(/\/$/, '');
   return raw;
+}
+
+export function getProjectBySlug(slug: string): SiteProject | undefined {
+  return siteConfig.projects.find((project) => project.slug === slug);
+}
+
+export function featuredProjects(limit = 3): SiteProject[] {
+  const featured = siteConfig.projects.filter((project) => project.featured);
+  if (featured.length > 0) return featured.slice(0, limit);
+  return siteConfig.projects.slice(0, limit);
 }

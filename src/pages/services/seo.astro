@@ -2,20 +2,23 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import PricingCard from '../../components/PricingCard.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import FinalCta from '../../components/FinalCta.astro';
 import SectionHeading from '../../components/ui/SectionHeading.astro';
 import { packages } from '../../config/packages';
+import { featuredProjects, siteConfig } from '../../config/site';
 import { faqsForPage } from '../../config/faq';
 import { breadcrumbSchema, faqPageSchema, serviceSchema } from '../../lib/seo';
 
 const seoPackages = packages.filter((p) => p.id === 'seo-growth' || p.id === 'custom-seo-launch');
 const faqItems = faqsForPage('seo');
+const relatedProjects = featuredProjects(3);
 ---
 
 <BaseLayout
-  title="SEO Strategy Services"
-  description="SEO launch foundations and monthly SEO & conversion growth from Che Xu Studio—without ranking guarantees."
+  title="SEO Strategy for Canadian Small Businesses"
+  description="Practical SEO launch foundations and monthly SEO & conversion growth from Che Xu Studio—clear reporting, no ranking guarantees, for Canadian small businesses."
   path="/services/seo"
   schema={[
     breadcrumbSchema([
@@ -23,8 +26,9 @@ const faqItems = faqsForPage('seo');
       { name: 'SEO Strategy', path: '/services/seo' },
     ]),
     serviceSchema({
-      name: 'SEO Strategy',
-      description: 'SEO launch foundations and ongoing SEO & conversion growth plans.',
+      name: 'SEO Strategy for Canadian Small Businesses',
+      description:
+        'SEO launch foundations and ongoing SEO & conversion growth plans for Canadian small businesses—without ranking guarantees.',
       path: '/services/seo',
     }),
     faqPageSchema(faqItems),
@@ -35,29 +39,147 @@ const faqItems = faqsForPage('seo');
       <Breadcrumbs tone="dark" items={[{ name: 'Home', href: '/' }, { name: 'SEO Strategy' }]} />
       <p class="eyebrow !text-green-100">SEO Strategy</p>
       <h1 class="mt-3 max-w-3xl font-display text-4xl font-bold sm:text-5xl">
-        Get found—and make visits count.
+        SEO that helps customers find you—and act.
       </h1>
       <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
-        Practical SEO that improves foundations, visibility opportunities, and conversion pathways. We never promise specific rankings.
+        Practical SEO for Canadian small businesses: stronger foundations, better visibility opportunities, and conversion pathways that make visits count. We never promise specific rankings.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <a href="/pricing#seo-growth" class="btn btn-primary-on-dark">View SEO Growth plan</a>
-        <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
-          Talk about SEO goals
+        <a
+          href={siteConfig.cta.primary.href}
+          class="btn btn-primary-on-dark"
+          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { service: 'seo', cta: 'quote' } })"
+        >
+          {siteConfig.cta.primary.label}
+        </a>
+        <a href="/pricing#seo-growth" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+          View SEO Growth plan
         </a>
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" aria-labelledby="who-seo-heading">
+    <div class="container-shell grid gap-10 lg:grid-cols-2">
+      <SectionHeading
+        id="who-seo-heading"
+        title="When SEO is the right next step"
+        lead="SEO works best when your offer is clear and your site can convert the traffic you earn."
+      />
+      <ul class="space-y-3 text-sm leading-relaxed text-ink-muted sm:text-base">
+        <li>You are launching a new custom website and want search foundations from day one</li>
+        <li>You have an existing site that gets some traffic but few enquiries</li>
+        <li>You want monthly improvements with reporting—not a one-off “SEO install”</li>
+        <li>You prefer honest expectations over ranking guarantees</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted" aria-labelledby="paths-seo-heading">
     <div class="container-shell">
       <SectionHeading
+        id="paths-seo-heading"
         title="Two ways to approach SEO"
         lead="Launch foundations with a new custom website, or invest in ongoing monthly growth for an existing site."
       />
       <div class="mt-10 grid gap-5 lg:grid-cols-2">
+        {[
+          {
+            title: 'SEO Launch (with Custom Website)',
+            body: 'Keyword and intent research, technical SEO, on-page setup, tracking, schema where appropriate, and 30-day post-launch support—bundled with a custom website build.',
+          },
+          {
+            title: 'SEO & Conversion Growth',
+            body: 'A monthly program for continuous SEO improvements, content/on-page work, conversion-rate optimization, competitor insights, and a clear action plan with reporting.',
+          },
+        ].map((item) => (
+          <article class="surface-card p-6">
+            <h3 class="font-display text-2xl font-bold text-navy-900">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="includes-seo-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="includes-seo-heading"
+        title="What SEO work typically covers"
+        lead="Exact scope depends on the package and your site’s starting point. These are the areas Che Xu Studio focuses on."
+      />
+      <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {[
+          { t: 'Technical SEO', d: 'Crawlability, indexing controls, performance basics, and structural issues that block visibility.' },
+          { t: 'On-page SEO', d: 'Titles, headings, internal links, and content clarity aligned to search intent.' },
+          { t: 'Keyword & intent research', d: 'Topics your customers actually search—prioritized for your services and market.' },
+          { t: 'Conversion relationship', d: 'SEO only helps if visitors can enquire. We improve pathways alongside visibility work.' },
+          { t: 'Measurement & reporting', d: 'Search Console monitoring, rank tracking on growth plans, and plain-language next steps.' },
+          { t: 'Local foundations', d: 'Local SEO setup where your package includes it—without inventing business directory claims.' },
+        ].map((item) => (
+          <article class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+            <h3 class="font-semibold text-navy-900">{item.t}</h3>
+            <p class="mt-2 text-sm text-ink-muted">{item.d}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted" aria-labelledby="promises-heading">
+    <div class="container-shell max-w-3xl">
+      <SectionHeading
+        id="promises-heading"
+        title="What Che Xu Studio does not promise"
+        lead="Ethical SEO improves foundations and opportunities. Search engines control rankings."
+      />
+      <ul class="mt-8 list-disc space-y-2 pl-5 text-sm text-ink-muted sm:text-base">
+        <li>No guaranteed #1 rankings, traffic numbers, or revenue outcomes</li>
+        <li>No fake urgency, manufactured scarcity, or “secret algorithm” claims</li>
+        <li>No AggregateRating or review schema for services we have not earned</li>
+      </ul>
+    </div>
+  </section>
+
+  {
+    relatedProjects.length > 0 && (
+      <section class="section" aria-labelledby="seo-examples-heading">
+        <div class="container-shell">
+          <SectionHeading
+            id="seo-examples-heading"
+            title="Portfolio concepts with SEO foundations"
+            lead="Examples of how search-friendly structure and conversion paths work together on concept projects."
+          />
+          <div class="mt-10 grid gap-5 lg:grid-cols-3">
+            {relatedProjects.map((project) => (
+              <ProjectCard project={project} />
+            ))}
+          </div>
+          <div class="mt-8">
+            <a href="/work" class="btn-secondary">Browse all work</a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section bg-surface-muted" aria-labelledby="seo-packages-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="seo-packages-heading"
+        title="SEO-related packages"
+        lead="Starting prices in CAD. Monthly plans follow the published cancellation policy."
+      />
+      <div class="mt-10 grid gap-5 lg:grid-cols-2">
         {seoPackages.map((pkg) => <PricingCard pkg={pkg} />)}
       </div>
+      <p class="mt-8 text-sm text-ink-muted">
+        Need a new site plus SEO launch?
+        <a class="font-semibold text-blue-500 underline" href="/services/web-design">See web design packages</a>
+        or
+        <a class="font-semibold text-blue-500 underline" href="/pricing">compare full pricing</a>.
+      </p>
     </div>
   </section>
 

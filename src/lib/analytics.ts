@@ -10,7 +10,10 @@ export type FunnelEvent =
   | 'package_recommended'
   | 'pricing_card_viewed'
   | 'pricing_card_selected'
+  | 'contact_form_started'
   | 'contact_form_submitted'
+  | 'portfolio_project_opened'
+  | 'service_cta_selected'
   | 'chat_opened'
   | 'human_handoff_requested';
 

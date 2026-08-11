@@ -86,7 +86,13 @@ const quoteHref = quoteContactHref(pkg.id);
           {pkg.billing === 'monthly' ? 'Request this plan' : 'Get a quote'}
         </a>
         <a href={pkg.serviceHref} class="btn-secondary w-full text-center">
-          Learn about this service
+          {
+            pkg.category === 'web-design'
+              ? 'Web design details'
+              : pkg.category === 'seo'
+                ? 'SEO strategy details'
+                : 'Website care details'
+          }
         </a>
       </div>
     )

@@ -21,8 +21,8 @@ const initialIntent = Astro.url.searchParams.get('intent') || undefined;
 ---
 
 <BaseLayout
-  title="Contact"
-  description="Contact Che Xu Studio for web design, SEO, or website care. Ask for a package recommendation or exact quote."
+  title="Get a Project Quote"
+  description="Request a web design, SEO, or website care quote from Che Xu Studio. Share your goals—no obligation to purchase. Clear next steps after you submit."
   path="/contact"
   schema={[
     breadcrumbSchema([
@@ -38,13 +38,18 @@ const initialIntent = Astro.url.searchParams.get('intent') || undefined;
         <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Contact' }]} />
         <p class="eyebrow">Contact</p>
         <h1 class="mt-3 font-display text-4xl font-bold text-navy-900 sm:text-5xl">
-          Talk with Che Xu Studio
+          Get a project quote
         </h1>
         <p class="lead mt-4">
-          Prefer a person over the AI assistant? Send a short message or a detailed brief. We’ll help you choose the right package—or prepare an exact quote.
+          Tell us what you need. We’ll help you choose the right package—or prepare an exact quote. Submitting this form does not obligate you to purchase.
         </p>
         <div class="mt-6 space-y-3 text-sm text-ink-muted">
-          <p><strong class="text-navy-900">What happens next:</strong> we review your goals, confirm fit, and reply with clear next steps.</p>
+          <p>
+            <strong class="text-navy-900">What happens next:</strong> we review your goals, confirm fit, and reply by email with clear next steps. If you share a phone number and prefer a call, we may follow up that way.
+          </p>
+          <p>
+            <strong class="text-navy-900">Helpful to include:</strong> your business type, current website (if any), primary goal, and rough timeline. Use the optional project brief for more detail.
+          </p>
           {
             siteConfig.contact.email && (
               <p>
@@ -74,21 +79,17 @@ const initialIntent = Astro.url.searchParams.get('intent') || undefined;
               </p>
             )
           }
-          {
-            !siteConfig.contact.email &&
-              !siteConfig.contact.phone &&
-              !siteConfig.contact.bookingUrl && (
-                <p class="rounded-md border border-border bg-surface-muted p-3">
-                  Verified phone, email, and booking links will appear here once added in site configuration.
-                  The form below is the primary contact path.
-                </p>
-              )
-          }
+          <p>
+            Prefer to compare packages first?{' '}
+            <a class="font-semibold text-blue-500 underline" href="/pricing">View pricing</a>
+            {' '}or{' '}
+            <a class="font-semibold text-blue-500 underline" href="/#package-finder">use the package finder</a>.
+          </p>
         </div>
       </div>
 
       <ContactForm
-        client:load
+        client:visible
         turnstileSiteKey={turnstileSiteKey}
         contactEmail={siteConfig.contact.email}
         initialPlan={initialPlan}

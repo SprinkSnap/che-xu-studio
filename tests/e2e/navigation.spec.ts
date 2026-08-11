@@ -7,6 +7,7 @@ const requiredRoutes = [
   '/services/website-care/',
   '/pricing/',
   '/work/',
+  '/work/northline-home-services/',
   '/about/',
   '/contact/',
   '/checkout/success/',
@@ -25,7 +26,7 @@ test.describe('site navigation', () => {
     }
   });
 
-  test('desktop primary nav exposes required links and package-finder CTA', async ({
+  test('desktop primary nav exposes required links and quote CTA', async ({
     page,
     isMobile,
   }) => {
@@ -42,9 +43,8 @@ test.describe('site navigation', () => {
     await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Contact' })).toBeVisible();
 
-    await page.getByRole('banner').getByRole('link', { name: 'Find My Best Package' }).click();
-    await expect(page).toHaveURL(/#package-finder/);
-    await expect(page.locator('#package-finder')).toBeVisible();
+    await page.getByRole('banner').getByRole('link', { name: 'Get a Project Quote' }).click();
+    await expect(page).toHaveURL(/\/contact\/?\?intent=quote/);
   });
 
   test('services submenu is keyboard operable and closes on Escape', async ({ page, isMobile }) => {
@@ -115,7 +115,7 @@ test.describe('site navigation', () => {
 
     // Conversion CTAs belong in the sticky bar / hero, not the page menu.
     await expect(dialog.getByRole('link', { name: 'Find My Best Package' })).toHaveCount(0);
-    await expect(dialog.getByRole('link', { name: 'Book a Free Strategy Call' })).toHaveCount(0);
+    await expect(dialog.getByRole('link', { name: 'Get a Project Quote' })).toHaveCount(0);
 
     await expect(dialog.getByRole('link', { name: 'About' })).toHaveAttribute(
       'aria-current',

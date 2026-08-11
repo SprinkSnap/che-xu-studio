@@ -4,6 +4,7 @@ import {
   jsonLd,
   offerCatalogSchema,
   organizationSchema,
+  portfolioProjectSchema,
   siteNavigationSchema,
 } from '../../src/lib/seo';
 import { faqs } from '../../src/config/faq';
@@ -44,5 +45,19 @@ describe('structured data', () => {
     const schema = faqPageSchema(subset);
     expect(schema.mainEntity).toHaveLength(2);
     expect(schema['@type']).toBe('FAQPage');
+  });
+
+  it('builds portfolio concept schema without fabricated ratings or client claims', () => {
+    const schema = portfolioProjectSchema({
+      name: 'NorthLine HOME SERVICES',
+      description: 'Concept project summary',
+      path: '/work/northline-home-services',
+      projectKind: 'concept',
+      siteUrl: 'https://chexustudio.com',
+    });
+    expect(schema['@type']).toBe('CreativeWork');
+    expect(schema.genre).toBe('Portfolio concept');
+    expect(JSON.stringify(schema)).not.toContain('AggregateRating');
+    expect(JSON.stringify(schema)).not.toContain('CaseStudy');
   });
 });

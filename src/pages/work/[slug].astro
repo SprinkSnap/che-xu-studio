@@ -1,0 +1,248 @@
+---
+/**
+ * Individual portfolio project pages.
+ * SSR so demo CTA hrefs from site config stay current after deploy.
+ */
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FinalCta from '../../components/FinalCta.astro';
+import {
+  getProjectBySlug,
+  isExternalProjectHref,
+  siteConfig,
+  type SiteProject,
+} from '../../config/site';
+import { serviceHrefForLabel } from '../../lib/services';
+import { breadcrumbSchema, portfolioProjectSchema } from '../../lib/seo';
+
+const slug = Astro.params.slug ?? '';
+const project = getProjectBySlug(slug);
+
+if (!project) {
+  return Astro.redirect('/work', 302);
+}
+
+const kindLabel = project.projectKind === 'client' ? 'Client project' : 'Concept project';
+const description =
+  project.summary.length > 150
+    ? `${project.summary.slice(0, 147)}…`
+    : `${project.summary} See the approach behind ${project.title}.`;
+
+const relatedServices = project.services
+  .map((label) => ({ label, href: serviceHrefForLabel(label) }))
+  .filter((item): item is { label: string; href: string } => Boolean(item.href));
+
+function projectSections(p: SiteProject) {
+  return [
+    p.industryDetail
+      ? { title: 'Industry context', body: p.industryDetail }
+      : null,
+    p.websiteGoal ? { title: 'Project goal', body: p.websiteGoal } : null,
+    p.conversionFocus ? { title: 'Conversion strategy', body: p.conversionFocus } : null,
+    p.seoImplementation ? { title: 'SEO approach', body: p.seoImplementation } : null,
+    p.role ? { title: 'Studio role', body: p.role } : null,
+  ].filter(Boolean) as Array<{ title: string; body: string }>;
+}
+
+const sections = projectSections(project);
+---
+
+<BaseLayout
+  title={`${project.title} — ${kindLabel}`}
+  description={description}
+  path={`/work/${project.slug}`}
+  ogImage={project.imageSrc}
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Work', path: '/work' },
+      { name: project.title, path: `/work/${project.slug}` },
+    ]),
+    portfolioProjectSchema({
+      name: project.title,
+      description: project.summary,
+      path: `/work/${project.slug}`,
+      image: project.imageSrc,
+      projectKind: project.projectKind,
+    }),
+  ]}
+>
+  <section class="section">
+    <div class="container-shell">
+      <Breadcrumbs
+        items={[
+          { name: 'Home', href: '/' },
+          { name: 'Work', href: '/work' },
+          { name: project.title },
+        ]}
+      />
+
+      <div class="mt-6 flex flex-wrap items-center gap-2">
+        <p
+          class:list={[
+            'rounded-md px-2.5 py-1 text-xs font-semibold',
+            project.projectKind === 'client'
+              ? 'bg-green-50 text-green-700'
+              : 'bg-surface-muted text-navy-800',
+          ]}
+        >
+          {kindLabel}
+        </p>
+        {
+          project.industry && (
+            <p class="text-sm font-medium text-blue-500">{project.industry}</p>
+          )
+        }
+      </div>
+
+      <h1 class="mt-4 max-w-3xl font-display text-4xl font-bold text-navy-900 sm:text-5xl">
+        {project.title}
+      </h1>
+      <p class="lead mt-4 max-w-2xl">{project.summary}</p>
+      {
+        project.note && (
+          <p class="mt-4 max-w-2xl rounded-[var(--radius-md)] border border-border bg-surface-muted px-4 py-3 text-sm leading-relaxed text-ink-muted">
+            {project.note}
+          </p>
+        )
+      }
+
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a
+          href={siteConfig.cta.primary.href}
+          class="btn-primary"
+          data-track="service_cta_selected"
+          onclick={`window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'quote', project: '${project.slug}' } })`}
+        >
+          {siteConfig.cta.primary.label}
+        </a>
+        {
+          project.href && (
+            <a
+              href={project.href}
+              class="btn-secondary"
+              {...(isExternalProjectHref(project.href)
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : {})}
+            >
+              {project.hrefLabel ??
+                (isExternalProjectHref(project.href) ? 'View live demo' : 'Open link')}
+            </a>
+          )
+        }
+      </div>
+
+      {
+        project.imageSrc && (
+          <figure class="mt-10 overflow-hidden rounded-[var(--radius-xl)] border border-border bg-[#f8f8f8]">
+            <img
+              src={project.imageSrc}
+              alt={project.imageAlt ?? `${project.title} responsive website mockup`}
+              class="h-auto w-full object-contain object-center"
+              loading="eager"
+              decoding="async"
+              width="1200"
+              height="800"
+            />
+          </figure>
+        )
+      }
+
+      <div class="mt-12 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="space-y-8">
+          {
+            sections.map((section) => (
+              <section>
+                <h2 class="font-display text-2xl font-bold text-navy-900">{section.title}</h2>
+                <p class="mt-3 text-sm leading-relaxed text-ink-muted sm:text-base">{section.body}</p>
+              </section>
+            ))
+          }
+
+          {
+            project.roles && project.roles.length > 0 && (
+              <section>
+                <h2 class="font-display text-2xl font-bold text-navy-900">Scope highlights</h2>
+                <ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-ink-muted sm:text-base">
+                  {project.roles.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </section>
+            )
+          }
+
+          {
+            project.results && project.results.length > 0 && (
+              <section>
+                <h2 class="font-display text-2xl font-bold text-navy-900">Verified results</h2>
+                <ul class="mt-3 space-y-2 text-sm text-navy-800 sm:text-base">
+                  {project.results.map((result) => (
+                    <li>
+                      <strong>{result.value}</strong> — {result.label}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )
+          }
+        </div>
+
+        <aside class="space-y-6 lg:sticky lg:top-28 lg:self-start">
+          {
+            project.technologies && project.technologies.length > 0 && (
+              <div class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+                <h2 class="font-display text-xl font-bold text-navy-900">Technologies</h2>
+                <ul class="mt-3 flex flex-wrap gap-2">
+                  {project.technologies.map((tech) => (
+                    <li class="rounded-md border border-border px-2.5 py-1 text-xs text-ink-muted">
+                      {tech}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+
+          {
+            relatedServices.length > 0 && (
+              <div class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+                <h2 class="font-display text-xl font-bold text-navy-900">Related services</h2>
+                <ul class="mt-3 space-y-2 text-sm">
+                  {relatedServices.map((service) => (
+                    <li>
+                      <a class="font-semibold text-blue-500 hover:underline" href={service.href}>
+                        {service.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <a href="/pricing" class="mt-4 inline-flex text-sm font-semibold text-navy-800 hover:underline">
+                  Compare packages →
+                </a>
+              </div>
+            )
+          }
+
+          <div class="rounded-[var(--radius-lg)] border border-border bg-surface-muted p-5">
+            <h2 class="font-display text-xl font-bold text-navy-900">Want something similar?</h2>
+            <p class="mt-2 text-sm text-ink-muted">
+              Tell us about your business and goals. Submitting a quote request does not obligate you to purchase.
+            </p>
+            <a href={siteConfig.cta.primary.href} class="btn-primary mt-4 inline-flex">
+              {siteConfig.cta.primary.label}
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <p class="mt-10 text-sm text-ink-muted">
+        <a class="font-semibold text-blue-500 underline" href="/work">← Back to all work</a>
+      </p>
+    </div>
+  </section>
+
+  <FinalCta />
+</BaseLayout>

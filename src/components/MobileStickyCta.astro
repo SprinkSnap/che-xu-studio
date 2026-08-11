@@ -11,12 +11,17 @@ import { siteConfig } from '../config/site';
     <a
       href={siteConfig.cta.primary.href}
       class="btn-primary flex-1 text-center"
+      data-track="mobile_sticky_quote"
+      onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'quote', source: 'mobile_sticky' } })"
+    >
+      Get a Quote
+    </a>
+    <a
+      href={siteConfig.cta.secondary.href}
+      class="btn-secondary flex-1 text-center"
       data-track="mobile_sticky_finder"
     >
-      Find My Package
-    </a>
-    <a href="/contact" class="btn-secondary flex-1 text-center" data-track="mobile_sticky_contact">
-      Talk to us
+      Find Package
     </a>
   </div>
 </div>

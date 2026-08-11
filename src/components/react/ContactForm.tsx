@@ -51,6 +51,7 @@ export default function ContactForm({
   const [turnstileStatus, setTurnstileStatus] = useState<TurnstileStatus>(
     turnstileSiteKey.trim() ? 'loading' : 'loading',
   );
+  const formStarted = useRef(false);
   const [values, setValues] = useState({
     name: '',
     email: '',
@@ -183,6 +184,13 @@ export default function ContactForm({
   }, [configStatus, resolvedSiteKey]);
 
   function update<K extends keyof typeof values>(key: K, value: (typeof values)[K]) {
+    if (!formStarted.current) {
+      formStarted.current = true;
+      track('contact_form_started', {
+        serviceInterest:
+          typeof values.serviceInterest === 'string' ? values.serviceInterest : undefined,
+      });
+    }
     setValues((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -274,7 +282,7 @@ export default function ContactForm({
         </p>
         <p className="mt-4 text-sm text-ink-muted">
           What happens next: we confirm the best-fit package or quote scope, then outline clear next
-          steps.
+          steps. Your enquiry does not create a purchase obligation.
         </p>
       </div>
     );
@@ -537,7 +545,8 @@ export default function ContactForm({
         <a className="underline" href="/terms">
           terms
         </a>
-        . We use your details only to respond to this enquiry unless you opt in to marketing updates.
+        . Sending a message does not obligate you to purchase. We use your details only to respond to
+        this enquiry unless you opt in to marketing updates.
       </p>
 
       <style>{`

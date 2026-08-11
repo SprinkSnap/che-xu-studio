@@ -4,7 +4,9 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import PricingCard from '../../components/PricingCard.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import FinalCta from '../../components/FinalCta.astro';
+import SectionHeading from '../../components/ui/SectionHeading.astro';
 import { packages, quoteContactHref } from '../../config/packages';
+import { siteConfig } from '../../config/site';
 import { faqsForPage } from '../../config/faq';
 import { breadcrumbSchema, faqPageSchema, serviceSchema } from '../../lib/seo';
 
@@ -14,7 +16,7 @@ const faqItems = faqsForPage('website-care');
 
 <BaseLayout
   title="Website Care & Maintenance"
-  description="WordPress updates, backups, security monitoring, and priority support starting at CAD $199/month."
+  description="WordPress updates, backups, security monitoring, uptime checks, and priority support from Che Xu Studio—starting at CAD $199/month."
   path="/services/website-care"
   schema={[
     breadcrumbSchema([
@@ -23,7 +25,8 @@ const faqItems = faqsForPage('website-care');
     ]),
     serviceSchema({
       name: 'Website Care & Maintenance',
-      description: 'Ongoing WordPress maintenance, security, backups, and priority support.',
+      description:
+        'Ongoing WordPress maintenance, security, backups, uptime monitoring, and priority support for small businesses.',
       path: '/services/website-care',
     }),
     faqPageSchema(faqItems),
@@ -37,23 +40,73 @@ const faqItems = faqsForPage('website-care');
         Stay online, updated, and secure.
       </h1>
       <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
-        Proactive WordPress care for businesses that want fewer surprises—updates, backups, monitoring, and priority issue resolution.
+        Proactive WordPress care for Canadian small businesses that want fewer surprises—updates, backups, monitoring, and priority issue resolution.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <a href={quoteContactHref(care.id)} class="btn btn-primary-on-dark">Start Website Care</a>
-        <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
-          Ask about your stack
+        <a
+          href={quoteContactHref(care.id)}
+          class="btn btn-primary-on-dark"
+          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { service: 'website-care', cta: 'quote' } })"
+        >
+          Request Website Care
+        </a>
+        <a href={siteConfig.cta.secondary.href} class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+          {siteConfig.cta.secondary.label}
         </a>
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" aria-labelledby="care-who-heading">
+    <div class="container-shell grid gap-10 lg:grid-cols-2">
+      <SectionHeading
+        id="care-who-heading"
+        title="Who Website Care is for"
+        lead="Businesses that rely on WordPress and want maintenance handled without dark-pattern lock-ins."
+      />
+      <ul class="space-y-3 text-sm leading-relaxed text-ink-muted sm:text-base">
+        <li>Owners who cannot keep up with core, theme, and plugin updates</li>
+        <li>Teams that need backups, security monitoring, and uptime awareness</li>
+        <li>Sites that need bug fixes and priority support when something breaks</li>
+        <li>Businesses that want a monthly plan they can cancel per the published policy</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted" aria-labelledby="care-includes-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="care-includes-heading"
+        title="What’s included"
+        lead="Based on the Website Care & Maintenance package—hosting fees remain separate unless agreed in writing."
+      />
+      <ul class="mt-10 grid gap-3 sm:grid-cols-2">
+        {care.includes.map((item) => (
+          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-4 text-sm text-ink">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="care-package-heading">
     <div class="container-shell max-w-3xl">
-      <PricingCard pkg={care} />
+      <SectionHeading
+        id="care-package-heading"
+        title="Website Care package"
+        lead="Starting at CAD $199/month. Request the plan through the contact form; payment details are confirmed in writing."
+      />
+      <div class="mt-8">
+        <PricingCard pkg={care} />
+      </div>
       <p class="mt-6 text-sm text-ink-muted">
         Hosting fees are separate unless otherwise agreed in writing. Cancel anytime according to the
         <a class="font-semibold text-blue-500 underline" href="/refund-cancellation-policy">cancellation policy</a>.
+        Looking for a new site first?
+        <a class="font-semibold text-blue-500 underline" href="/services/web-design">Explore web design</a>
+        or
+        <a class="font-semibold text-blue-500 underline" href="/pricing">compare packages</a>.
       </p>
     </div>
   </section>

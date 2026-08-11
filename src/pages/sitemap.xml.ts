@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
-import { getSiteUrl } from '../config/site';
+import { getSiteUrl, siteConfig } from '../config/site';
 
 export const prerender = true;
 
-const routes = [
+const staticRoutes = [
   '/',
   '/services/web-design',
   '/services/seo',
@@ -17,6 +17,9 @@ const routes = [
   '/terms',
   '/refund-cancellation-policy',
 ];
+
+const projectRoutes = siteConfig.projects.map((project) => `/work/${project.slug}`);
+const routes = [...staticRoutes, ...projectRoutes];
 
 export const GET: APIRoute = () => {
   const siteUrl = getSiteUrl(import.meta.env.PUBLIC_SITE_URL);

@@ -1,0 +1,94 @@
+---
+import { isExternalProjectHref, projectPath, type SiteProject } from '../config/site';
+
+interface Props {
+  project: SiteProject;
+  /** Compact index/homepage card vs denser listing. */
+  compact?: boolean;
+}
+
+const { project, compact = true } = Astro.props;
+const detailHref = projectPath(project);
+const kindLabel = project.projectKind === 'client' ? 'Client project' : 'Concept project';
+---
+
+<article class="surface-card overflow-hidden p-0">
+  {
+    project.imageSrc && (
+      <a
+        href={detailHref}
+        class="block bg-[#f8f8f8]"
+        data-track="portfolio_project_opened"
+        data-track-prop={project.slug}
+        onclick={`window.__cxTrack && window.__cxTrack({ event: 'portfolio_project_opened', props: { project: '${project.slug}', source: 'card_image' } })`}
+      >
+        <img
+          src={project.imageSrc}
+          alt={project.imageAlt ?? `${project.title} project preview`}
+          class="aspect-[3/2] h-auto w-full object-contain object-center"
+          loading="lazy"
+          decoding="async"
+          width="1200"
+          height="800"
+        />
+      </a>
+    )
+  }
+  <div class="p-6">
+    <div class="flex flex-wrap items-center gap-2">
+      <p
+        class:list={[
+          'rounded-md px-2.5 py-1 text-xs font-semibold',
+          project.projectKind === 'client'
+            ? 'bg-green-50 text-green-700'
+            : 'bg-surface-muted text-navy-800',
+        ]}
+      >
+        {kindLabel}
+      </p>
+      {
+        project.industry && (
+          <p class="text-sm font-medium text-blue-500">{project.industry}</p>
+        )
+      }
+    </div>
+    <h3 class="mt-3 font-display text-2xl font-bold text-navy-900">
+      <a
+        href={detailHref}
+        class="hover:text-blue-600"
+        onclick={`window.__cxTrack && window.__cxTrack({ event: 'portfolio_project_opened', props: { project: '${project.slug}', source: 'card_title' } })`}
+      >
+        {project.title}
+      </a>
+    </h3>
+    <p class="mt-3 text-sm text-ink-muted">{project.summary}</p>
+    {
+      !compact && project.note && (
+        <p class="mt-4 text-xs leading-relaxed text-ink-muted">{project.note}</p>
+      )
+    }
+    <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <a
+        href={detailHref}
+        class="btn-primary inline-flex"
+        onclick={`window.__cxTrack && window.__cxTrack({ event: 'portfolio_project_opened', props: { project: '${project.slug}', source: 'card_cta' } })`}
+      >
+        View project
+      </a>
+      {
+        project.href && (
+          <a
+            href={project.href}
+            class="btn-secondary inline-flex"
+            {...(isExternalProjectHref(project.href)
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
+          >
+            {project.hrefLabel ??
+              (isExternalProjectHref(project.href) ? 'View live demo' : 'Open link')}
+          </a>
+        )
+      }
+    </div>
+  </div>
+</article>

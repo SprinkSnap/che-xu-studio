@@ -64,17 +64,24 @@ describe('site navigation integrity', () => {
       ]),
     );
     expect(hrefs.every((href) => href !== '#')).toBe(true);
-    expect(siteConfig.cta.primary.href).toBe('/#package-finder');
+    expect(siteConfig.cta.primary.href).toBe('/contact?intent=quote');
+    expect(siteConfig.cta.primary.label).toBe('Get a Project Quote');
+    expect(siteConfig.cta.secondary.href).toBe('/#package-finder');
+    expect(siteConfig.cta.secondary.label).toBe('Find My Best Package');
     expect(siteConfig.defaultSiteUrl).toBe('https://chexustudio.com');
     expect(siteConfig.contact.email).toBe('info@chexustudio.com');
+    expect(siteConfig.allowIndexing).toBe(false);
   });
 
   it('includes the NorthLine HOME SERVICES portfolio concept with brief and mockup', () => {
     expect(siteConfig.projects.length).toBeGreaterThan(0);
     const northline = siteConfig.projects.find((p) => p.id === 'northline-home-services');
     expect(northline).toBeDefined();
+    expect(northline?.slug).toBe('northline-home-services');
+    expect(northline?.projectKind).toBe('concept');
+    expect(northline?.featured).toBe(true);
     expect(northline?.title).toBe('NorthLine HOME SERVICES');
-    expect(northline?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(northline?.summary).toMatch(/home-services/i);
     expect(northline?.industry).toBe('Home Services');
     expect(northline?.industryDetail).toMatch(/residential home services/i);
     expect(northline?.websiteGoal).toMatch(/conversion-focused website/i);
@@ -86,7 +93,7 @@ describe('site navigation integrity', () => {
     );
     expect(northline?.conversionFocus).toMatch(/qualified leads/i);
     expect(northline?.seoImplementation).toMatch(/local SEO foundations/i);
-    expect(northline?.note).toMatch(/Fictional demonstration/i);
+    expect(northline?.note).toMatch(/Concept project/i);
     expect(northline?.imageSrc).toBe('/images/work/northline-home-service-responsive-mockup.png');
     expect(northline?.href).toBe('https://northline-demo.chexustudio.com');
     expect(northline?.hrefLabel).toBe('View live demo');
@@ -95,8 +102,11 @@ describe('site navigation integrity', () => {
   it('includes the hospitality restaurant portfolio concept', () => {
     const hospitality = siteConfig.projects.find((p) => p.id === 'seasonal-restaurant-concept');
     expect(hospitality).toBeDefined();
+    expect(hospitality?.slug).toBe('tablekind-kitchen');
+    expect(hospitality?.projectKind).toBe('concept');
+    expect(hospitality?.featured).toBe(true);
     expect(hospitality?.title).toBe('Tablekind Kitchen');
-    expect(hospitality?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(hospitality?.summary).toMatch(/reservations/i);
     expect(hospitality?.industry).toBe('Hospitality & Food Service');
     expect(hospitality?.industryDetail).toMatch(/seasonal, community-focused restaurant/i);
     expect(hospitality?.websiteGoal).toMatch(/book a table/i);
@@ -109,7 +119,7 @@ describe('site navigation integrity', () => {
     expect(hospitality?.technologies).toEqual(
       expect.arrayContaining(['Astro', 'Cloudflare Workers', 'Workers AI']),
     );
-    expect(hospitality?.note).toMatch(/reservations and ordering flows/i);
+    expect(hospitality?.note).toMatch(/reservations/i);
     expect(hospitality?.imageSrc).toBe(
       '/images/work/tablekind-kitchen-restaurant-website-design-responsive-mockup-1.png',
     );
@@ -125,8 +135,10 @@ describe('site navigation integrity', () => {
     expect(residentialIndex).toBe(tablekindIndex + 1);
 
     const residential = projects[residentialIndex];
+    expect(residential?.slug).toBe('harbour-pine-home');
+    expect(residential?.projectKind).toBe('concept');
     expect(residential?.title).toBe('Harbour & Pine Home');
-    expect(residential?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(residential?.summary).toMatch(/storefront/i);
     expect(residential?.industry).toBe('Home Décor & Lifestyle E-commerce');
     expect(residential?.industryDetail).toMatch(/curated furniture/i);
     expect(residential?.websiteGoal).toMatch(/does not accept real orders/i);
@@ -136,7 +148,7 @@ describe('site navigation integrity', () => {
     );
     expect(residential?.conversionFocus).toMatch(/demo checkout/i);
     expect(residential?.seoImplementation).toMatch(/noindex/i);
-    expect(residential?.note).toMatch(/not a live merchant site/i);
+    expect(residential?.note).toMatch(/does not accept real orders/i);
     expect(residential?.imageSrc).toBe(
       '/images/work/harbour-pine-home-responsive-ecommerce-website-mockup.png',
     );
@@ -154,8 +166,11 @@ describe('site navigation integrity', () => {
     expect(interiorIndex).toBe(harbourIndex + 1);
 
     const interior = projects[interiorIndex];
+    expect(interior?.slug).toBe('form-field-interiors');
+    expect(interior?.projectKind).toBe('concept');
+    expect(interior?.featured).toBe(true);
     expect(interior?.title).toBe('Form & Field Interiors');
-    expect(interior?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(interior?.summary).toMatch(/interior-design/i);
     expect(interior?.industry).toBe('Interior Design & Home Improvement');
     expect(interior?.industryDetail).toMatch(/visually appealing/i);
     expect(interior?.websiteGoal).toMatch(/qualified inquiries/i);
@@ -164,7 +179,7 @@ describe('site navigation integrity', () => {
       expect.arrayContaining(['HTML', 'CSS', 'JavaScript', 'Responsive Design']),
     );
     expect(interior?.conversionFocus).toMatch(/prospective clients/i);
-    expect(interior?.note).toMatch(/Fictional demonstration/i);
+    expect(interior?.note).toMatch(/Concept project/i);
     expect(interior?.imageSrc).toBe(
       '/images/work/form-and-field-interiors-responsive-website-mockup.webp',
     );
@@ -182,8 +197,10 @@ describe('site navigation integrity', () => {
     expect(signalFlowIndex).toBe(interiorIndex + 1);
 
     const signalFlow = projects[signalFlowIndex];
+    expect(signalFlow?.slug).toBe('signalflow-crm');
+    expect(signalFlow?.projectKind).toBe('concept');
     expect(signalFlow?.title).toBe('SignalFlow CRM');
-    expect(signalFlow?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(signalFlow?.summary).toMatch(/CRM/i);
     expect(signalFlow?.industry).toBe('B2B SaaS / CRM Software');
     expect(signalFlow?.industryDetail).toMatch(/fictional CRM product/i);
     expect(signalFlow?.websiteGoal).toMatch(/interactive browser-based demo/i);
@@ -199,7 +216,7 @@ describe('site navigation integrity', () => {
     );
     expect(signalFlow?.conversionFocus).toMatch(/plan recommendations/i);
     expect(signalFlow?.seoImplementation).toMatch(/noindex\/nofollow/i);
-    expect(signalFlow?.note).toMatch(/Fictional demonstration/i);
+    expect(signalFlow?.note).toMatch(/Concept project/i);
     expect(signalFlow?.imageSrc).toBe(
       '/images/work/signalflow-crm-saas-website-responsive-mockup.png',
     );
@@ -215,8 +232,10 @@ describe('site navigation integrity', () => {
     expect(localProIndex).toBe(signalFlowIndex + 1);
 
     const localPro = projects[localProIndex];
+    expect(localPro?.slug).toBe('localpro-directory');
+    expect(localPro?.projectKind).toBe('concept');
     expect(localPro?.title).toBe('LocalPro Directory');
-    expect(localPro?.summary).toMatch(/Desktop view, mobile-responsive conversion/i);
+    expect(localPro?.summary).toMatch(/directory/i);
     expect(localPro?.industry).toBe('Local Services & Professional Directory Marketplace');
     expect(localPro?.industryDetail).toMatch(/fictional local-services/i);
     expect(localPro?.websiteGoal).toMatch(/discover, compare, save, and request quotes/i);
@@ -232,7 +251,7 @@ describe('site navigation integrity', () => {
     );
     expect(localPro?.conversionFocus).toMatch(/quote-request journeys/i);
     expect(localPro?.seoImplementation).toMatch(/noindex, nofollow/i);
-    expect(localPro?.note).toMatch(/Fictional demonstration/i);
+    expect(localPro?.note).toMatch(/Concept project/i);
     expect(localPro?.imageSrc).toBe(
       '/images/work/localpro-directory-responsive-local-services-website-mockup.webp',
     );
@@ -240,6 +259,16 @@ describe('site navigation integrity', () => {
     expect(localPro?.hrefLabel).toBe('View live demo');
   });
 
+  it('exposes featured homepage projects and internal project paths', () => {
+    const featured = siteConfig.projects.filter((p) => p.featured);
+    expect(featured).toHaveLength(3);
+    expect(featured.map((p) => p.slug)).toEqual([
+      'northline-home-services',
+      'tablekind-kitchen',
+      'form-field-interiors',
+    ]);
+    expect(siteConfig.projects.every((p) => p.slug && p.projectKind)).toBe(true);
+  });
   it('structures footer into services, studio, and legal groups', () => {
     const serviceHrefs = siteConfig.footer.services.map((l) => l.href);
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);

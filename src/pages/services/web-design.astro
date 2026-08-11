@@ -2,20 +2,23 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import PricingCard from '../../components/PricingCard.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import FinalCta from '../../components/FinalCta.astro';
 import SectionHeading from '../../components/ui/SectionHeading.astro';
 import { packages } from '../../config/packages';
+import { featuredProjects, siteConfig } from '../../config/site';
 import { faqsForPage } from '../../config/faq';
 import { breadcrumbSchema, faqPageSchema, serviceSchema } from '../../lib/seo';
 
 const webPackages = packages.filter((p) => p.category === 'web-design');
 const faqItems = faqsForPage('web-design');
+const relatedProjects = featuredProjects(3);
 ---
 
 <BaseLayout
-  title="Web Design Services"
-  description="Premium theme and custom WordPress websites from Che Xu Studio—designed to convert on mobile and desktop."
+  title="Web Design for Canadian Small Businesses"
+  description="Premium theme and custom WordPress websites from Che Xu Studio—mobile-first, conversion-focused, with clear CAD starting prices for Canadian small businesses."
   path="/services/web-design"
   schema={[
     breadcrumbSchema([
@@ -23,8 +26,9 @@ const faqItems = faqsForPage('web-design');
       { name: 'Web Design', path: '/services/web-design' },
     ]),
     serviceSchema({
-      name: 'Web Design',
-      description: 'Premium theme customization and custom WordPress website design focused on conversion.',
+      name: 'Web Design for Canadian Small Businesses',
+      description:
+        'Premium theme customization and custom WordPress website design focused on conversion for Canadian small businesses.',
       path: '/services/web-design',
     }),
     faqPageSchema(faqItems),
@@ -42,50 +46,195 @@ const faqItems = faqsForPage('web-design');
       />
       <p class="eyebrow !text-blue-300">Web Design</p>
       <h1 class="mt-3 max-w-3xl font-display text-4xl font-bold sm:text-5xl">
-        Websites that make the next step obvious.
+        Web design that makes the next step obvious.
       </h1>
       <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
-        From brand-aligned premium themes to fully custom WordPress builds—and optional SEO launch—Che Xu Studio focuses on clarity, speed, and conversion.
+        For Canadian small and growing businesses that need a website visitors can understand—and act on—quickly. Premium theme or custom WordPress, with SEO foundations where your package includes them.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <a href="/pricing" class="btn btn-primary-on-dark">View web design packages</a>
-        <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
-          Book a free strategy call
+        <a
+          href={siteConfig.cta.primary.href}
+          class="btn btn-primary-on-dark"
+          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { service: 'web-design', cta: 'quote' } })"
+        >
+          {siteConfig.cta.primary.label}
+        </a>
+        <a href="/pricing" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+          View web design packages
         </a>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container-shell grid gap-8 lg:grid-cols-3">
-      {[
-        {
-          title: 'Premium Theme Website',
-          body: 'Faster launches with a customized premium theme, essential pages, forms, and basic SEO setup.',
-        },
-        {
-          title: 'Custom Website',
-          body: 'Built from scratch around your brand and offers—with conversion-focused layouts and SEO-ready architecture.',
-        },
-        {
-          title: 'Custom + SEO Launch',
-          body: 'Custom build plus keyword research, technical SEO, on-page setup, tracking, and 30-day post-launch SEO support.',
-        },
-      ].map((item) => (
-        <article class="surface-card p-6">
-          <h2 class="font-display text-2xl font-bold text-navy-900">{item.title}</h2>
-          <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
-        </article>
-      ))}
+  <section class="section" aria-labelledby="who-heading">
+    <div class="container-shell grid gap-10 lg:grid-cols-2">
+      <SectionHeading
+        id="who-heading"
+        title="Who this is for"
+        lead="Owners and operators who want a professional site without agency fluff—or vague “brand elevation” language."
+      />
+      <ul class="space-y-3 text-sm leading-relaxed text-ink-muted sm:text-base">
+        <li>Local and service businesses that need more quote requests, bookings, or calls</li>
+        <li>Growing companies replacing an outdated site that does not convert on mobile</li>
+        <li>Teams choosing between a premium theme launch and a fully custom build</li>
+        <li>Businesses that want SEO foundations included at launch when the budget allows</li>
+      </ul>
     </div>
   </section>
 
-  <section class="section bg-surface-muted">
+  <section class="section bg-surface-muted" aria-labelledby="problems-heading">
     <div class="container-shell">
-      <SectionHeading title="Web design packages" lead="Starting prices in CAD. Final project quotes are confirmed in writing." />
+      <SectionHeading
+        id="problems-heading"
+        title="Problems a conversion-focused site solves"
+        lead="Pretty is not enough. Your site should reduce friction between interest and enquiry."
+      />
+      <div class="mt-10 grid gap-5 md:grid-cols-3">
+        {[
+          {
+            title: 'Unclear offer',
+            body: 'Visitors leave when they cannot tell what you do, who you help, or what to do next.',
+          },
+          {
+            title: 'Weak mobile experience',
+            body: 'Most Canadian small-business traffic is mobile. Slow layouts and buried CTAs cost enquiries.',
+          },
+          {
+            title: 'Weak search foundations',
+            body: 'Without structure, metadata, and crawlable content, good design still struggles to get found.',
+          },
+        ].map((item) => (
+          <article class="surface-card p-6">
+            <h3 class="font-display text-xl font-bold text-navy-900">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="paths-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="paths-heading"
+        title="Three web design paths"
+        lead="Choose the path that matches your timeline, brand needs, and SEO priority."
+      />
+      <div class="mt-10 grid gap-5 lg:grid-cols-3">
+        {[
+          {
+            title: 'Premium Theme Website',
+            body: 'Faster launches with a customized premium theme, essential pages, forms, and basic SEO setup—ideal when speed and budget matter most.',
+          },
+          {
+            title: 'Custom Website',
+            body: 'Built from scratch around your brand and offers—with conversion-focused layouts, performance work, and SEO-ready architecture.',
+          },
+          {
+            title: 'Custom + SEO Launch',
+            body: 'Custom build plus keyword research, technical SEO, on-page setup, tracking, and 30-day post-launch SEO support.',
+          },
+        ].map((item) => (
+          <article class="surface-card p-6">
+            <h3 class="font-display text-2xl font-bold text-navy-900">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted" aria-labelledby="approach-heading">
+    <div class="container-shell grid gap-10 lg:grid-cols-2">
+      <SectionHeading
+        id="approach-heading"
+        title="How Che Xu Studio approaches web design"
+        lead="Practical decisions that help visitors enquire—not speculative redesigns for their own sake."
+      />
+      <ul class="space-y-4 text-sm leading-relaxed text-ink-muted sm:text-base">
+        <li>
+          <strong class="text-navy-900">Conversion-focused structure:</strong> clear headlines, service clarity, and primary CTAs above the fold on mobile.
+        </li>
+        <li>
+          <strong class="text-navy-900">Mobile-first implementation:</strong> layouts and tap targets designed for phones first, then refined for desktop.
+        </li>
+        <li>
+          <strong class="text-navy-900">SEO foundations:</strong> semantic headings, metadata, internal links, and technical basics included at the package level.
+        </li>
+        <li>
+          <strong class="text-navy-900">Scope before invoicing:</strong> starting prices in CAD, with written confirmation before fixed project fees.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="process-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="process-heading"
+        title="Project process"
+        lead="Typical timelines assume timely feedback and content readiness. Exact dates are confirmed after scope review."
+      />
+      <ol class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {[
+          { t: 'Discovery', d: 'Goals, audience, offers, and package fit.' },
+          { t: 'Design & build', d: 'Mobile-first layouts, content structure, and development.' },
+          { t: 'Review', d: 'Revision window, accessibility checks, and launch prep.' },
+          { t: 'Launch', d: 'Go-live support plus SEO launch items when included.' },
+        ].map((step, index) => (
+          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+            <span class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-sm font-bold text-white">
+              {index + 1}
+            </span>
+            <h3 class="font-display text-xl font-bold text-navy-900">{step.t}</h3>
+            <p class="mt-2 text-sm text-ink-muted">{step.d}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="mt-6 text-sm text-ink-muted">
+        Typical ranges from package config: Premium Theme 2–4 weeks · Custom 6–10 weeks · Custom + SEO Launch 8–12 weeks.
+      </p>
+    </div>
+  </section>
+
+  {
+    relatedProjects.length > 0 && (
+      <section class="section bg-surface-muted" aria-labelledby="examples-heading">
+        <div class="container-shell">
+          <SectionHeading
+            id="examples-heading"
+            title="Relevant portfolio concepts"
+            lead="Concept projects that show conversion-focused service and hospitality experiences—not invented client metrics."
+          />
+          <div class="mt-10 grid gap-5 lg:grid-cols-3">
+            {relatedProjects.map((project) => (
+              <ProjectCard project={project} />
+            ))}
+          </div>
+          <div class="mt-8">
+            <a href="/work" class="btn-secondary">Browse all work</a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section" aria-labelledby="packages-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="packages-heading"
+        title="Web design packages"
+        lead="Starting prices in CAD. Final project quotes are confirmed in writing."
+      />
       <div class="mt-10 grid gap-5 lg:grid-cols-3">
         {webPackages.map((pkg) => <PricingCard pkg={pkg} />)}
       </div>
+      <p class="mt-8 text-sm text-ink-muted">
+        Prefer guidance first? Use the
+        <a class="font-semibold text-blue-500 underline" href="/#package-finder">package finder</a>
+        or
+        <a class="font-semibold text-blue-500 underline" href="/pricing">compare all packages</a>.
+      </p>
     </div>
   </section>
 

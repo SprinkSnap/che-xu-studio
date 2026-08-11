@@ -158,6 +158,37 @@ export function faqPageSchema(items: FaqItem[]) {
   };
 }
 
+/**
+ * Portfolio project page schema.
+ * Uses CreativeWork only — never presents fictional concepts as client CaseStudy results.
+ */
+export function portfolioProjectSchema(options: {
+  name: string;
+  description: string;
+  path: string;
+  image?: string;
+  projectKind: 'concept' | 'client';
+  siteUrl?: string;
+}) {
+  const url = getSiteUrl(options.siteUrl || import.meta.env.PUBLIC_SITE_URL);
+  const schema: Record<string, unknown> = {
+    '@type': 'CreativeWork',
+    name: options.name,
+    description: options.description,
+    url: absoluteUrl(options.path, url),
+    creator: { '@id': `${url}/#organization` },
+    inLanguage: siteConfig.locale,
+  };
+
+  if (options.image) schema.image = absoluteUrl(options.image, url);
+  if (options.projectKind === 'concept') {
+    schema.genre = 'Portfolio concept';
+    schema.creativeWorkStatus = 'Portfolio demonstration';
+  }
+
+  return schema;
+}
+
 export function jsonLd(graph: unknown[]): string {
   return JSON.stringify({
     '@context': 'https://schema.org',

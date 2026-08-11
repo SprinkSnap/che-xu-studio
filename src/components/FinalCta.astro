@@ -8,15 +8,22 @@ import { siteConfig } from '../config/site';
       <div class="max-w-2xl">
         <p class="eyebrow !text-blue-300">Ready when you are</p>
         <h2 class="mt-3 font-display text-3xl font-bold sm:text-4xl">
-          Let’s choose the package that fits your next step.
+          Ready for a clearer website that wins more enquiries?
         </h2>
         <p class="mt-4 text-base text-blue-100/90 sm:text-lg">
-          Use the package finder for a guided recommendation, or talk with us first if you want a human perspective before deciding.
+          Request a project quote if you know what you need—or use the package finder if you want a guided recommendation first.
         </p>
         <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a href={siteConfig.cta.primary.href} class="btn btn-primary-on-dark">{siteConfig.cta.primary.label}</a>
-          <a href="/contact" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
-            Talk to a person
+          <a
+            href={siteConfig.cta.primary.href}
+            class="btn btn-primary-on-dark"
+            data-track="service_cta_selected"
+            onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'quote', source: 'final_cta' } })"
+          >
+            {siteConfig.cta.primary.label}
+          </a>
+          <a href={siteConfig.cta.secondary.href} class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+            {siteConfig.cta.secondary.label}
           </a>
         </div>
       </div>

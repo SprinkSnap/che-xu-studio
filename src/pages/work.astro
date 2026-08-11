@@ -8,15 +8,18 @@ export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import FinalCta from '../components/FinalCta.astro';
-import { isExternalProjectHref, siteConfig } from '../config/site';
+import ProjectCard from '../components/ProjectCard.astro';
+import { siteConfig } from '../config/site';
 import { breadcrumbSchema } from '../lib/seo';
 
 const projects = siteConfig.projects;
+const conceptCount = projects.filter((p) => p.projectKind === 'concept').length;
+const clientCount = projects.filter((p) => p.projectKind === 'client').length;
 ---
 
 <BaseLayout
-  title="Work"
-  description="Che Xu Studio portfolio concepts and verified projects. Empty sections stay hidden until items are added in site config."
+  title="Work & Portfolio Concepts"
+  description="Browse Che Xu Studio portfolio concepts and verified client work. Concept projects demonstrate conversion-focused web design and SEO—clearly labelled, never presented as client case studies."
   path="/work"
   schema={[
     breadcrumbSchema([
@@ -33,16 +36,33 @@ const projects = siteConfig.projects;
         Selected work
       </h1>
       <p class="lead mt-4 max-w-2xl">
-        Portfolio concepts and verified client work. We do not invent metrics, logos, or testimonials.
+        Portfolio concepts show how Che Xu Studio approaches conversion-focused design and SEO.
+        Verified client projects appear here only when approved for publication—we do not invent metrics, logos, or testimonials.
       </p>
+      {
+        projects.length > 0 && (
+          <p class="mt-4 text-sm text-ink-muted">
+            {conceptCount > 0 && (
+              <span>
+                {conceptCount} concept project{conceptCount === 1 ? '' : 's'}
+              </span>
+            )}
+            {conceptCount > 0 && clientCount > 0 && <span> · </span>}
+            {clientCount > 0 && (
+              <span>
+                {clientCount} client project{clientCount === 1 ? '' : 's'}
+              </span>
+            )}
+          </p>
+        )
+      }
 
       {
         projects.length === 0 ? (
           <div class="mt-10 max-w-2xl rounded-[var(--radius-lg)] border border-border bg-surface-muted p-6">
-            <h2 class="font-display text-2xl font-bold text-navy-900">Case studies coming after owner approval</h2>
+            <h2 class="font-display text-2xl font-bold text-navy-900">Projects will appear here when published</h2>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">
-              This page intentionally has no sample portfolio items yet. When verified projects are added in
-              <code class="rounded bg-white px-1.5 py-0.5 text-xs">src/config/site.ts</code>, they will appear here automatically.
+              This page stays empty until portfolio concepts or verified client projects are added in site configuration.
             </p>
             <ul class="mt-5 list-disc space-y-2 pl-5 text-sm text-ink-muted">
               <li>Mobile-first conversion design</li>
@@ -50,136 +70,27 @@ const projects = siteConfig.projects;
               <li>Clear calls to action and contact paths</li>
               <li>Performance-minded WordPress delivery</li>
             </ul>
-            <a href="/contact" class="btn-primary mt-6 inline-flex">Discuss your project</a>
+            <a href="/contact?intent=quote" class="btn-primary mt-6 inline-flex">Get a project quote</a>
           </div>
         ) : (
           <div class="mt-10 grid gap-5 md:grid-cols-2">
             {projects.map((project) => (
-              <article class="surface-card overflow-hidden p-0">
-                {project.imageSrc && (
-                  <img
-                    src={project.imageSrc}
-                    alt={project.imageAlt ?? `${project.title} project preview`}
-                    class="aspect-[3/2] h-auto w-full object-contain object-center bg-[#f8f8f8]"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                )}
-                <div class="p-6">
-                  <h2 class="font-display text-2xl font-bold text-navy-900">{project.title}</h2>
-                  <p class="mt-3 text-sm text-ink-muted">{project.summary}</p>
-
-                  {project.industry && (
-                    <div class="mt-5">
-                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
-                        Client Industry
-                      </p>
-                      <p class="mt-1 text-sm font-medium text-blue-500">{project.industry}</p>
-                      {project.industryDetail && (
-                        <p class="mt-2 text-sm text-ink-muted">{project.industryDetail}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {project.websiteGoal && (
-                    <div class="mt-5">
-                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
-                        Project Goal
-                      </p>
-                      <p class="mt-2 text-sm text-ink-muted">{project.websiteGoal}</p>
-                    </div>
-                  )}
-
-                  {(project.roles?.length || project.role) && (
-                    <div class="mt-5">
-                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
-                        My Role
-                      </p>
-                      {project.roles && project.roles.length > 0 ? (
-                        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-muted">
-                          {project.roles.map((item) => (
-                            <li>{item}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p class="mt-2 text-sm text-ink-muted">{project.role}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {project.technologies && project.technologies.length > 0 && (
-                    <div class="mt-5">
-                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
-                        Technologies Used
-                      </p>
-                      <ul class="mt-3 flex flex-wrap gap-2">
-                        {project.technologies.map((tech) => (
-                          <li class="rounded-full border border-border px-3 py-1 text-xs text-ink-muted">
-                            {tech}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {(project.conversionFocus || project.seoImplementation) && (
-                    <div class="mt-5">
-                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-navy-800">
-                        Conversion &amp; SEO
-                      </p>
-                      {project.conversionFocus && (
-                        <p class="mt-2 text-sm text-ink-muted">{project.conversionFocus}</p>
-                      )}
-                      {project.seoImplementation && (
-                        <p class="mt-2 text-sm text-ink-muted">{project.seoImplementation}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {project.note && (
-                    <p class="mt-5 rounded-[var(--radius-md)] border border-border bg-surface-muted p-3 text-xs leading-relaxed text-ink-muted">
-                      {project.note}
-                    </p>
-                  )}
-
-                  {project.services.length > 0 && (
-                    <ul class="mt-4 flex flex-wrap gap-2">
-                      {project.services.map((service) => (
-                        <li class="rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-navy-800">
-                          {service}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {project.results && project.results.length > 0 && (
-                    <ul class="mt-4 space-y-1 text-sm text-navy-800">
-                      {project.results.map((r) => (
-                        <li>
-                          <strong>{r.value}</strong> — {r.label}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {project.href && (
-                    <a
-                      href={project.href}
-                      class="btn-primary mt-5 inline-flex"
-                      {...(isExternalProjectHref(project.href)
-                        ? { target: '_blank', rel: 'noopener noreferrer' }
-                        : {})}
-                    >
-                      {project.hrefLabel ??
-                        (isExternalProjectHref(project.href) ? 'View live demo' : 'View project')}
-                    </a>
-                  )}
-                </div>
-              </article>
+              <ProjectCard project={project} />
             ))}
           </div>
         )
       }
+
+      <div class="mt-12 max-w-2xl rounded-[var(--radius-lg)] border border-border bg-white p-6 shadow-soft">
+        <h2 class="font-display text-2xl font-bold text-navy-900">Looking for a similar site?</h2>
+        <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+          Share your goals and we’ll recommend a package or prepare a quote. No obligation—just a clear next step.
+        </p>
+        <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+          <a href={siteConfig.cta.primary.href} class="btn-primary">{siteConfig.cta.primary.label}</a>
+          <a href="/services/web-design" class="btn-secondary">Explore web design</a>
+        </div>
+      </div>
     </div>
   </section>
   <FinalCta />

@@ -179,9 +179,12 @@ async function main() {
 
   const readme = `# Page screenshots
 
-Full-page captures of Che Xu Studio marketing routes (desktop 1440×900 and Pixel 5 mobile).
+Full-page captures of Che Xu Studio marketing routes:
 
-Generated with:
+- **desktop/** — 1440×900 viewport
+- **mobile/** — Pixel 5 viewport
+
+## Regenerate
 
 \`\`\`bash
 npm run build
@@ -190,11 +193,15 @@ npm run screenshots:pages
 
 Optional: point at an already-running server with \`PLAYWRIGHT_BASE_URL\`.
 
+See \`manifest.json\` for the capture list (path, viewport, HTTP status, file).
+
+## Routes
+
 | Route | Desktop | Mobile |
 | --- | --- | --- |
 ${ROUTES.map(
   (r) =>
-    `| \`${r.path}\` | ![${r.slug} desktop](./desktop/${r.slug}.png) | ![${r.slug} mobile](./mobile/${r.slug}.png) |`,
+    `| \`${r.path}\` | [desktop/${r.slug}.png](./desktop/${r.slug}.png) | [mobile/${r.slug}.png](./mobile/${r.slug}.png) |`,
 ).join('\n')}
 `;
 

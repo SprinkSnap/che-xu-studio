@@ -1,0 +1,56 @@
+---
+const proofPoints = [
+  {
+    title: 'Custom-built websites',
+    body: 'Custom web design for Canadian small businesses—built from scratch, without off-the-shelf commercial themes.',
+  },
+  {
+    title: 'Transparent CAD pricing',
+    body: 'Published CAD starting prices and written scope before invoicing, so project costs stay clear from the start.',
+  },
+  {
+    title: 'Conversion and SEO together',
+    body: 'Conversion-focused websites with SEO foundations planned together—so visitors can find you and take the next step.',
+  },
+  {
+    title: 'Direct communication',
+    body: 'Work with the designer-developer from scope through launch—clear decisions, no account handoffs.',
+  },
+];
+---
+
+<section
+  class="border-b border-border bg-surface-muted py-8 sm:py-10"
+  aria-labelledby="trust-proof-heading"
+>
+  <div class="container-shell">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div class="max-w-2xl">
+        <p class="eyebrow mb-2">Why Che Xu Studio</p>
+        <h2
+          id="trust-proof-heading"
+          class="font-display text-2xl font-bold text-navy-900 sm:text-3xl"
+        >
+          Clear reasons to trust the process
+        </h2>
+      </div>
+      <a
+        href="/work"
+        class="inline-flex min-h-11 items-center text-sm font-semibold text-blue-500 underline-offset-4 hover:underline"
+      >
+        See how projects are built →
+      </a>
+    </div>
+
+    <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        proofPoints.map((item) => (
+          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-4 shadow-soft sm:p-5">
+            <h3 class="font-display text-lg font-bold text-navy-900">{item.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

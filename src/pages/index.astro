@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { featuredProjects, siteConfig } from '../config/site';
 import OutcomeCards from '../components/OutcomeCards.astro';
+import TrustProofBar from '../components/TrustProofBar.astro';
 import ProcessSteps from '../components/ProcessSteps.astro';
 import PricingCard from '../components/PricingCard.astro';
 import ProjectCard from '../components/ProjectCard.astro';
@@ -107,6 +108,8 @@ const homepageProjects = featuredProjects(3);
       </div>
     </div>
   </section>
+
+  <TrustProofBar />
 
   <OutcomeCards />
 

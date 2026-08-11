@@ -2,13 +2,24 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('critical marketing flows', () => {
-  test('homepage renders brand, hero, and package finder', async ({ page }) => {
+  test('homepage renders brand, hero, trust proof, and package finder', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('banner').getByRole('link', { name: /Che Xu Studio home/i })).toBeVisible();
+    await expect(
+      page.getByRole('banner').getByRole('link', { name: /Che Xu Studio home/i }),
+    ).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
       'Websites that win more qualified enquiries',
     );
-    await expect(page.getByRole('heading', { name: /Which service fits your goal/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 2, name: /Clear reasons to trust the process/i }),
+    ).toBeVisible();
+    await expect(page.getByRole('link', { name: /See how projects are built/i })).toHaveAttribute(
+      'href',
+      '/work',
+    );
+    await expect(
+      page.getByRole('heading', { name: /Which service fits your goal/i }),
+    ).toBeVisible();
   });
 
   test('pricing page shows five packages without requiring horizontal scroll on cards', async ({
@@ -27,9 +38,7 @@ test.describe('critical marketing flows', () => {
     const finder = page.locator('#package-finder');
     await finder.getByRole('button', { name: 'Start the finder' }).click();
     await finder.getByRole('button', { name: /Ongoing website care/i }).click();
-    await expect(
-      finder.getByRole('heading', { name: 'Website Care & Maintenance' }),
-    ).toBeVisible();
+    await expect(finder.getByRole('heading', { name: 'Website Care & Maintenance' })).toBeVisible();
     await expect(finder.getByRole('link', { name: 'Compare all packages' })).toBeVisible();
   });
 
@@ -60,7 +69,9 @@ test.describe('critical marketing flows', () => {
   test('homepage has no serious accessibility violations', async ({ page }) => {
     await page.goto('/');
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-    const serious = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+    const serious = results.violations.filter(
+      (v) => v.impact === 'critical' || v.impact === 'serious',
+    );
     expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
   });
 });

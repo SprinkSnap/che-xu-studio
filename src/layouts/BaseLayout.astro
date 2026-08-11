@@ -29,7 +29,7 @@ const {
   title,
   description,
   path = Astro.url.pathname,
-  ogImage = '/og-default.svg',
+  ogImage = '/og-default.png',
   noindex,
   schema = [],
   showMobileCta = true,
@@ -78,6 +78,8 @@ const analyticsToken = import.meta.env.PUBLIC_CF_WEB_ANALYTICS_TOKEN || '';
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link
       rel="preload"

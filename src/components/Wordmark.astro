@@ -2,35 +2,56 @@
 import { siteConfig } from '../config/site';
 
 interface Props {
+  /** `light` = logo for dark backgrounds; `dark` = logo for light backgrounds */
   variant?: 'light' | 'dark';
   size?: 'sm' | 'md' | 'lg';
+  /** Include the tagline lockup (footer / brand blocks). Default is name mark only. */
+  withTagline?: boolean;
 }
 
-const { variant = 'dark', size = 'md' } = Astro.props;
-const textClass = variant === 'light' ? 'text-white' : 'text-navy-900';
-const markClass = variant === 'light' ? 'bg-blue-400 text-navy-950' : 'bg-navy-900 text-white';
-const sizeClass =
-  size === 'lg' ? 'text-2xl sm:text-3xl' : size === 'sm' ? 'text-base' : 'text-lg sm:text-xl';
+const { variant = 'dark', size = 'md', withTagline = false } = Astro.props;
+
+const onDark = variant === 'light';
+const src = withTagline
+  ? onDark
+    ? '/logo-lockup-on-dark.png'
+    : '/logo-lockup.png'
+  : onDark
+    ? '/logo-on-dark.png'
+    : '/logo.png';
+
+const heightClass = withTagline
+  ? size === 'lg'
+    ? 'h-16 sm:h-20'
+    : size === 'sm'
+      ? 'h-12'
+      : 'h-14 sm:h-16'
+  : size === 'lg'
+    ? 'h-10 sm:h-12'
+    : size === 'sm'
+      ? 'h-7'
+      : 'h-8 sm:h-9';
+
+const maxWidthClass = withTagline
+  ? 'max-w-[min(100%,20rem)] sm:max-w-[min(100%,24rem)]'
+  : 'max-w-[min(100%,12.5rem)] sm:max-w-[min(100%,16rem)] md:max-w-none';
 ---
 
 <a
   href="/"
-  class:list={['group inline-flex items-center gap-2.5 font-display font-bold tracking-tight', textClass, sizeClass]}
+  class="group inline-flex items-center"
   aria-label={`${siteConfig.name} home`}
 >
-  <span
+  <img
+    src={src}
+    alt=""
+    width={withTagline ? 832 : 1060}
+    height={withTagline ? 180 : 120}
     class:list={[
-      'inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shadow-soft transition group-hover:scale-[1.03]',
-      markClass,
-      size === 'lg' && 'h-11 w-11 text-base',
+      'w-auto object-contain object-left transition duration-200 group-hover:opacity-90',
+      heightClass,
+      maxWidthClass,
     ]}
-    aria-hidden="true"
-  >
-    CX
-  </span>
-  <span>
-    Che Xu <span class:list={['font-semibold', variant === 'light' ? 'text-blue-300' : 'text-blue-500']}>Studio</span>
-  </span>
+    decoding="async"
+  />
 </a>
-
-<!-- Temporary accessible CSS wordmark. Replace with a vector logo asset when available. -->

@@ -123,9 +123,16 @@ export default function MobileNav({ items, currentPath }: Props) {
       inert={open ? undefined : true}
     >
       <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-white/10 px-4 pt-[env(safe-area-inset-top)] sm:px-6">
-        <p className="font-display text-lg font-bold tracking-tight">
-          Che Xu <span className="font-semibold text-blue-300">Studio</span>
-        </p>
+        <a href="/" className="inline-flex items-center" aria-label="Che Xu Studio home">
+          <img
+            src="/logo-on-dark.png"
+            alt=""
+            width={1060}
+            height={120}
+            className="h-8 w-auto max-w-[min(100%,12.5rem)] object-contain object-left"
+            decoding="async"
+          />
+        </a>
         <button
           ref={closeRef}
           type="button"

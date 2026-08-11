@@ -54,9 +54,11 @@ function detailsCtaLabel(category: ServicePackage['category']): string {
     <p class="text-sm text-ink-muted">Starting at</p>
     <p class="mt-1 font-display text-4xl font-bold text-navy-900">
       {pkg.priceLabel}
-      {pkg.priceSuffix && (
-        <span class="text-lg font-semibold text-ink-muted">{pkg.priceSuffix}</span>
-      )}
+      {
+        pkg.priceSuffix && (
+          <span class="text-lg font-semibold text-ink-muted">{pkg.priceSuffix}</span>
+        )
+      }
     </p>
     {pkg.timeline && <p class="mt-2 text-sm font-medium text-navy-700">Timeline: {pkg.timeline}</p>}
   </div>
@@ -69,7 +71,13 @@ function detailsCtaLabel(category: ServicePackage['category']): string {
             class="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]"
             aria-hidden="true"
           >
-            <svg viewBox="0 0 16 16" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              viewBox="0 0 16 16"
+              class="h-3 w-3"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path d="M3.5 8.5 6.5 11.5 12.5 4.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </span>

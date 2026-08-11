@@ -3,9 +3,7 @@ export interface FaqItem {
   question: string;
   answer: string;
   /** Pages where this FAQ should appear. */
-  pages: Array<
-    'home' | 'pricing' | 'web-design' | 'branding' | 'seo' | 'website-care' | 'contact'
-  >;
+  pages: Array<'home' | 'pricing' | 'web-design' | 'branding' | 'seo' | 'website-care' | 'contact'>;
 }
 
 export const faqs: FaqItem[] = [

@@ -41,14 +41,18 @@ const initialIntent = Astro.url.searchParams.get('intent') || undefined;
           Get a project quote
         </h1>
         <p class="lead mt-4">
-          Tell us what you need. We’ll help you choose the right package—or prepare an exact quote. Submitting this form does not obligate you to purchase.
+          Tell us what you need. We’ll help you choose the right package—or prepare an exact quote.
+          Submitting this form does not obligate you to purchase.
         </p>
         <div class="mt-6 space-y-3 text-sm text-ink-muted">
           <p>
-            <strong class="text-navy-900">What happens next:</strong> we review your goals, confirm fit, and reply by email with clear next steps. If you share a phone number and prefer a call, we may follow up that way.
+            <strong class="text-navy-900">What happens next:</strong> we review your goals, confirm fit,
+            and reply by email with clear next steps. If you share a phone number and prefer a call, we
+            may follow up that way.
           </p>
           <p>
-            <strong class="text-navy-900">Helpful to include:</strong> your business type, current website (if any), primary goal, and rough timeline. Use the optional project brief for more detail.
+            <strong class="text-navy-900">Helpful to include:</strong> your business type, current website
+            (if any), primary goal, and rough timeline. Use the optional project brief for more detail.
           </p>
           {
             siteConfig.contact.email && (
@@ -83,7 +87,9 @@ const initialIntent = Astro.url.searchParams.get('intent') || undefined;
             Prefer to compare packages first?{' '}
             <a class="font-semibold text-blue-500 underline" href="/pricing">View pricing</a>
             {' '}or{' '}
-            <a class="font-semibold text-blue-500 underline" href="/#package-finder">use the package finder</a>.
+            <a class="font-semibold text-blue-500 underline" href="/#package-finder"
+              >use the package finder</a
+            >.
           </p>
         </div>
       </div>

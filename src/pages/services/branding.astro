@@ -58,7 +58,10 @@ const faqItems = faqsForPage('branding');
         >
           Get a Quote
         </a>
-        <a href="/pricing#brand-identity" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+        <a
+          href="/pricing#brand-identity"
+          class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15"
+        >
           View branding package
         </a>
       </div>
@@ -76,7 +79,9 @@ const faqItems = faqsForPage('branding');
         <li>New businesses that need a professional logo and basic brand system</li>
         <li>Teams whose current look feels inconsistent across web and social</li>
         <li>Owners preparing for a custom website and want the brand decided first</li>
-        <li>Canadian small businesses that want practical deliverables, not vague “brand elevation”</li>
+        <li>
+          Canadian small businesses that want practical deliverables, not vague “brand elevation”
+        </li>
       </ul>
     </div>
   </section>
@@ -89,25 +94,27 @@ const faqItems = faqsForPage('branding');
         lead="When your look changes from platform to platform, trust and recognition take longer to build."
       />
       <div class="mt-10 grid gap-5 md:grid-cols-3">
-        {[
-          {
-            title: 'Inconsistent visuals',
-            body: 'Different logos, colours, and type across channels make the business feel unfinished or hard to remember.',
-          },
-          {
-            title: 'Weak first impression',
-            body: 'A DIY mark can work early—but it often undercuts confidence when customers compare you to more polished competitors.',
-          },
-          {
-            title: 'Website delays',
-            body: 'Starting a custom site without brand direction slows design decisions and leads to rework.',
-          },
-        ].map((item) => (
-          <article class="surface-card p-6">
-            <h3 class="font-display text-xl font-bold text-navy-900">{item.title}</h3>
-            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
-          </article>
-        ))}
+        {
+          [
+            {
+              title: 'Inconsistent visuals',
+              body: 'Different logos, colours, and type across channels make the business feel unfinished or hard to remember.',
+            },
+            {
+              title: 'Weak first impression',
+              body: 'A DIY mark can work early—but it often undercuts confidence when customers compare you to more polished competitors.',
+            },
+            {
+              title: 'Website delays',
+              body: 'Starting a custom site without brand direction slows design decisions and leads to rework.',
+            },
+          ].map((item) => (
+            <article class="surface-card p-6">
+              <h3 class="font-display text-xl font-bold text-navy-900">{item.title}</h3>
+              <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+            </article>
+          ))
+        }
       </div>
     </div>
   </section>
@@ -120,14 +127,18 @@ const faqItems = faqsForPage('branding');
         lead="Based on the Brand Identity & Logo Design package—practical assets you can use immediately."
       />
       <ul class="mt-10 grid gap-3 sm:grid-cols-2">
-        {branding.includes.map((item) => (
-          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-4 text-sm text-ink">
-            {item}
-          </li>
-        ))}
+        {
+          branding.includes.map((item) => (
+            <li class="rounded-[var(--radius-lg)] border border-border bg-white p-4 text-sm text-ink">
+              {item}
+            </li>
+          ))
+        }
       </ul>
       <p class="mt-6 text-sm text-ink-muted">
-        Trademark clearance and legal availability checks are not included. Timeline: {branding.timeline}.
+        Trademark clearance and legal availability checks are not included. Timeline: {
+          branding.timeline
+        }.
       </p>
     </div>
   </section>
@@ -140,20 +151,22 @@ const faqItems = faqsForPage('branding');
         lead="Typical timelines assume timely feedback. Exact dates are confirmed after scope review."
       />
       <ol class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { t: 'Discovery', d: 'Audience, personality, competitors, and creative direction.' },
-          { t: 'Concepts', d: 'Two initial creative directions for logo and visual system.' },
-          { t: 'Refine', d: 'Up to two revision rounds to lock the chosen direction.' },
-          { t: 'Handoff', d: 'Guidelines, social assets, and final web/print-ready files.' },
-        ].map((step, index) => (
-          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
-            <span class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-sm font-bold text-white">
-              {index + 1}
-            </span>
-            <h3 class="font-display text-xl font-bold text-navy-900">{step.t}</h3>
-            <p class="mt-2 text-sm text-ink-muted">{step.d}</p>
-          </li>
-        ))}
+        {
+          [
+            { t: 'Discovery', d: 'Audience, personality, competitors, and creative direction.' },
+            { t: 'Concepts', d: 'Two initial creative directions for logo and visual system.' },
+            { t: 'Refine', d: 'Up to two revision rounds to lock the chosen direction.' },
+            { t: 'Handoff', d: 'Guidelines, social assets, and final web/print-ready files.' },
+          ].map((step, index) => (
+            <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+              <span class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-sm font-bold text-white">
+                {index + 1}
+              </span>
+              <h3 class="font-display text-xl font-bold text-navy-900">{step.t}</h3>
+              <p class="mt-2 text-sm text-ink-muted">{step.d}</p>
+            </li>
+          ))
+        }
       </ol>
     </div>
   </section>
@@ -170,11 +183,15 @@ const faqItems = faqsForPage('branding');
       </div>
       <p class="mt-6 text-sm text-ink-muted">
         Building a site next?
-        <a class="font-semibold text-blue-500 underline" href="/services/web-design">Explore custom web design</a>
+        <a class="font-semibold text-blue-500 underline" href="/services/web-design"
+          >Explore custom web design</a
+        >
         or
         <a class="font-semibold text-blue-500 underline" href="/pricing">compare all packages</a>.
         Prefer a guided recommendation?
-        <a class="font-semibold text-blue-500 underline" href="/#package-finder">Use the package finder</a>.
+        <a class="font-semibold text-blue-500 underline" href="/#package-finder"
+          >Use the package finder</a
+        >.
       </p>
       <div class="mt-8">
         <a href={siteConfig.cta.primary.href} class="btn-primary">Get a Project Quote</a>

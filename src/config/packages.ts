@@ -206,9 +206,10 @@ export const packages: ServicePackage[] = [
   },
 ] as const satisfies ServicePackage[];
 
-export const packageById = Object.fromEntries(
-  packages.map((pkg) => [pkg.id, pkg]),
-) as Record<string, ServicePackage>;
+export const packageById = Object.fromEntries(packages.map((pkg) => [pkg.id, pkg])) as Record<
+  string,
+  ServicePackage
+>;
 
 export const ALLOWED_PLAN_IDS = packages.map((pkg) => pkg.id);
 

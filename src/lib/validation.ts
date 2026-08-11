@@ -32,9 +32,7 @@ export const contactSchema = z.object({
   budgetRange: z
     .enum(['under-2k', '2k-5k', '5k-10k', '10k-plus', 'monthly', 'unsure', ''])
     .optional(),
-  targetTimeline: z
-    .enum(['asap', '1-2-months', '3-plus-months', 'flexible', ''])
-    .optional(),
+  targetTimeline: z.enum(['asap', '1-2-months', '3-plus-months', 'flexible', '']).optional(),
   preferredContact: z.enum(['email', 'phone', 'either', '']).optional(),
 });
 

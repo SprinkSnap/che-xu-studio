@@ -63,9 +63,7 @@ export default function ContactForm({
         ? resolvedInitialPlan
         : 'not-sure',
     message:
-      initialIntent === 'quote'
-        ? 'I would like an exact quote for the selected package.'
-        : '',
+      initialIntent === 'quote' ? 'I would like an exact quote for the selected package.' : '',
     marketingConsent: false,
     website: '',
     currentWebsite: '',
@@ -493,7 +491,9 @@ export default function ContactForm({
             </p>
           )}
           {turnstileStatus === 'ready' && !turnstileToken && (
-            <p className="mt-2 text-sm text-ink-muted">Complete the security check to enable Send.</p>
+            <p className="mt-2 text-sm text-ink-muted">
+              Complete the security check to enable Send.
+            </p>
           )}
         </div>
       ) : (
@@ -549,8 +549,8 @@ export default function ContactForm({
         <a className="underline" href="/terms">
           terms
         </a>
-        . Sending a message does not obligate you to purchase. We use your details only to respond to
-        this enquiry unless you opt in to marketing updates.
+        . Sending a message does not obligate you to purchase. We use your details only to respond
+        to this enquiry unless you opt in to marketing updates.
       </p>
 
       <style>{`

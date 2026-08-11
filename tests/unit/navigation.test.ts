@@ -132,7 +132,9 @@ describe('site navigation integrity', () => {
   it('includes Harbour & Pine Home e-commerce demo after Tablekind Kitchen', () => {
     const projects = siteConfig.projects;
     const tablekindIndex = projects.findIndex((p) => p.id === 'seasonal-restaurant-concept');
-    const residentialIndex = projects.findIndex((p) => p.id === 'residential-home-services-concept');
+    const residentialIndex = projects.findIndex(
+      (p) => p.id === 'residential-home-services-concept',
+    );
     expect(tablekindIndex).toBeGreaterThanOrEqual(0);
     expect(residentialIndex).toBe(tablekindIndex + 1);
 

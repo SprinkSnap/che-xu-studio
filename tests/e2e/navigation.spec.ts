@@ -27,10 +27,7 @@ test.describe('site navigation', () => {
     }
   });
 
-  test('desktop primary nav exposes required links and quote CTA', async ({
-    page,
-    isMobile,
-  }) => {
+  test('desktop primary nav exposes required links and quote CTA', async ({ page, isMobile }) => {
     test.skip(!!isMobile, 'desktop nav');
     await page.goto('/pricing/');
     const nav = page.getByRole('navigation', { name: 'Primary' });

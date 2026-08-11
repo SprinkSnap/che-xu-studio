@@ -341,7 +341,8 @@ export const siteConfig = {
   name: 'Che Xu Studio',
   legalName: 'Che Xu Studio',
   tagline: 'Conversion-Focused Web Design & SEO for Canadian Small Businesses.',
-  supportingMessage: 'Clear pricing. Direct communication. Websites built to win qualified enquiries.',
+  supportingMessage:
+    'Clear pricing. Direct communication. Websites built to win qualified enquiries.',
   locale: 'en-CA',
   currency: 'CAD',
   currencySymbol: '$',

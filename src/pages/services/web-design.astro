@@ -49,7 +49,9 @@ const relatedProjects = featuredProjects(3);
         Web design that makes the next step obvious.
       </h1>
       <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
-        For Canadian small and growing businesses that need a custom website visitors can understand—and act on—quickly. Built from scratch for conversion, performance, accessibility, and SEO readiness, with full SEO launch when your package includes it.
+        For Canadian small and growing businesses that need a custom website visitors can
+        understand—and act on—quickly. Built from scratch for conversion, performance,
+        accessibility, and SEO readiness, with full SEO launch when your package includes it.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
         <a
@@ -59,7 +61,10 @@ const relatedProjects = featuredProjects(3);
         >
           {siteConfig.cta.primary.label}
         </a>
-        <a href="/pricing" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+        <a
+          href="/pricing"
+          class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15"
+        >
           View web design packages
         </a>
       </div>
@@ -90,25 +95,27 @@ const relatedProjects = featuredProjects(3);
         lead="Pretty is not enough. Your site should reduce friction between interest and enquiry."
       />
       <div class="mt-10 grid gap-5 md:grid-cols-3">
-        {[
-          {
-            title: 'Unclear offer',
-            body: 'Visitors leave when they cannot tell what you do, who you help, or what to do next.',
-          },
-          {
-            title: 'Weak mobile experience',
-            body: 'Most Canadian small-business traffic is mobile. Slow layouts and buried CTAs cost enquiries.',
-          },
-          {
-            title: 'Weak search foundations',
-            body: 'Without structure, metadata, and crawlable content, good design still struggles to get found.',
-          },
-        ].map((item) => (
-          <article class="surface-card p-6">
-            <h3 class="font-display text-xl font-bold text-navy-900">{item.title}</h3>
-            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
-          </article>
-        ))}
+        {
+          [
+            {
+              title: 'Unclear offer',
+              body: 'Visitors leave when they cannot tell what you do, who you help, or what to do next.',
+            },
+            {
+              title: 'Weak mobile experience',
+              body: 'Most Canadian small-business traffic is mobile. Slow layouts and buried CTAs cost enquiries.',
+            },
+            {
+              title: 'Weak search foundations',
+              body: 'Without structure, metadata, and crawlable content, good design still struggles to get found.',
+            },
+          ].map((item) => (
+            <article class="surface-card p-6">
+              <h3 class="font-display text-xl font-bold text-navy-900">{item.title}</h3>
+              <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+            </article>
+          ))
+        }
       </div>
     </div>
   </section>
@@ -121,21 +128,23 @@ const relatedProjects = featuredProjects(3);
         lead="Choose the path that matches your SEO priority. Both are custom builds—not commercial themes."
       />
       <div class="mt-10 grid gap-5 lg:grid-cols-2">
-        {[
-          {
-            title: 'Custom Website — Built From Scratch',
-            body: 'A fast, conversion-focused website designed and developed specifically for your business—custom UI/UX, responsive development, performance, accessibility, SEO-ready architecture, and professional launch.',
-          },
-          {
-            title: 'Custom Website + SEO Launch',
-            body: 'Everything in Custom Website plus keyword research, technical SEO, on-page setup, tracking, local SEO where relevant, and 30-day post-launch SEO support. Our Most Popular / flagship offer.',
-          },
-        ].map((item) => (
-          <article class="surface-card p-6">
-            <h3 class="font-display text-2xl font-bold text-navy-900">{item.title}</h3>
-            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
-          </article>
-        ))}
+        {
+          [
+            {
+              title: 'Custom Website — Built From Scratch',
+              body: 'A fast, conversion-focused website designed and developed specifically for your business—custom UI/UX, responsive development, performance, accessibility, SEO-ready architecture, and professional launch.',
+            },
+            {
+              title: 'Custom Website + SEO Launch',
+              body: 'Everything in Custom Website plus keyword research, technical SEO, on-page setup, tracking, local SEO where relevant, and 30-day post-launch SEO support. Our Most Popular / flagship offer.',
+            },
+          ].map((item) => (
+            <article class="surface-card p-6">
+              <h3 class="font-display text-2xl font-bold text-navy-900">{item.title}</h3>
+              <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+            </article>
+          ))
+        }
       </div>
     </div>
   </section>
@@ -149,19 +158,24 @@ const relatedProjects = featuredProjects(3);
       />
       <ul class="space-y-4 text-sm leading-relaxed text-ink-muted sm:text-base">
         <li>
-          <strong class="text-navy-900">Custom design:</strong> layouts and UI built for your offers and customer journey—without relying on an off-the-shelf commercial theme.
+          <strong class="text-navy-900">Custom design:</strong> layouts and UI built for your offers and
+          customer journey—without relying on an off-the-shelf commercial theme.
         </li>
         <li>
-          <strong class="text-navy-900">Conversion-focused structure:</strong> clear headlines, service clarity, and primary CTAs above the fold on mobile.
+          <strong class="text-navy-900">Conversion-focused structure:</strong> clear headlines, service
+          clarity, and primary CTAs above the fold on mobile.
         </li>
         <li>
-          <strong class="text-navy-900">Performance & accessibility:</strong> fast, usable experiences with accessible implementation as a baseline.
+          <strong class="text-navy-900">Performance & accessibility:</strong> fast, usable experiences
+          with accessible implementation as a baseline.
         </li>
         <li>
-          <strong class="text-navy-900">SEO readiness & maintainability:</strong> semantic structure, metadata, and a launch setup that is secure and easier to maintain over time.
+          <strong class="text-navy-900">SEO readiness & maintainability:</strong> semantic structure,
+          metadata, and a launch setup that is secure and easier to maintain over time.
         </li>
         <li>
-          <strong class="text-navy-900">Scope before invoicing:</strong> starting prices in CAD, with written confirmation before fixed project fees.
+          <strong class="text-navy-900">Scope before invoicing:</strong> starting prices in CAD, with
+          written confirmation before fixed project fees.
         </li>
       </ul>
     </div>
@@ -175,23 +189,27 @@ const relatedProjects = featuredProjects(3);
         lead="Typical timelines assume timely feedback and content readiness. Exact dates are confirmed after scope review."
       />
       <ol class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { t: 'Discovery', d: 'Goals, audience, offers, and package fit.' },
-          { t: 'Design & build', d: 'Custom UI/UX, mobile-first layouts, and development.' },
-          { t: 'Review', d: 'Revision window, accessibility checks, and launch prep.' },
-          { t: 'Launch', d: 'Go-live support plus SEO launch items when included.' },
-        ].map((step, index) => (
-          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
-            <span class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-sm font-bold text-white">
-              {index + 1}
-            </span>
-            <h3 class="font-display text-xl font-bold text-navy-900">{step.t}</h3>
-            <p class="mt-2 text-sm text-ink-muted">{step.d}</p>
-          </li>
-        ))}
+        {
+          [
+            { t: 'Discovery', d: 'Goals, audience, offers, and package fit.' },
+            { t: 'Design & build', d: 'Custom UI/UX, mobile-first layouts, and development.' },
+            { t: 'Review', d: 'Revision window, accessibility checks, and launch prep.' },
+            { t: 'Launch', d: 'Go-live support plus SEO launch items when included.' },
+          ].map((step, index) => (
+            <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+              <span class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-sm font-bold text-white">
+                {index + 1}
+              </span>
+              <h3 class="font-display text-xl font-bold text-navy-900">{step.t}</h3>
+              <p class="mt-2 text-sm text-ink-muted">{step.d}</p>
+            </li>
+          ))
+        }
       </ol>
       <p class="mt-6 text-sm text-ink-muted">
-        Typical ranges from package config: Custom Website 6–10 weeks · Custom Website + SEO Launch 8–12 weeks. Domain, DNS and SSL launch setup included; domain registration and renewal fees are paid separately by the client.
+        Typical ranges from package config: Custom Website 6–10 weeks · Custom Website + SEO Launch
+        8–12 weeks. Domain, DNS and SSL launch setup included; domain registration and renewal fees
+        are paid separately by the client.
       </p>
     </div>
   </section>
@@ -211,7 +229,9 @@ const relatedProjects = featuredProjects(3);
             ))}
           </div>
           <div class="mt-8">
-            <a href="/work" class="btn-secondary">Browse all work</a>
+            <a href="/work" class="btn-secondary">
+              Browse all work
+            </a>
           </div>
         </div>
       </section>
@@ -230,8 +250,9 @@ const relatedProjects = featuredProjects(3);
       </div>
       <p class="mt-8 text-sm text-ink-muted">
         Need a logo and brand system first?
-        <a class="font-semibold text-blue-500 underline" href="/services/branding">Explore branding</a>.
-        Prefer guidance first? Use the
+        <a class="font-semibold text-blue-500 underline" href="/services/branding"
+          >Explore branding</a
+        >. Prefer guidance first? Use the
         <a class="font-semibold text-blue-500 underline" href="/#package-finder">package finder</a>
         or
         <a class="font-semibold text-blue-500 underline" href="/pricing">compare all packages</a>.

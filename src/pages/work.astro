@@ -32,12 +32,11 @@ const clientCount = projects.filter((p) => p.projectKind === 'client').length;
     <div class="container-shell">
       <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Work' }]} />
       <p class="eyebrow" data-work-render="ssr">Work</p>
-      <h1 class="mt-3 font-display text-4xl font-bold text-navy-900 sm:text-5xl">
-        Selected work
-      </h1>
+      <h1 class="mt-3 font-display text-4xl font-bold text-navy-900 sm:text-5xl">Selected work</h1>
       <p class="lead mt-4 max-w-2xl">
         Portfolio concepts show how Che Xu Studio approaches conversion-focused design and SEO.
-        Verified client projects appear here only when approved for publication—we do not invent metrics, logos, or testimonials.
+        Verified client projects appear here only when approved for publication—we do not invent
+        metrics, logos, or testimonials.
       </p>
       {
         projects.length > 0 && (
@@ -60,9 +59,12 @@ const clientCount = projects.filter((p) => p.projectKind === 'client').length;
       {
         projects.length === 0 ? (
           <div class="mt-10 max-w-2xl rounded-[var(--radius-lg)] border border-border bg-surface-muted p-6">
-            <h2 class="font-display text-2xl font-bold text-navy-900">Projects will appear here when published</h2>
+            <h2 class="font-display text-2xl font-bold text-navy-900">
+              Projects will appear here when published
+            </h2>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">
-              This page stays empty until portfolio concepts or verified client projects are added in site configuration.
+              This page stays empty until portfolio concepts or verified client projects are added
+              in site configuration.
             </p>
             <ul class="mt-5 list-disc space-y-2 pl-5 text-sm text-ink-muted">
               <li>Mobile-first conversion design</li>
@@ -70,7 +72,9 @@ const clientCount = projects.filter((p) => p.projectKind === 'client').length;
               <li>Clear calls to action and contact paths</li>
               <li>Performance-minded custom delivery</li>
             </ul>
-            <a href="/contact?intent=quote" class="btn-primary mt-6 inline-flex">Get a project quote</a>
+            <a href="/contact?intent=quote" class="btn-primary mt-6 inline-flex">
+              Get a project quote
+            </a>
           </div>
         ) : (
           <div class="mt-10 grid gap-5 md:grid-cols-2">
@@ -81,13 +85,18 @@ const clientCount = projects.filter((p) => p.projectKind === 'client').length;
         )
       }
 
-      <div class="mt-12 max-w-2xl rounded-[var(--radius-lg)] border border-border bg-white p-6 shadow-soft">
+      <div
+        class="mt-12 max-w-2xl rounded-[var(--radius-lg)] border border-border bg-white p-6 shadow-soft"
+      >
         <h2 class="font-display text-2xl font-bold text-navy-900">Looking for a similar site?</h2>
         <p class="mt-3 text-sm leading-relaxed text-ink-muted">
-          Share your goals and we’ll recommend a package or prepare a quote. No obligation—just a clear next step.
+          Share your goals and we’ll recommend a package or prepare a quote. No obligation—just a
+          clear next step.
         </p>
         <div class="mt-5 flex flex-col gap-3 sm:flex-row">
-          <a href={siteConfig.cta.primary.href} class="btn-primary">{siteConfig.cta.primary.label}</a>
+          <a href={siteConfig.cta.primary.href} class="btn-primary"
+            >{siteConfig.cta.primary.label}</a
+          >
           <a href="/services/web-design" class="btn-secondary">Explore web design</a>
         </div>
       </div>

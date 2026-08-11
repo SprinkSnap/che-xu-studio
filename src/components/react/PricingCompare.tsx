@@ -91,7 +91,9 @@ export default function PricingCompare({ packages }: Props) {
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="sticky left-0 bg-white px-3 py-3 font-semibold text-navy-900">Feature</th>
+              <th className="sticky left-0 bg-white px-3 py-3 font-semibold text-navy-900">
+                Feature
+              </th>
               {visible.map((pkg) => (
                 <th key={pkg.id} className="px-3 py-3 align-bottom">
                   <p className="font-display text-base font-bold text-navy-900">{pkg.shortName}</p>

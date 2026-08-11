@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  DEFAULT_AI_MODEL,
-  buildSystemPrompt,
-  sanitizeAssistantText,
-} from '../../src/lib/chat';
+import { DEFAULT_AI_MODEL, buildSystemPrompt, sanitizeAssistantText } from '../../src/lib/chat';
 
 describe('chat knowledge grounding', () => {
   it('includes package prices and anti-hallucination rules', () => {

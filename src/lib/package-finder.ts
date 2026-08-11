@@ -81,14 +81,26 @@ export const finderQuestions = [
     id: 'need',
     prompt: 'What do you need help with right now?',
     options: [
-      { value: 'new-website' as const, label: 'A new website', description: 'Custom build from scratch' },
+      {
+        value: 'new-website' as const,
+        label: 'A new website',
+        description: 'Custom build from scratch',
+      },
       {
         value: 'branding' as const,
         label: 'Brand identity & logo',
         description: 'Logo, colours, and visual system',
       },
-      { value: 'growth' as const, label: 'Growth for an existing website', description: 'SEO and conversions' },
-      { value: 'care' as const, label: 'Ongoing website care', description: 'Monitoring, security, support' },
+      {
+        value: 'growth' as const,
+        label: 'Growth for an existing website',
+        description: 'SEO and conversions',
+      },
+      {
+        value: 'care' as const,
+        label: 'Ongoing website care',
+        description: 'Monitoring, security, support',
+      },
     ],
   },
   {
@@ -97,7 +109,11 @@ export const finderQuestions = [
     options: [
       { value: 'yes' as const, label: 'Yes', description: 'Research, technical SEO, and tracking' },
       { value: 'no' as const, label: 'Not right now', description: 'Focus on the website first' },
-      { value: 'unsure' as const, label: 'Not sure', description: 'Recommend the stronger launch path' },
+      {
+        value: 'unsure' as const,
+        label: 'Not sure',
+        description: 'Recommend the stronger launch path',
+      },
     ],
   },
 ] as const;

@@ -104,7 +104,8 @@ export function offerCatalogSchema(siteUrl?: string) {
         priceCurrency: siteConfig.currency,
         price: pkg.startingPriceCad,
         valueAddedTaxIncluded: false,
-        description: pkg.billing === 'monthly' ? 'Starting monthly price' : 'Starting project price',
+        description:
+          pkg.billing === 'monthly' ? 'Starting monthly price' : 'Starting project price',
       },
       availability: 'https://schema.org/InStock',
     })),
@@ -128,10 +129,7 @@ export function serviceSchema(options: {
   };
 }
 
-export function breadcrumbSchema(
-  items: Array<{ name: string; path: string }>,
-  siteUrl?: string,
-) {
+export function breadcrumbSchema(items: Array<{ name: string; path: string }>, siteUrl?: string) {
   const url = getSiteUrl(siteUrl || import.meta.env.PUBLIC_SITE_URL);
   return {
     '@type': 'BreadcrumbList',

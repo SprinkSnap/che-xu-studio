@@ -125,7 +125,11 @@ export default function PackageFinder() {
               <legend className="font-display text-xl font-bold text-navy-900">
                 {visibleQuestion.prompt}
               </legend>
-              <div className="mt-5 grid gap-3" role="radiogroup" aria-label={visibleQuestion.prompt}>
+              <div
+                className="mt-5 grid gap-3"
+                role="radiogroup"
+                aria-label={visibleQuestion.prompt}
+              >
                 {visibleQuestion.options.map((option) => (
                   <button
                     key={option.value}

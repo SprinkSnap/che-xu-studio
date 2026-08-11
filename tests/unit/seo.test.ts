@@ -27,6 +27,10 @@ describe('structured data', () => {
     expect(nav.hasPart).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          name: 'Branding',
+          url: 'https://chexustudio.com/services/branding',
+        }),
+        expect.objectContaining({
           name: 'SEO Strategy',
           url: 'https://chexustudio.com/services/seo',
         }),

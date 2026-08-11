@@ -389,6 +389,7 @@ export const siteConfig = {
     {
       label: 'Services',
       children: [
+        { label: 'Branding', href: '/services/branding' },
         { label: 'Web Design', href: '/services/web-design' },
         { label: 'SEO Strategy', href: '/services/seo' },
         { label: 'Website Care', href: '/services/website-care' },
@@ -402,6 +403,7 @@ export const siteConfig = {
 
   footer: {
     services: [
+      { label: 'Branding', href: '/services/branding' },
       { label: 'Web Design', href: '/services/web-design' },
       { label: 'SEO Strategy', href: '/services/seo' },
       { label: 'Website Care', href: '/services/website-care' },

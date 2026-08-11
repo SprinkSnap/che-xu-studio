@@ -17,8 +17,8 @@ const relatedProjects = featuredProjects(3);
 ---
 
 <BaseLayout
-  title="Web Design for Canadian Small Businesses"
-  description="Premium theme and custom WordPress websites from Che Xu Studio—mobile-first, conversion-focused, with clear CAD starting prices for Canadian small businesses."
+  title="Custom Web Design for Canadian Small Businesses"
+  description="Custom-built, conversion-focused websites from Che Xu Studio—designed from scratch for Canadian small businesses, with clear CAD starting prices and optional SEO launch."
   path="/services/web-design"
   schema={[
     breadcrumbSchema([
@@ -26,9 +26,9 @@ const relatedProjects = featuredProjects(3);
       { name: 'Web Design', path: '/services/web-design' },
     ]),
     serviceSchema({
-      name: 'Web Design for Canadian Small Businesses',
+      name: 'Custom Web Design for Canadian Small Businesses',
       description:
-        'Premium theme customization and custom WordPress website design focused on conversion for Canadian small businesses.',
+        'Custom websites built from scratch with conversion-focused structure, performance, accessibility, and SEO readiness for Canadian small businesses.',
       path: '/services/web-design',
     }),
     faqPageSchema(faqItems),
@@ -49,7 +49,7 @@ const relatedProjects = featuredProjects(3);
         Web design that makes the next step obvious.
       </h1>
       <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
-        For Canadian small and growing businesses that need a website visitors can understand—and act on—quickly. Premium theme or custom WordPress, with SEO foundations where your package includes them.
+        For Canadian small and growing businesses that need a custom website visitors can understand—and act on—quickly. Built from scratch for conversion, performance, accessibility, and SEO readiness, with full SEO launch when your package includes it.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
         <a
@@ -71,12 +71,12 @@ const relatedProjects = featuredProjects(3);
       <SectionHeading
         id="who-heading"
         title="Who this is for"
-        lead="Owners and operators who want a professional site without agency fluff—or vague “brand elevation” language."
+        lead="Owners and operators who want a professional custom site without agency fluff—or vague “brand elevation” language."
       />
       <ul class="space-y-3 text-sm leading-relaxed text-ink-muted sm:text-base">
         <li>Local and service businesses that need more quote requests, bookings, or calls</li>
         <li>Growing companies replacing an outdated site that does not convert on mobile</li>
-        <li>Teams choosing between a premium theme launch and a fully custom build</li>
+        <li>Teams that want a custom build—not an off-the-shelf commercial theme</li>
         <li>Businesses that want SEO foundations included at launch when the budget allows</li>
       </ul>
     </div>
@@ -117,22 +117,18 @@ const relatedProjects = featuredProjects(3);
     <div class="container-shell">
       <SectionHeading
         id="paths-heading"
-        title="Three web design paths"
-        lead="Choose the path that matches your timeline, brand needs, and SEO priority."
+        title="Two website paths"
+        lead="Choose the path that matches your SEO priority. Both are custom builds—not commercial themes."
       />
-      <div class="mt-10 grid gap-5 lg:grid-cols-3">
+      <div class="mt-10 grid gap-5 lg:grid-cols-2">
         {[
           {
-            title: 'Premium Theme Website',
-            body: 'Faster launches with a customized premium theme, essential pages, forms, and basic SEO setup—ideal when speed and budget matter most.',
+            title: 'Custom Website — Built From Scratch',
+            body: 'A fast, conversion-focused website designed and developed specifically for your business—custom UI/UX, responsive development, performance, accessibility, SEO-ready architecture, and professional launch.',
           },
           {
-            title: 'Custom Website',
-            body: 'Built from scratch around your brand and offers—with conversion-focused layouts, performance work, and SEO-ready architecture.',
-          },
-          {
-            title: 'Custom + SEO Launch',
-            body: 'Custom build plus keyword research, technical SEO, on-page setup, tracking, and 30-day post-launch SEO support.',
+            title: 'Custom Website + SEO Launch',
+            body: 'Everything in Custom Website plus keyword research, technical SEO, on-page setup, tracking, local SEO where relevant, and 30-day post-launch SEO support. Our Most Popular / flagship offer.',
           },
         ].map((item) => (
           <article class="surface-card p-6">
@@ -153,13 +149,16 @@ const relatedProjects = featuredProjects(3);
       />
       <ul class="space-y-4 text-sm leading-relaxed text-ink-muted sm:text-base">
         <li>
+          <strong class="text-navy-900">Custom design:</strong> layouts and UI built for your offers and customer journey—without relying on an off-the-shelf commercial theme.
+        </li>
+        <li>
           <strong class="text-navy-900">Conversion-focused structure:</strong> clear headlines, service clarity, and primary CTAs above the fold on mobile.
         </li>
         <li>
-          <strong class="text-navy-900">Mobile-first implementation:</strong> layouts and tap targets designed for phones first, then refined for desktop.
+          <strong class="text-navy-900">Performance & accessibility:</strong> fast, usable experiences with accessible implementation as a baseline.
         </li>
         <li>
-          <strong class="text-navy-900">SEO foundations:</strong> semantic headings, metadata, internal links, and technical basics included at the package level.
+          <strong class="text-navy-900">SEO readiness & maintainability:</strong> semantic structure, metadata, and a launch setup that is secure and easier to maintain over time.
         </li>
         <li>
           <strong class="text-navy-900">Scope before invoicing:</strong> starting prices in CAD, with written confirmation before fixed project fees.
@@ -178,7 +177,7 @@ const relatedProjects = featuredProjects(3);
       <ol class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {[
           { t: 'Discovery', d: 'Goals, audience, offers, and package fit.' },
-          { t: 'Design & build', d: 'Mobile-first layouts, content structure, and development.' },
+          { t: 'Design & build', d: 'Custom UI/UX, mobile-first layouts, and development.' },
           { t: 'Review', d: 'Revision window, accessibility checks, and launch prep.' },
           { t: 'Launch', d: 'Go-live support plus SEO launch items when included.' },
         ].map((step, index) => (
@@ -192,7 +191,7 @@ const relatedProjects = featuredProjects(3);
         ))}
       </ol>
       <p class="mt-6 text-sm text-ink-muted">
-        Typical ranges from package config: Premium Theme 2–4 weeks · Custom 6–10 weeks · Custom + SEO Launch 8–12 weeks.
+        Typical ranges from package config: Custom Website 6–10 weeks · Custom Website + SEO Launch 8–12 weeks. Domain, DNS and SSL launch setup included; domain registration and renewal fees are paid separately by the client.
       </p>
     </div>
   </section>
@@ -224,12 +223,14 @@ const relatedProjects = featuredProjects(3);
       <SectionHeading
         id="packages-heading"
         title="Web design packages"
-        lead="Starting prices in CAD. Final project quotes are confirmed in writing."
+        lead="Starting prices in CAD. Final project quotes are confirmed in writing. Custom Website + SEO Launch is the flagship / Most Popular offer."
       />
-      <div class="mt-10 grid gap-5 lg:grid-cols-3">
+      <div class="mt-10 grid gap-5 lg:grid-cols-2">
         {webPackages.map((pkg) => <PricingCard pkg={pkg} />)}
       </div>
       <p class="mt-8 text-sm text-ink-muted">
+        Need a logo and brand system first?
+        <a class="font-semibold text-blue-500 underline" href="/services/branding">Explore branding</a>.
         Prefer guidance first? Use the
         <a class="font-semibold text-blue-500 underline" href="/#package-finder">package finder</a>
         or

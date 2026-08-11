@@ -1,12 +1,10 @@
 import { getPackageById, type ServicePackage } from '../config/packages';
 
-export type NeedAnswer = 'new-website' | 'growth' | 'care';
-export type DesignAnswer = 'premium-theme' | 'custom';
+export type NeedAnswer = 'new-website' | 'branding' | 'growth' | 'care';
 export type SeoAnswer = 'yes' | 'no' | 'unsure';
 
 export interface FinderAnswers {
   need?: NeedAnswer;
-  design?: DesignAnswer;
   seo?: SeoAnswer;
 }
 
@@ -26,7 +24,7 @@ export function recommendPackage(answers: FinderAnswers): PackageRecommendation 
       packageId: pkg.id,
       pkg,
       reason:
-        'Website Care & Maintenance fits when your site already exists and you want proactive updates, backups, security monitoring, and priority support so it stays fast and online.',
+        'Website Care & Maintenance fits when your site already exists and you want proactive monitoring, maintenance, security, performance checks, and priority technical support so it stays reliable after launch.',
       alternatives: ['seo-growth'],
     };
   }
@@ -42,24 +40,21 @@ export function recommendPackage(answers: FinderAnswers): PackageRecommendation 
     };
   }
 
-  // new website path
-  if (!answers.design) return null;
-
-  if (answers.design === 'premium-theme') {
-    const pkg = getPackageById('premium-theme')!;
+  if (answers.need === 'branding') {
+    const pkg = getPackageById('brand-identity')!;
     return {
       packageId: pkg.id,
       pkg,
       reason:
-        'A Premium Theme Website is a strong fit when you want a professional, mobile-first launch with brand customization and essential SEO setup—without commissioning a fully custom design system.',
+        'Brand Identity & Logo Design fits when you need a consistent, professional look—logo, colours, type, and guidelines—before or alongside a custom website build.',
       alternatives: ['custom-website', 'custom-seo-launch'],
     };
   }
 
-  // custom design
-  const wantsSeo = answers.seo === 'yes' || answers.seo === 'unsure';
+  // new website path — ask SEO preference next
   if (answers.seo === undefined) return null;
 
+  const wantsSeo = answers.seo === 'yes' || answers.seo === 'unsure';
   if (wantsSeo) {
     const pkg = getPackageById('custom-seo-launch')!;
     return {
@@ -77,7 +72,7 @@ export function recommendPackage(answers: FinderAnswers): PackageRecommendation 
     pkg,
     reason:
       'A Custom Website built from scratch fits when brand presentation, UX, and conversion layout matter most, and you prefer to add a fuller SEO program after launch or through a separate monthly plan.',
-    alternatives: ['custom-seo-launch', 'seo-growth'],
+    alternatives: ['custom-seo-launch', 'brand-identity'],
   };
 }
 
@@ -86,25 +81,14 @@ export const finderQuestions = [
     id: 'need',
     prompt: 'What do you need help with right now?',
     options: [
-      { value: 'new-website' as const, label: 'A new website', description: 'Launch or replace a site' },
+      { value: 'new-website' as const, label: 'A new website', description: 'Custom build from scratch' },
+      {
+        value: 'branding' as const,
+        label: 'Brand identity & logo',
+        description: 'Logo, colours, and visual system',
+      },
       { value: 'growth' as const, label: 'Growth for an existing website', description: 'SEO and conversions' },
-      { value: 'care' as const, label: 'Ongoing website care', description: 'Updates, security, uptime' },
-    ],
-  },
-  {
-    id: 'design',
-    prompt: 'For your new website, which approach do you prefer?',
-    options: [
-      {
-        value: 'premium-theme' as const,
-        label: 'Customized premium theme',
-        description: 'Faster launch, strong value',
-      },
-      {
-        value: 'custom' as const,
-        label: 'Fully custom design',
-        description: 'Built from scratch',
-      },
+      { value: 'care' as const, label: 'Ongoing website care', description: 'Monitoring, security, support' },
     ],
   },
   {

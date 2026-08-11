@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import { track } from '../../lib/analytics';
 import { buildContactMailto } from '../../lib/contact-mailto';
+import { resolvePlanId } from '../../config/packages';
 
 interface Props {
   turnstileSiteKey: string;
@@ -22,8 +23,8 @@ declare global {
 
 const services = [
   { value: 'not-sure', label: 'Not sure yet' },
-  { value: 'premium-theme', label: 'Premium Theme Website' },
-  { value: 'custom-website', label: 'Custom Website' },
+  { value: 'brand-identity', label: 'Brand Identity & Logo Design' },
+  { value: 'custom-website', label: 'Custom Website — Built From Scratch' },
   { value: 'custom-seo-launch', label: 'Custom Website + SEO Launch' },
   { value: 'seo-growth', label: 'SEO & Conversion Growth' },
   { value: 'website-care', label: 'Website Care & Maintenance' },
@@ -52,12 +53,15 @@ export default function ContactForm({
     turnstileSiteKey.trim() ? 'loading' : 'loading',
   );
   const formStarted = useRef(false);
+  const resolvedInitialPlan = resolvePlanId(initialPlan);
   const [values, setValues] = useState({
     name: '',
     email: '',
     phone: '',
     serviceInterest:
-      initialPlan && services.some((s) => s.value === initialPlan) ? initialPlan : 'not-sure',
+      resolvedInitialPlan && services.some((s) => s.value === resolvedInitialPlan)
+        ? resolvedInitialPlan
+        : 'not-sure',
     message:
       initialIntent === 'quote'
         ? 'I would like an exact quote for the selected package.'

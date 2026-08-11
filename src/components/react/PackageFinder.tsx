@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   finderQuestions,
   recommendPackage,
-  type DesignAnswer,
   type FinderAnswers,
   type NeedAnswer,
   type SeoAnswer,
@@ -18,12 +17,13 @@ export default function PackageFinder() {
   const recommendation = useMemo(() => recommendPackage(answers), [answers]);
 
   const visibleQuestion = useMemo(() => {
-    if (answers.need === 'care' || answers.need === 'growth') return null;
+    if (answers.need === 'care' || answers.need === 'growth' || answers.need === 'branding') {
+      return null;
+    }
     if (step === 0) return finderQuestions[0];
-    if (step === 1) return finderQuestions[1];
-    if (answers.design === 'custom') return finderQuestions[2];
+    if (answers.need === 'new-website') return finderQuestions[1];
     return null;
-  }, [answers.design, answers.need, step]);
+  }, [answers.need, step]);
 
   function start() {
     setStarted(true);
@@ -33,27 +33,14 @@ export default function PackageFinder() {
   function selectNeed(value: NeedAnswer) {
     const next = { need: value } as FinderAnswers;
     setAnswers(next);
-    if (value === 'care' || value === 'growth') {
+    if (value === 'care' || value === 'growth' || value === 'branding') {
       track('package_finder_completed');
       const rec = recommendPackage(next);
       if (rec) track('package_recommended', { packageId: rec.packageId });
-      setStep(3);
+      setStep(2);
       return;
     }
     setStep(1);
-  }
-
-  function selectDesign(value: DesignAnswer) {
-    const next = { ...answers, design: value, seo: undefined };
-    setAnswers(next);
-    if (value === 'premium-theme') {
-      track('package_finder_completed');
-      const rec = recommendPackage(next);
-      if (rec) track('package_recommended', { packageId: rec.packageId });
-      setStep(3);
-      return;
-    }
-    setStep(2);
   }
 
   function selectSeo(value: SeoAnswer) {
@@ -62,7 +49,7 @@ export default function PackageFinder() {
     track('package_finder_completed');
     const rec = recommendPackage(next);
     if (rec) track('package_recommended', { packageId: rec.packageId });
-    setStep(3);
+    setStep(2);
   }
 
   function reset() {
@@ -76,22 +63,12 @@ export default function PackageFinder() {
       reset();
       return;
     }
-    if (step === 3) {
-      if (answers.need === 'care' || answers.need === 'growth') {
+    if (step === 2) {
+      if (answers.need === 'care' || answers.need === 'growth' || answers.need === 'branding') {
         setAnswers({});
         setStep(0);
         return;
       }
-      if (answers.design === 'premium-theme') {
-        setAnswers({ need: 'new-website' });
-        setStep(1);
-        return;
-      }
-      setAnswers({ need: answers.need, design: answers.design });
-      setStep(2);
-      return;
-    }
-    if (step === 2) {
       setAnswers({ need: answers.need });
       setStep(1);
       return;
@@ -102,6 +79,9 @@ export default function PackageFinder() {
     }
   }
 
+  const questionNumber = step === 0 ? 1 : 2;
+  const questionTotal = answers.need === 'new-website' || step === 1 ? 2 : 1;
+
   return (
     <div className="surface-card overflow-hidden">
       <div className="border-b border-border bg-blue-50 px-5 py-4 sm:px-7">
@@ -110,7 +90,8 @@ export default function PackageFinder() {
           Which service fits your goal?
         </h3>
         <p className="mt-2 text-sm text-ink-muted">
-          Answer up to three questions. We’ll recommend one package and keep every other option available.
+          Answer a couple of questions. We’ll recommend one package and keep every other option
+          available.
         </p>
       </div>
 
@@ -118,7 +99,8 @@ export default function PackageFinder() {
         {!started && (
           <div className="space-y-4">
             <p className="text-sm leading-relaxed text-ink-muted">
-              Takes less than a minute. No account required. You can still compare all packages or talk to us first.
+              Takes less than a minute. No account required. You can still compare all packages or
+              talk to us first.
             </p>
             <button type="button" className="btn-primary" onClick={start}>
               Start the finder
@@ -127,11 +109,11 @@ export default function PackageFinder() {
           </div>
         )}
 
-        {started && step < 3 && visibleQuestion && (
+        {started && step < 2 && visibleQuestion && (
           <div>
             <div className="mb-4 flex items-center justify-between gap-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
-                Question {Math.min(step + 1, 3)} of 3
+                Question {questionNumber} of {questionTotal}
               </p>
               <button type="button" className="text-sm font-medium text-blue-500" onClick={goBack}>
                 <span className="inline-flex items-center gap-1">
@@ -151,7 +133,6 @@ export default function PackageFinder() {
                     className="rounded-[var(--radius-md)] border border-border bg-white px-4 py-4 text-left transition hover:border-blue-400 hover:shadow-soft focus-visible:border-blue-500"
                     onClick={() => {
                       if (visibleQuestion.id === 'need') selectNeed(option.value as NeedAnswer);
-                      if (visibleQuestion.id === 'design') selectDesign(option.value as DesignAnswer);
                       if (visibleQuestion.id === 'seo') selectSeo(option.value as SeoAnswer);
                     }}
                   >
@@ -164,7 +145,7 @@ export default function PackageFinder() {
           </div>
         )}
 
-        {started && step === 3 && recommendation && (
+        {started && step === 2 && recommendation && (
           <div aria-live="polite">
             <div className="mb-4 flex items-center justify-between gap-3">
               <p className="inline-flex items-center gap-2 text-sm font-semibold text-green-600">

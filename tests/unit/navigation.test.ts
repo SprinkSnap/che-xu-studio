@@ -31,6 +31,7 @@ describe('navigation path helpers', () => {
     const destinations = flattenNavDestinations(siteConfig.navigation);
     expect(destinations.map((d) => d.href)).toEqual([
       '/',
+      '/services/branding',
       '/services/web-design',
       '/services/seo',
       '/services/website-care',
@@ -39,7 +40,7 @@ describe('navigation path helpers', () => {
       '/about',
       '/contact',
     ]);
-    expect(destinations.filter((d) => d.group === 'Services')).toHaveLength(3);
+    expect(destinations.filter((d) => d.group === 'Services')).toHaveLength(4);
   });
 });
 
@@ -54,6 +55,7 @@ describe('site navigation integrity', () => {
     expect(hrefs).toEqual(
       expect.arrayContaining([
         '/',
+        '/services/branding',
         '/services/web-design',
         '/services/seo',
         '/services/website-care',
@@ -274,7 +276,9 @@ describe('site navigation integrity', () => {
     const studioHrefs = siteConfig.footer.studio.map((l) => l.href);
     const legalHrefs = siteConfig.footer.legal.map((l) => l.href);
 
-    expect(serviceHrefs).toEqual(expect.arrayContaining(['/pricing', '/services/web-design']));
+    expect(serviceHrefs).toEqual(
+      expect.arrayContaining(['/pricing', '/services/branding', '/services/web-design']),
+    );
     expect(studioHrefs).toEqual(expect.arrayContaining(['/work', '/about', '/contact']));
     expect(legalHrefs).toEqual(
       expect.arrayContaining(['/privacy', '/terms', '/refund-cancellation-policy']),

@@ -3,7 +3,9 @@ export interface FaqItem {
   question: string;
   answer: string;
   /** Pages where this FAQ should appear. */
-  pages: Array<'home' | 'pricing' | 'web-design' | 'seo' | 'website-care' | 'contact'>;
+  pages: Array<
+    'home' | 'pricing' | 'web-design' | 'branding' | 'seo' | 'website-care' | 'contact'
+  >;
 }
 
 export const faqs: FaqItem[] = [
@@ -12,21 +14,21 @@ export const faqs: FaqItem[] = [
     question: 'What does “starting at” mean?',
     answer:
       '“Starting at” is the published entry price for a typical project in that package. Your final quote depends on pages, features, content readiness, integrations, and SEO scope. We confirm scope in writing before any invoice.',
-    pages: ['home', 'pricing', 'web-design', 'contact'],
+    pages: ['home', 'pricing', 'web-design', 'branding', 'contact'],
   },
   {
     id: 'timeline',
     question: 'How long does a website project take?',
     answer:
-      'Premium Theme websites typically take 2–4 weeks. Custom websites typically take 6–10 weeks. Custom Website + SEO Launch typically takes 8–12 weeks. Timelines depend on feedback speed, content readiness, and approved scope.',
-    pages: ['home', 'pricing', 'web-design'],
+      'Custom Website — Built From Scratch typically takes 6–10 weeks. Custom Website + SEO Launch typically takes 8–12 weeks. Brand Identity & Logo Design typically takes 2–4 weeks. Timelines depend on feedback speed, content readiness, and approved scope.',
+    pages: ['home', 'pricing', 'web-design', 'branding'],
   },
   {
     id: 'revisions',
     question: 'How do revisions work?',
     answer:
       'Each project includes a defined revision window during design and pre-launch review. Out-of-scope changes or new feature requests are estimated separately so the original delivery date and budget stay clear.',
-    pages: ['pricing', 'web-design'],
+    pages: ['pricing', 'web-design', 'branding'],
   },
   {
     id: 'content',
@@ -39,21 +41,35 @@ export const faqs: FaqItem[] = [
     id: 'ownership',
     question: 'Who owns the website when the project is finished?',
     answer:
-      'After final payment for the agreed project scope, you own the website deliverables created for you, subject to third-party licences (such as a premium theme, plugins, fonts, or stock assets). Those third-party licences remain with their respective owners.',
+      'After final payment for the agreed project scope, you own the website deliverables created for you, subject to third-party licences (such as fonts, stock assets, or licensed libraries). Those third-party licences remain with their respective owners. Domain registration stays in your name—Che Xu Studio does not own your domain.',
     pages: ['pricing', 'web-design'],
+  },
+  {
+    id: 'domain',
+    question: 'Is domain registration included?',
+    answer:
+      'Domain, DNS and SSL launch setup is included with website projects. Domain registration and renewal fees are paid separately by the client. The domain remains registered to you.',
+    pages: ['pricing', 'web-design', 'contact'],
   },
   {
     id: 'hosting',
     question: 'Is hosting included?',
     answer:
-      'Hosting is not automatically included unless we agree to it in writing. We can recommend reliable WordPress hosting and configure your site for launch. Website Care covers maintenance, backups, and monitoring—not hosting fees—unless otherwise stated.',
+      'Hosting is not automatically included unless we agree to it in writing. We configure launch setup (including DNS and SSL where applicable) and can recommend reliable hosting options. Website Care covers maintenance, monitoring, and support—not hosting fees—unless otherwise stated.',
     pages: ['pricing', 'website-care', 'web-design'],
+  },
+  {
+    id: 'branding-deliverables',
+    question: 'What do I get with Brand Identity & Logo Design?',
+    answer:
+      'You receive a practical identity system: primary and secondary logos, brand mark, colour palette, typography, visual direction, mini guidelines, social/profile assets, and final web and print-ready files. Trademark clearance and legal availability checks are not included.',
+    pages: ['pricing', 'branding'],
   },
   {
     id: 'seo-expectations',
     question: 'Can you guarantee search rankings?',
     answer:
-      'No. Ethical SEO improves foundations, visibility opportunities, and conversion pathways, but search engines control rankings. We never promise specific positions, traffic numbers, or timelines that cannot be controlled.',
+      'No. Ethical SEO improves foundations, visibility opportunities, and conversion pathways, but search engines control rankings. We never promise specific positions, traffic numbers, leads, revenue, or conversion results.',
     pages: ['home', 'pricing', 'seo'],
   },
   {

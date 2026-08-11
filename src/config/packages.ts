@@ -4,7 +4,7 @@
  */
 
 export type BillingType = 'one_time' | 'monthly';
-export type PackageCategory = 'web-design' | 'seo' | 'website-care';
+export type PackageCategory = 'branding' | 'web-design' | 'seo' | 'website-care';
 export type AccentTone = 'blue' | 'purple' | 'green' | 'gold';
 
 export interface ServicePackage {
@@ -30,40 +30,43 @@ export interface ServicePackage {
 
 export const packages: ServicePackage[] = [
   {
-    id: 'premium-theme',
-    slug: 'premium-theme-website',
-    name: 'Premium Theme Website',
-    shortName: 'Premium Theme',
-    category: 'web-design',
+    id: 'brand-identity',
+    slug: 'brand-identity-logo-design',
+    name: 'Brand Identity & Logo Design',
+    shortName: 'Brand Identity',
+    category: 'branding',
     accent: 'blue',
     billing: 'one_time',
-    startingPriceCad: 1999,
-    priceLabel: 'CAD $1,999',
+    startingPriceCad: 1499,
+    priceLabel: 'CAD $1,499',
     timeline: '2–4 weeks',
     summary:
-      'A polished, brand-aligned website built on a premium theme—ideal when you need a professional launch without a fully custom design system.',
+      'A practical brand identity system that gives your business a consistent, professional look across your website, social channels, and marketing materials.',
     disclosures: [
       'Starting price. Final scope is confirmed after a short discovery conversation.',
-      'Premium theme licence is paid by the client at cost, typically CAD $80–$150.',
+      'Does not include trademark clearance or legal availability checks.',
     ],
     includes: [
-      'Premium theme customized to the client’s brand',
-      'Up to 5 pages',
-      'Mobile responsive',
-      'Contact forms',
-      'Blog setup',
-      'Basic speed optimization',
-      'Basic on-page SEO',
-      'Google Analytics and Search Console setup',
-      'Website launch',
+      'Brand discovery and creative direction',
+      'Primary logo',
+      'Secondary logo variation',
+      'Brand mark/icon',
+      'Colour palette',
+      'Typography system',
+      'Visual direction',
+      'Two initial creative concepts',
+      'Up to two revision rounds',
+      'Mini brand guidelines',
+      'Social/profile assets',
+      'Final web and print-ready files',
     ],
-    href: '/pricing#premium-theme',
-    serviceHref: '/services/web-design',
+    href: '/pricing#brand-identity',
+    serviceHref: '/services/branding',
   },
   {
     id: 'custom-website',
     slug: 'custom-website',
-    name: 'Custom Website (Built From Scratch)',
+    name: 'Custom Website — Built From Scratch',
     shortName: 'Custom Website',
     category: 'web-design',
     accent: 'purple',
@@ -72,23 +75,25 @@ export const packages: ServicePackage[] = [
     priceLabel: 'CAD $4,999',
     timeline: '6–10 weeks',
     summary:
-      'A conversion-focused custom WordPress website designed and built from scratch around your brand, offers, and customer journey.',
+      'A fast, conversion-focused website designed and developed specifically for your business—without relying on an off-the-shelf commercial theme.',
     disclosures: [
       'Starting price. Complex features, content production, or integrations may change the final quote.',
+      'Domain, DNS and SSL launch setup included. Domain registration and renewal fees are paid separately by the client.',
     ],
     includes: [
       'Discovery and strategy session',
       'Custom UI/UX design',
       'Built from scratch without a commercial theme',
-      'Custom WordPress development',
-      'Responsive on all devices',
+      'Responsive development',
       'Conversion-focused layouts',
       'Performance optimization',
       'SEO-ready architecture',
+      'Accessible implementation',
       'Contact forms',
-      'Blog',
+      'Content editing capability where included in scope',
       'Analytics integration',
-      'Training session',
+      'Domain, DNS and SSL launch setup',
+      'Training or handoff where applicable',
       'Website launch',
     ],
     href: '/pricing#custom-website',
@@ -107,24 +112,26 @@ export const packages: ServicePackage[] = [
     popular: true,
     timeline: '8–12 weeks',
     summary:
-      'Everything in the Custom Website package plus a complete SEO launch foundation so your new site is ready to get found from day one.',
+      'Everything in Custom Website — Built From Scratch, plus a complete SEO launch foundation so your new site is ready to get found from day one.',
     disclosures: [
       'Starting price. SEO scope assumes a standard local or service-business footprint; broader markets are quoted separately.',
-      'SEO helps improve visibility over time; specific rankings are never guaranteed.',
+      'SEO can improve visibility over time, but specific rankings, traffic, leads, revenue, or conversion results are not guaranteed.',
+      'Domain, DNS and SSL launch setup included. Domain registration and renewal fees are paid separately by the client.',
     ],
     includes: [
-      'Everything in Custom Website (Built From Scratch)',
-      'Comprehensive keyword research',
-      'Local SEO optimization',
+      'Everything in Custom Website — Built From Scratch',
+      'Keyword research',
+      'Search-intent mapping',
       'Technical SEO implementation',
-      'On-page SEO for all pages',
-      'Meta titles and descriptions',
-      'Schema markup',
-      'Internal linking strategy',
+      'On-page SEO',
+      'Title and meta optimization',
+      'Schema / structured data where appropriate',
+      'Internal-linking strategy',
       'Image optimization',
-      'XML sitemap',
-      'Google Business Profile optimization',
+      'Sitemap and robots validation',
       'Google Search Console setup',
+      'Local SEO where relevant',
+      'Google Business Profile optimization where relevant',
       'Conversion tracking',
       '30-day post-launch SEO support',
     ],
@@ -147,7 +154,7 @@ export const packages: ServicePackage[] = [
       'A monthly SEO and conversion program that improves visibility, clarifies next actions, and helps more visitors become customers.',
     disclosures: [
       'Monthly plan. Cancel anytime according to the published cancellation policy.',
-      'Results depend on competition, content, and technical health; rankings are not guaranteed.',
+      'Results depend on competition, content, and technical health; rankings, traffic, leads, revenue, or conversion results are not guaranteed.',
     ],
     includes: [
       'Monthly SEO improvements',
@@ -177,19 +184,20 @@ export const packages: ServicePackage[] = [
     priceSuffix: '/month',
     timeline: 'Ongoing monthly plan',
     summary:
-      'Proactive WordPress care—updates, backups, security, uptime, and priority support—so your site stays fast, secure, and online.',
+      'Proactive website care covering monitoring, maintenance, security, performance and priority technical support so your website stays reliable after launch.',
     disclosures: [
       'Monthly plan. Cancel anytime according to the published cancellation policy.',
       'Hosting fees are separate unless otherwise agreed in writing.',
     ],
     includes: [
-      'WordPress core, theme, and plugin updates',
-      'Daily backups',
-      'Security monitoring',
-      'Malware scanning and removal',
+      'Deployment monitoring',
       'Uptime monitoring',
-      'Bug fixes',
+      'Security monitoring',
+      'Dependency and security updates where applicable',
+      'Bug fixes within plan scope',
       'Performance checks',
+      'Form and function testing',
+      'Backup/recovery support where applicable',
       'Technical support',
       'Priority issue resolution',
     ],
@@ -203,6 +211,22 @@ export const packageById = Object.fromEntries(
 ) as Record<string, ServicePackage>;
 
 export const ALLOWED_PLAN_IDS = packages.map((pkg) => pkg.id);
+
+/**
+ * Legacy inbound plan IDs (bookmarks, old CTAs, email links).
+ * Mapped to the closest current package so quote deep-links keep working.
+ */
+export const LEGACY_PLAN_ALIASES: Record<string, string> = {
+  'premium-theme': 'custom-website',
+  'premium-theme-website': 'custom-website',
+};
+
+export function resolvePlanId(id: string | null | undefined): string | undefined {
+  if (!id) return undefined;
+  if (isValidPlanId(id)) return id;
+  const aliased = LEGACY_PLAN_ALIASES[id];
+  return aliased && isValidPlanId(aliased) ? aliased : undefined;
+}
 
 export function getPackageById(id: string): ServicePackage | undefined {
   return packageById[id];
@@ -223,4 +247,17 @@ export function formatCad(amount: number): string {
 
 export function isValidPlanId(id: unknown): id is string {
   return typeof id === 'string' && ALLOWED_PLAN_IDS.includes(id);
+}
+
+export function categoryLabel(category: PackageCategory): string {
+  switch (category) {
+    case 'branding':
+      return 'Branding';
+    case 'web-design':
+      return 'Web Design';
+    case 'seo':
+      return 'SEO';
+    case 'website-care':
+      return 'Website Care';
+  }
 }

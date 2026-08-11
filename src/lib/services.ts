@@ -1,5 +1,7 @@
 /** Map portfolio service labels to internal service routes. */
 export const SERVICE_HREF_BY_LABEL: Record<string, string> = {
+  Branding: '/services/branding',
+  'Brand Identity': '/services/branding',
   'Web Design': '/services/web-design',
   'SEO Strategy': '/services/seo',
   'Website Care': '/services/website-care',

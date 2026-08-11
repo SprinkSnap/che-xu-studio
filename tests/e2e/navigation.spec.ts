@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const requiredRoutes = [
   '/',
+  '/services/branding/',
   '/services/web-design/',
   '/services/seo/',
   '/services/website-care/',
@@ -58,6 +59,7 @@ test.describe('site navigation', () => {
     const controls = await services.getAttribute('aria-controls');
     expect(controls).toBeTruthy();
     const panel = page.locator(`[id="${controls}"]`);
+    await expect(panel.getByRole('link', { name: 'Branding' })).toBeVisible();
     await expect(panel.getByRole('link', { name: 'Web Design' })).toBeVisible();
     await expect(panel.getByRole('link', { name: 'SEO Strategy' })).toBeVisible();
     await expect(panel.getByRole('link', { name: 'Website Care' })).toBeVisible();
@@ -76,6 +78,7 @@ test.describe('site navigation', () => {
     // (panel is portaled to body after hydration, so check the page — not only the banner).
     for (const href of [
       '/',
+      '/services/branding',
       '/services/web-design',
       '/services/seo',
       '/services/website-care',
@@ -102,6 +105,7 @@ test.describe('site navigation', () => {
 
     for (const label of [
       'Home',
+      'Branding',
       'Web Design',
       'SEO Strategy',
       'Website Care',

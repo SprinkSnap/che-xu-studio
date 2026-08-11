@@ -16,7 +16,7 @@ const faqItems = faqsForPage('website-care');
 
 <BaseLayout
   title="Website Care & Maintenance"
-  description="WordPress updates, backups, security monitoring, uptime checks, and priority support from Che Xu Studio—starting at CAD $199/month."
+  description="Proactive website care from Che Xu Studio—monitoring, maintenance, security, performance, and priority support for custom websites. Starting at CAD $199/month."
   path="/services/website-care"
   schema={[
     breadcrumbSchema([
@@ -26,7 +26,7 @@ const faqItems = faqsForPage('website-care');
     serviceSchema({
       name: 'Website Care & Maintenance',
       description:
-        'Ongoing WordPress maintenance, security, backups, uptime monitoring, and priority support for small businesses.',
+        'Ongoing monitoring, maintenance, security, performance checks, and priority technical support for custom websites.',
       path: '/services/website-care',
     }),
     faqPageSchema(faqItems),
@@ -37,10 +37,10 @@ const faqItems = faqsForPage('website-care');
       <Breadcrumbs tone="dark" items={[{ name: 'Home', href: '/' }, { name: 'Website Care' }]} />
       <p class="eyebrow !text-gold-100">Website Care</p>
       <h1 class="mt-3 max-w-3xl font-display text-4xl font-bold sm:text-5xl">
-        Stay online, updated, and secure.
+        Stay online, secure, and reliable.
       </h1>
       <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
-        Proactive WordPress care for Canadian small businesses that want fewer surprises—updates, backups, monitoring, and priority issue resolution.
+        Proactive website care for Canadian small businesses that want fewer surprises—monitoring, maintenance, security, performance, and priority technical support after launch.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
         <a
@@ -48,7 +48,7 @@ const faqItems = faqsForPage('website-care');
           class="btn btn-primary-on-dark"
           onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { service: 'website-care', cta: 'quote' } })"
         >
-          Request Website Care
+          Request This Plan
         </a>
         <a href={siteConfig.cta.secondary.href} class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
           {siteConfig.cta.secondary.label}
@@ -62,11 +62,11 @@ const faqItems = faqsForPage('website-care');
       <SectionHeading
         id="care-who-heading"
         title="Who Website Care is for"
-        lead="Businesses that rely on WordPress and want maintenance handled without dark-pattern lock-ins."
+        lead="Businesses with a custom website that want maintenance handled without dark-pattern lock-ins."
       />
       <ul class="space-y-3 text-sm leading-relaxed text-ink-muted sm:text-base">
-        <li>Owners who cannot keep up with core, theme, and plugin updates</li>
-        <li>Teams that need backups, security monitoring, and uptime awareness</li>
+        <li>Owners who want deployment, uptime, and security monitoring handled</li>
+        <li>Teams that need dependency and security updates where applicable</li>
         <li>Sites that need bug fixes and priority support when something breaks</li>
         <li>Businesses that want a monthly plan they can cancel per the published policy</li>
       </ul>

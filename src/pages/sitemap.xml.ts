@@ -5,6 +5,7 @@ export const prerender = true;
 
 const staticRoutes = [
   '/',
+  '/services/branding',
   '/services/web-design',
   '/services/seo',
   '/services/website-care',

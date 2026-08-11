@@ -1,0 +1,187 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import PricingCard from '../../components/PricingCard.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import FinalCta from '../../components/FinalCta.astro';
+import SectionHeading from '../../components/ui/SectionHeading.astro';
+import { packages, quoteContactHref } from '../../config/packages';
+import { siteConfig } from '../../config/site';
+import { faqsForPage } from '../../config/faq';
+import { breadcrumbSchema, faqPageSchema, serviceSchema } from '../../lib/seo';
+
+const branding = packages.find((p) => p.id === 'brand-identity')!;
+const faqItems = faqsForPage('branding');
+---
+
+<BaseLayout
+  title="Brand Identity & Logo Design for Canadian Small Businesses"
+  description="Practical brand identity and logo design from Che Xu Studio—logo, colours, typography, and guidelines for Canadian small businesses. Starting at CAD $1,499."
+  path="/services/branding"
+  schema={[
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Brand Identity', path: '/services/branding' },
+    ]),
+    serviceSchema({
+      name: 'Brand Identity & Logo Design for Canadian Small Businesses',
+      description:
+        'Practical brand identity and logo design—logo, colour palette, typography, and guidelines—for Canadian small businesses.',
+      path: '/services/branding',
+    }),
+    faqPageSchema(faqItems),
+  ]}
+>
+  <section class="hero-plane text-white">
+    <div class="container-shell section !pb-16 !pt-12">
+      <Breadcrumbs
+        tone="dark"
+        items={[
+          { name: 'Home', href: '/' },
+          { name: 'Services', href: '/services/web-design' },
+          { name: 'Branding' },
+        ]}
+      />
+      <p class="eyebrow !text-blue-300">Brand Identity</p>
+      <h1 class="mt-3 max-w-3xl font-display text-4xl font-bold sm:text-5xl">
+        Brand identity that looks consistent everywhere you show up.
+      </h1>
+      <p class="mt-5 max-w-2xl text-base text-blue-100/90 sm:text-lg">
+        A practical logo and brand system for Canadian small businesses—so your website, social
+        channels, and marketing materials feel like the same professional business.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a
+          href={quoteContactHref(branding.id)}
+          class="btn btn-primary-on-dark"
+          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { service: 'branding', cta: 'quote' } })"
+        >
+          Get a Quote
+        </a>
+        <a href="/pricing#brand-identity" class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15">
+          View branding package
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="who-branding-heading">
+    <div class="container-shell grid gap-10 lg:grid-cols-2">
+      <SectionHeading
+        id="who-branding-heading"
+        title="Who this is for"
+        lead="Owners who need a clear visual identity before—or alongside—a custom website, without overbuilt agency branding programs."
+      />
+      <ul class="space-y-3 text-sm leading-relaxed text-ink-muted sm:text-base">
+        <li>New businesses that need a professional logo and basic brand system</li>
+        <li>Teams whose current look feels inconsistent across web and social</li>
+        <li>Owners preparing for a custom website and want the brand decided first</li>
+        <li>Canadian small businesses that want practical deliverables, not vague “brand elevation”</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted" aria-labelledby="problems-branding-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="problems-branding-heading"
+        title="Problems a clear brand identity solves"
+        lead="When your look changes from platform to platform, trust and recognition take longer to build."
+      />
+      <div class="mt-10 grid gap-5 md:grid-cols-3">
+        {[
+          {
+            title: 'Inconsistent visuals',
+            body: 'Different logos, colours, and type across channels make the business feel unfinished or hard to remember.',
+          },
+          {
+            title: 'Weak first impression',
+            body: 'A DIY mark can work early—but it often undercuts confidence when customers compare you to more polished competitors.',
+          },
+          {
+            title: 'Website delays',
+            body: 'Starting a custom site without brand direction slows design decisions and leads to rework.',
+          },
+        ].map((item) => (
+          <article class="surface-card p-6">
+            <h3 class="font-display text-xl font-bold text-navy-900">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="deliverables-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="deliverables-heading"
+        title="What you receive"
+        lead="Based on the Brand Identity & Logo Design package—practical assets you can use immediately."
+      />
+      <ul class="mt-10 grid gap-3 sm:grid-cols-2">
+        {branding.includes.map((item) => (
+          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-4 text-sm text-ink">
+            {item}
+          </li>
+        ))}
+      </ul>
+      <p class="mt-6 text-sm text-ink-muted">
+        Trademark clearance and legal availability checks are not included. Timeline: {branding.timeline}.
+      </p>
+    </div>
+  </section>
+
+  <section class="section bg-surface-muted" aria-labelledby="process-branding-heading">
+    <div class="container-shell">
+      <SectionHeading
+        id="process-branding-heading"
+        title="How branding projects work"
+        lead="Typical timelines assume timely feedback. Exact dates are confirmed after scope review."
+      />
+      <ol class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {[
+          { t: 'Discovery', d: 'Audience, personality, competitors, and creative direction.' },
+          { t: 'Concepts', d: 'Two initial creative directions for logo and visual system.' },
+          { t: 'Refine', d: 'Up to two revision rounds to lock the chosen direction.' },
+          { t: 'Handoff', d: 'Guidelines, social assets, and final web/print-ready files.' },
+        ].map((step, index) => (
+          <li class="rounded-[var(--radius-lg)] border border-border bg-white p-5 shadow-soft">
+            <span class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-navy-900 text-sm font-bold text-white">
+              {index + 1}
+            </span>
+            <h3 class="font-display text-xl font-bold text-navy-900">{step.t}</h3>
+            <p class="mt-2 text-sm text-ink-muted">{step.d}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="branding-package-heading">
+    <div class="container-shell max-w-3xl">
+      <SectionHeading
+        id="branding-package-heading"
+        title="Brand Identity package"
+        lead="Starting at CAD $1,499. Get a quote through the contact form; payment details are confirmed in writing."
+      />
+      <div class="mt-8">
+        <PricingCard pkg={branding} />
+      </div>
+      <p class="mt-6 text-sm text-ink-muted">
+        Building a site next?
+        <a class="font-semibold text-blue-500 underline" href="/services/web-design">Explore custom web design</a>
+        or
+        <a class="font-semibold text-blue-500 underline" href="/pricing">compare all packages</a>.
+        Prefer a guided recommendation?
+        <a class="font-semibold text-blue-500 underline" href="/#package-finder">Use the package finder</a>.
+      </p>
+      <div class="mt-8">
+        <a href={siteConfig.cta.primary.href} class="btn-primary">Get a Project Quote</a>
+      </div>
+    </div>
+  </section>
+
+  <FaqSection items={faqItems} />
+  <FinalCta />
+</BaseLayout>

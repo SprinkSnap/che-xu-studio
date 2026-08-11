@@ -31,7 +31,7 @@ export function organizationSchema(siteUrl?: string) {
     url,
     description: siteConfig.tagline,
     areaServed: 'CA',
-    knowsAbout: ['Web Design', 'SEO', 'Website Maintenance', 'WordPress'],
+    knowsAbout: ['Web Design', 'Brand Identity', 'SEO', 'Website Maintenance'],
   };
 
   if (siteConfig.contact.email) org.email = siteConfig.contact.email;

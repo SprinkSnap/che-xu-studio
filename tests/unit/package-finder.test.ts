@@ -12,29 +12,28 @@ describe('package recommendation logic', () => {
     expect(result?.packageId).toBe('seo-growth');
   });
 
-  it('recommends premium theme for theme path', () => {
-    const result = recommendPackage({ need: 'new-website', design: 'premium-theme' });
-    expect(result?.packageId).toBe('premium-theme');
+  it('recommends brand identity for branding path', () => {
+    const result = recommendPackage({ need: 'branding' });
+    expect(result?.packageId).toBe('brand-identity');
   });
 
-  it('recommends custom+seo when custom and seo yes', () => {
-    const result = recommendPackage({ need: 'new-website', design: 'custom', seo: 'yes' });
+  it('recommends custom+seo when new website and seo yes', () => {
+    const result = recommendPackage({ need: 'new-website', seo: 'yes' });
     expect(result?.packageId).toBe('custom-seo-launch');
   });
 
   it('recommends custom+seo when unsure', () => {
-    const result = recommendPackage({ need: 'new-website', design: 'custom', seo: 'unsure' });
+    const result = recommendPackage({ need: 'new-website', seo: 'unsure' });
     expect(result?.packageId).toBe('custom-seo-launch');
   });
 
   it('recommends custom website when seo not needed', () => {
-    const result = recommendPackage({ need: 'new-website', design: 'custom', seo: 'no' });
+    const result = recommendPackage({ need: 'new-website', seo: 'no' });
     expect(result?.packageId).toBe('custom-website');
   });
 
   it('returns null until enough answers exist', () => {
     expect(recommendPackage({})).toBeNull();
     expect(recommendPackage({ need: 'new-website' })).toBeNull();
-    expect(recommendPackage({ need: 'new-website', design: 'custom' })).toBeNull();
   });
 });

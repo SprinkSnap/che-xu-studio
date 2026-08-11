@@ -10,7 +10,7 @@ export const contactSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(MAX_NAME),
   email: z.email('Enter a valid email').max(MAX_EMAIL),
   serviceInterest: z.enum([
-    'premium-theme',
+    'brand-identity',
     'custom-website',
     'custom-seo-launch',
     'seo-growth',

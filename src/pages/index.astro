@@ -14,7 +14,7 @@ import { faqsForPage } from '../config/faq';
 import { faqPageSchema, offerCatalogSchema } from '../lib/seo';
 
 const featured = packages.filter((p) =>
-  ['premium-theme', 'custom-seo-launch', 'seo-growth', 'website-care'].includes(p.id),
+  ['brand-identity', 'custom-seo-launch', 'seo-growth', 'website-care'].includes(p.id),
 );
 const faqItems = faqsForPage('home');
 const homepageProjects = featuredProjects(3);
@@ -75,7 +75,7 @@ const homepageProjects = featuredProjects(3);
           <dl class="mt-8 space-y-4">
             <div class="rounded-lg border border-white/10 bg-navy-950/40 p-4">
               <dt class="text-xs uppercase tracking-[0.14em] text-blue-300">Web Design</dt>
-              <dd class="mt-1 text-sm text-blue-50">Premium themes & custom WordPress builds</dd>
+              <dd class="mt-1 text-sm text-blue-50">Custom builds focused on conversion & launch</dd>
             </div>
             <div class="rounded-lg border border-white/10 bg-navy-950/40 p-4">
               <dt class="text-xs uppercase tracking-[0.14em] text-green-100">SEO Strategy</dt>
@@ -83,7 +83,7 @@ const homepageProjects = featuredProjects(3);
             </div>
             <div class="rounded-lg border border-white/10 bg-navy-950/40 p-4">
               <dt class="text-xs uppercase tracking-[0.14em] text-gold-100">Website Care</dt>
-              <dd class="mt-1 text-sm text-blue-50">Updates, backups, security, and uptime</dd>
+              <dd class="mt-1 text-sm text-blue-50">Monitoring, security, performance, and support</dd>
             </div>
           </dl>
         </div>
@@ -99,10 +99,21 @@ const homepageProjects = featuredProjects(3);
       <SectionHeading
         id="services-heading"
         eyebrow="Services"
-        title="Web design, SEO, and care—connected to growth"
-        lead="Choose a focused engagement or combine launch and growth when your business is ready."
+        title="Web design, branding, SEO, and care—connected to growth"
+        lead="Choose a focused engagement or combine brand, launch, and growth when your business is ready."
       />
-      <div class="mt-10 grid gap-5 lg:grid-cols-3">
+      <div class="mt-10 grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
+        <a
+          href="/services/branding"
+          class="surface-card accent-blue block p-6 transition hover:shadow-lift"
+          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { service: 'branding', source: 'home_cards' } })"
+        >
+          <h3 class="font-display text-2xl font-bold text-navy-900">Branding</h3>
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+            Logo and brand identity systems that keep your look consistent across web and marketing.
+          </p>
+          <span class="mt-5 inline-flex text-sm font-semibold text-blue-500">Explore branding →</span>
+        </a>
         <a
           href="/services/web-design"
           class="surface-card accent-purple block p-6 transition hover:shadow-lift"
@@ -110,7 +121,7 @@ const homepageProjects = featuredProjects(3);
         >
           <h3 class="font-display text-2xl font-bold text-navy-900">Web Design</h3>
           <p class="mt-3 text-sm leading-relaxed text-ink-muted">
-            Premium theme sites and custom WordPress builds designed to convert—not just look finished.
+            Custom websites built from scratch to convert—not just look finished.
           </p>
           <span class="mt-5 inline-flex text-sm font-semibold text-purple-600">Explore web design →</span>
         </a>
@@ -132,7 +143,7 @@ const homepageProjects = featuredProjects(3);
         >
           <h3 class="font-display text-2xl font-bold text-navy-900">Website Care</h3>
           <p class="mt-3 text-sm leading-relaxed text-ink-muted">
-            Updates, backups, security monitoring, and priority support so your site stays online and healthy.
+            Monitoring, maintenance, security, performance, and priority support so your site stays reliable.
           </p>
           <span class="mt-5 inline-flex text-sm font-semibold text-gold-600">Explore website care →</span>
         </a>

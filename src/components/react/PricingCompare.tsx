@@ -6,10 +6,12 @@ interface Props {
 }
 
 export default function PricingCompare({ packages }: Props) {
-  const [selected, setSelected] = useState<string[]>([
-    packages[0]?.id,
-    packages[2]?.id,
-  ].filter(Boolean) as string[]);
+  const [selected, setSelected] = useState<string[]>(
+    [
+      packages.find((p) => p.id === 'custom-website')?.id,
+      packages.find((p) => p.id === 'custom-seo-launch')?.id,
+    ].filter(Boolean) as string[],
+  );
 
   const rows = useMemo(() => {
     const features = new Set<string>();

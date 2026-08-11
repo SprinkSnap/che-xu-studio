@@ -136,6 +136,14 @@ test.describe('site navigation', () => {
     await expect(footer.getByRole('heading', { name: 'Services' })).toBeVisible();
     await expect(footer.getByRole('heading', { name: 'Studio' })).toBeVisible();
     await expect(footer.getByRole('heading', { name: 'Legal' })).toBeVisible();
+    await expect(footer.getByRole('link', { name: 'Get a Project Quote' })).toHaveAttribute(
+      'href',
+      '/contact?intent=quote',
+    );
+    await expect(footer.getByRole('link', { name: 'Find My Best Package' })).toHaveAttribute(
+      'href',
+      '/#package-finder',
+    );
     await expect(footer.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy');
     await expect(footer.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms');
     await expect(

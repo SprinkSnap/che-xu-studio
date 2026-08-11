@@ -68,6 +68,15 @@ export function websiteSchema(siteUrl?: string) {
   };
 }
 
+/** Flatten footer link groups into crawlable destinations for structured data. */
+export function flattenFooterDestinations() {
+  return [
+    ...siteConfig.footer.services.map((link) => ({ ...link, group: 'Services' as const })),
+    ...siteConfig.footer.studio.map((link) => ({ ...link, group: 'Studio' as const })),
+    ...siteConfig.footer.legal.map((link) => ({ ...link, group: 'Legal' as const })),
+  ];
+}
+
 /** Primary destinations for SiteNavigationElement (matches header / mobile nav). */
 export function siteNavigationSchema(siteUrl?: string) {
   const url = getSiteUrl(siteUrl || import.meta.env.PUBLIC_SITE_URL);
@@ -81,6 +90,24 @@ export function siteNavigationSchema(siteUrl?: string) {
       position: index + 1,
       name: destination.label,
       url: absoluteUrl(destination.href, url),
+    })),
+  };
+}
+
+/** Footer link groups for SiteNavigationElement (complements header navigation schema). */
+export function footerNavigationSchema(siteUrl?: string) {
+  const url = getSiteUrl(siteUrl || import.meta.env.PUBLIC_SITE_URL);
+  const destinations = flattenFooterDestinations();
+  return {
+    '@type': 'SiteNavigationElement',
+    '@id': `${url}/#footer-navigation`,
+    name: 'Footer',
+    hasPart: destinations.map((destination, index) => ({
+      '@type': 'WebPage',
+      position: index + 1,
+      name: destination.label,
+      url: absoluteUrl(destination.href, url),
+      ...(destination.description ? { description: destination.description } : {}),
     })),
   };
 }

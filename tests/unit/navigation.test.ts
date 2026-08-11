@@ -285,6 +285,8 @@ describe('site navigation integrity', () => {
     expect(legalHrefs).toEqual(
       expect.arrayContaining(['/privacy', '/terms', '/refund-cancellation-policy']),
     );
+    expect(siteConfig.footer.services.every((link) => link.description)).toBe(true);
+    expect(siteConfig.footer.cta.headline).toMatch(/website project/i);
 
     const allFooterHrefs = [...serviceHrefs, ...studioHrefs, ...legalHrefs];
     expect(allFooterHrefs.includes('/insights' as (typeof allFooterHrefs)[number])).toBe(false);

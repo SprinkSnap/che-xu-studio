@@ -14,6 +14,7 @@ export type FunnelEvent =
   | 'contact_form_submitted'
   | 'portfolio_project_opened'
   | 'service_cta_selected'
+  | 'footer_link_clicked'
   | 'chat_opened'
   | 'human_handoff_requested';
 

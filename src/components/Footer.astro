@@ -6,13 +6,51 @@ const year = new Date().getFullYear();
 const socialEntries = Object.entries(siteConfig.social).filter(([, href]) =>
   Boolean(href),
 ) as Array<[string, string]>;
+
+function footerLinkTrack(section: string, label: string): string {
+  const safeSection = section.replace(/'/g, "\\'");
+  const safeLabel = label.replace(/'/g, "\\'");
+  return `window.__cxTrack && window.__cxTrack({ event: 'footer_link_clicked', props: { section: '${safeSection}', label: '${safeLabel}' } })`;
+}
 ---
 
-<footer class="border-t border-navy-800 bg-navy-950 text-blue-100">
+<footer class="border-t border-navy-800 bg-navy-950 text-blue-100" aria-label="Site footer">
   <div class="container-shell section !pb-10 !pt-14">
+    <section
+      class="mb-12 rounded-[var(--radius-xl)] border border-white/10 bg-white/[0.04] px-6 py-8 sm:px-8 sm:py-10"
+      aria-labelledby="footer-cta-heading"
+    >
+      <p class="eyebrow !text-blue-300">{siteConfig.footer.cta.eyebrow}</p>
+      <h2 id="footer-cta-heading" class="mt-3 max-w-xl font-display text-2xl font-bold text-white sm:text-3xl">
+        {siteConfig.footer.cta.headline}
+      </h2>
+      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-blue-100/85 sm:text-base">
+        {siteConfig.footer.cta.body}
+      </p>
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <a
+          href={siteConfig.cta.primary.href}
+          class="btn btn-primary-on-dark"
+          data-track="footer_cta_quote"
+          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'quote', source: 'footer' } })"
+        >
+          {siteConfig.cta.primary.label}
+        </a>
+        <a
+          href={siteConfig.cta.secondary.href}
+          class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15"
+          data-track="footer_cta_finder"
+          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'finder', source: 'footer' } })"
+        >
+          {siteConfig.cta.secondary.label}
+        </a>
+      </div>
+      <p class="mt-5 text-xs leading-relaxed text-blue-100/70 sm:text-sm">{siteConfig.trustStrip}</p>
+    </section>
+
     <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
       <div class="space-y-4 sm:col-span-2 lg:col-span-1">
-        <Wordmark variant="light" />
+        <Wordmark variant="light" withTagline />
         <p class="max-w-sm text-sm leading-relaxed text-blue-100/80">
           {siteConfig.tagline}
         </p>
@@ -22,14 +60,22 @@ const socialEntries = Object.entries(siteConfig.social).filter(([, href]) =>
             <div class="space-y-1 text-sm">
               {siteConfig.contact.email && (
                 <p>
-                  <a class="hover:text-white" href={`mailto:${siteConfig.contact.email}`}>
+                  <a
+                    class="hover:text-white"
+                    href={`mailto:${siteConfig.contact.email}`}
+                    onclick={footerLinkTrack('contact', 'email')}
+                  >
                     {siteConfig.contact.email}
                   </a>
                 </p>
               )}
               {siteConfig.contact.phone && (
                 <p>
-                  <a class="hover:text-white" href={`tel:${siteConfig.contact.phone}`}>
+                  <a
+                    class="hover:text-white"
+                    href={`tel:${siteConfig.contact.phone}`}
+                    onclick={footerLinkTrack('contact', 'phone')}
+                  >
                     {siteConfig.contact.phoneDisplay || siteConfig.contact.phone}
                   </a>
                 </p>
@@ -38,7 +84,12 @@ const socialEntries = Object.entries(siteConfig.social).filter(([, href]) =>
                 <ul class="mt-3 flex flex-wrap gap-3">
                   {socialEntries.map(([network, href]) => (
                     <li>
-                      <a class="hover:text-white" href={href} rel="noopener noreferrer">
+                      <a
+                        class="hover:text-white"
+                        href={href}
+                        rel="noopener noreferrer"
+                        onclick={footerLinkTrack('social', network)}
+                      >
                         {network}
                       </a>
                     </li>
@@ -50,56 +101,89 @@ const socialEntries = Object.entries(siteConfig.social).filter(([, href]) =>
         }
       </div>
 
-      <div>
-        <h2 class="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white">
+      <nav aria-labelledby="footer-services-heading">
+        <h2
+          id="footer-services-heading"
+          class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
+        >
           Services
         </h2>
+        <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
+          {siteConfig.footer.columnDescriptions.services}
+        </p>
         <ul class="space-y-2 text-sm">
           {
             siteConfig.footer.services.map((link) => (
               <li>
-                <a class="inline-flex min-h-11 items-center hover:text-white" href={link.href}>
+                <a
+                  class="inline-flex min-h-11 items-center hover:text-white"
+                  href={link.href}
+                  title={link.description}
+                  onclick={footerLinkTrack('services', link.label)}
+                >
                   {link.label}
                 </a>
               </li>
             ))
           }
         </ul>
-      </div>
+      </nav>
 
-      <div>
-        <h2 class="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white">
+      <nav aria-labelledby="footer-studio-heading">
+        <h2
+          id="footer-studio-heading"
+          class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
+        >
           Studio
         </h2>
+        <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
+          {siteConfig.footer.columnDescriptions.studio}
+        </p>
         <ul class="space-y-2 text-sm">
           {
             siteConfig.footer.studio.map((link) => (
               <li>
-                <a class="inline-flex min-h-11 items-center hover:text-white" href={link.href}>
+                <a
+                  class="inline-flex min-h-11 items-center hover:text-white"
+                  href={link.href}
+                  title={link.description}
+                  onclick={footerLinkTrack('studio', link.label)}
+                >
                   {link.label}
                 </a>
               </li>
             ))
           }
         </ul>
-      </div>
+      </nav>
 
-      <div>
-        <h2 class="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white">
+      <nav aria-labelledby="footer-legal-heading">
+        <h2
+          id="footer-legal-heading"
+          class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
+        >
           Legal
         </h2>
+        <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
+          {siteConfig.footer.columnDescriptions.legal}
+        </p>
         <ul class="space-y-2 text-sm">
           {
             siteConfig.footer.legal.map((link) => (
               <li>
-                <a class="inline-flex min-h-11 items-center hover:text-white" href={link.href}>
+                <a
+                  class="inline-flex min-h-11 items-center hover:text-white"
+                  href={link.href}
+                  title={link.description}
+                  onclick={footerLinkTrack('legal', link.label)}
+                >
                   {link.label}
                 </a>
               </li>
             ))
           }
         </ul>
-      </div>
+      </nav>
     </div>
 
     <div

@@ -403,22 +403,62 @@ export const siteConfig = {
   ] as const satisfies readonly NavItem[],
 
   footer: {
+    /** Conversion band shown above footer navigation on every page. */
+    cta: {
+      eyebrow: 'Ready when you are',
+      headline: 'Start your next website project with clear scope and pricing.',
+      body: 'Request a project quote if you know what you need—or use the package finder for a guided recommendation.',
+    },
+    /** One-line summaries under column headings for topical relevance. */
+    columnDescriptions: {
+      services: 'Branding, web design, SEO, and website care for Canadian small businesses.',
+      studio: 'Portfolio work, studio background, and direct contact.',
+      legal: 'Privacy, terms, and refund policies.',
+    },
     services: [
-      { label: 'Branding', href: '/services/branding' },
-      { label: 'Web Design', href: '/services/web-design' },
-      { label: 'SEO Strategy', href: '/services/seo' },
-      { label: 'Website Care', href: '/services/website-care' },
-      { label: 'Pricing', href: '/pricing' },
+      {
+        label: 'Branding',
+        href: '/services/branding',
+        description: 'Brand identity and visual systems for small businesses.',
+      },
+      {
+        label: 'Web Design',
+        href: '/services/web-design',
+        description: 'Conversion-focused website design and development.',
+      },
+      {
+        label: 'SEO Strategy',
+        href: '/services/seo',
+        description: 'Technical and local SEO to improve qualified discovery.',
+      },
+      {
+        label: 'Website Care',
+        href: '/services/website-care',
+        description: 'Ongoing updates, monitoring, and performance support.',
+      },
+      {
+        label: 'Pricing',
+        href: '/pricing',
+        description: 'Transparent CAD starting prices for every service package.',
+      },
     ] as const satisfies readonly FooterLink[],
     studio: [
-      { label: 'Work', href: '/work' },
-      { label: 'About', href: '/about' },
-      { label: 'Contact', href: '/contact' },
+      { label: 'Work', href: '/work', description: 'Portfolio concepts and case studies.' },
+      { label: 'About', href: '/about', description: 'How Che Xu Studio works with clients.' },
+      {
+        label: 'Contact',
+        href: '/contact',
+        description: 'Request a quote or ask a project question.',
+      },
     ] as const satisfies readonly FooterLink[],
     legal: [
-      { label: 'Privacy', href: '/privacy' },
-      { label: 'Terms', href: '/terms' },
-      { label: 'Refund & Cancellation Policy', href: '/refund-cancellation-policy' },
+      { label: 'Privacy', href: '/privacy', description: 'How we collect and use information.' },
+      { label: 'Terms', href: '/terms', description: 'Terms of service for studio engagements.' },
+      {
+        label: 'Refund & Cancellation Policy',
+        href: '/refund-cancellation-policy',
+        description: 'Refund and cancellation terms for projects and care plans.',
+      },
     ] as const satisfies readonly FooterLink[],
   },
 

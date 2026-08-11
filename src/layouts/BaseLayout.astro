@@ -7,6 +7,7 @@ import ChatIsland from '../components/react/ChatWidget';
 import { siteConfig, getSiteUrl } from '../config/site';
 import {
   absoluteUrl,
+  footerNavigationSchema,
   jsonLd,
   organizationSchema,
   siteNavigationSchema,
@@ -44,6 +45,7 @@ const graph = [
   organizationSchema(siteUrl),
   websiteSchema(siteUrl),
   siteNavigationSchema(siteUrl),
+  footerNavigationSchema(siteUrl),
   ...schema,
 ];
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';

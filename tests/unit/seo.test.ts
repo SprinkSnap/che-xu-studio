@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   faqPageSchema,
+  footerNavigationSchema,
   jsonLd,
   offerCatalogSchema,
   organizationSchema,
@@ -42,6 +43,26 @@ describe('structured data', () => {
         expect.objectContaining({ name: 'Contact', url: 'https://chexustudio.com/contact' }),
       ]),
     );
+  });
+
+  it('builds footer navigation schema with descriptive link metadata', () => {
+    const footerNav = footerNavigationSchema('https://chexustudio.com');
+    expect(footerNav['@type']).toBe('SiteNavigationElement');
+    expect(footerNav.name).toBe('Footer');
+    expect(footerNav.hasPart).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Web Design',
+          url: 'https://chexustudio.com/services/web-design',
+          description: expect.stringMatching(/conversion-focused/i),
+        }),
+        expect.objectContaining({
+          name: 'Refund & Cancellation Policy',
+          url: 'https://chexustudio.com/refund-cancellation-policy',
+        }),
+      ]),
+    );
+    expect(footerNav.hasPart).toHaveLength(11);
   });
 
   it('builds FAQ schema only from provided visible items', () => {

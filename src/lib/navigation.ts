@@ -6,7 +6,12 @@ export type NavItem = {
   children?: readonly NavChild[];
 };
 
-export type FooterLink = { label: string; href: string };
+export type FooterLink = {
+  label: string;
+  href: string;
+  /** Short context for SEO-rich link text and title attributes. */
+  description?: string;
+};
 
 export type NavDestination = { label: string; href: string; group?: string };
 

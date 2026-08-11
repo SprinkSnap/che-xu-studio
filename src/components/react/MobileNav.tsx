@@ -127,8 +127,8 @@ export default function MobileNav({ items, currentPath }: Props) {
           <img
             src="/logo-on-dark.png"
             alt=""
-            width={1060}
-            height={120}
+            width={1370}
+            height={191}
             className="h-8 w-auto max-w-[min(100%,12.5rem)] object-contain object-left"
             decoding="async"
           />

@@ -1,0 +1,212 @@
+[
+  {
+    "viewport": "desktop",
+    "slug": "home",
+    "path": "/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/home.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "services-web-design",
+    "path": "/services/web-design/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/services-web-design.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "services-seo",
+    "path": "/services/seo/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/services-seo.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "services-website-care",
+    "path": "/services/website-care/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/services-website-care.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "pricing",
+    "path": "/pricing/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/pricing.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "work",
+    "path": "/work/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/work.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "about",
+    "path": "/about/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/about.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "contact",
+    "path": "/contact/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/contact.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "insights",
+    "path": "/insights/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/insights.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "privacy",
+    "path": "/privacy/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/privacy.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "terms",
+    "path": "/terms/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/terms.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "refund-cancellation-policy",
+    "path": "/refund-cancellation-policy/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/refund-cancellation-policy.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "checkout-success",
+    "path": "/checkout/success/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/checkout-success.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "checkout-cancelled",
+    "path": "/checkout/cancelled/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/checkout-cancelled.png"
+  },
+  {
+    "viewport": "desktop",
+    "slug": "404",
+    "path": "/404/",
+    "status": 200,
+    "file": "docs/page-screenshots/desktop/404.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "home",
+    "path": "/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/home.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "services-web-design",
+    "path": "/services/web-design/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/services-web-design.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "services-seo",
+    "path": "/services/seo/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/services-seo.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "services-website-care",
+    "path": "/services/website-care/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/services-website-care.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "pricing",
+    "path": "/pricing/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/pricing.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "work",
+    "path": "/work/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/work.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "about",
+    "path": "/about/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/about.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "contact",
+    "path": "/contact/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/contact.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "insights",
+    "path": "/insights/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/insights.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "privacy",
+    "path": "/privacy/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/privacy.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "terms",
+    "path": "/terms/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/terms.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "refund-cancellation-policy",
+    "path": "/refund-cancellation-policy/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/refund-cancellation-policy.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "checkout-success",
+    "path": "/checkout/success/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/checkout-success.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "checkout-cancelled",
+    "path": "/checkout/cancelled/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/checkout-cancelled.png"
+  },
+  {
+    "viewport": "mobile",
+    "slug": "404",
+    "path": "/404/",
+    "status": 200,
+    "file": "docs/page-screenshots/mobile/404.png"
+  }
+]

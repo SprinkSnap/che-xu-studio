@@ -4,7 +4,7 @@ Use this before any production DNS cutover. Do **not** deploy paid resources wit
 
 ## Content & brand
 
-- [ ] Replace temporary CSS wordmark with a vector logo
+- [x] Replace temporary CSS wordmark with the Che Xu Studio logo asset
 - [ ] Fill verified email / phone / booking URL / address / socials in `src/config/site.ts`
 - [ ] Add only verified projects and testimonials (or leave empty)
 - [ ] Confirm all five package prices and inclusions still match business offers

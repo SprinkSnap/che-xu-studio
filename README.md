@@ -4,7 +4,7 @@ Premium, mobile-first marketing site for **Che Xu Studio** — high-converting w
 
 Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Workers** (D1, Workers AI, Turnstile, Rate Limiting).
 
-> Temporary accessible CSS wordmark is used in the header/footer. Replace with a vector logo when available (`src/components/Wordmark.astro`).
+> Brand logo assets live in `public/` (`logo-on-dark.png`, `logo.png`, mark/lockup variants). Header/footer use `src/components/Wordmark.astro`.
 
 > Online card checkout is **not** enabled yet (no Stripe account). Package CTAs route to `/contact` for quotes.
 
@@ -295,7 +295,7 @@ See [`LAUNCH_CHECKLIST.md`](./LAUNCH_CHECKLIST.md).
 Before launch, the business owner (or qualified legal counsel) must supply/review:
 
 - Verified email, phone, booking URL, address, social profiles (`src/config/site.ts`)
-- Vector logo asset
+- Optional SVG/vector version of the logo (PNG lockups are already wired in header/footer)
 - Legal text on Privacy, Terms, and Refund/Cancellation pages
 - Whether `allowIndexing` should be enabled
 - Any verified testimonials, logos, case studies, or metrics (otherwise leave arrays empty)

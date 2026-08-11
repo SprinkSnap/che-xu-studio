@@ -28,6 +28,23 @@ describe('packages data integrity', () => {
     expect(getPackageById('website-care')?.startingPriceCad).toBe(199);
   });
 
+  it('matches published project timelines', () => {
+    expect(getPackageById('brand-identity')?.timeline).toBe('1–2 weeks');
+    expect(getPackageById('custom-website')?.timeline).toBe('3–5 weeks');
+    expect(getPackageById('custom-seo-launch')?.timeline).toBe('4–6 weeks');
+    expect(getPackageById('seo-growth')?.timeline).toBe('Ongoing monthly plan');
+    expect(getPackageById('website-care')?.timeline).toBe('Ongoing monthly plan');
+  });
+
+  it('documents 50/50 project payments only on one-time packages', () => {
+    for (const pkg of packages.filter((p) => p.billing === 'one_time')) {
+      expect(pkg.disclosures.some((d) => d.includes('50% to begin'))).toBe(true);
+    }
+    for (const pkg of packages.filter((p) => p.billing === 'monthly')) {
+      expect(pkg.disclosures.some((d) => d.includes('50% to begin'))).toBe(false);
+    }
+  });
+
   it('marks custom+seo as most popular', () => {
     expect(getPackageById('custom-seo-launch')?.popular).toBe(true);
   });

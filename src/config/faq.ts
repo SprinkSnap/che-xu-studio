@@ -18,7 +18,7 @@ export const faqs: FaqItem[] = [
     id: 'timeline',
     question: 'How long does a website project take?',
     answer:
-      'Custom Website — Built From Scratch typically takes 6–10 weeks. Custom Website + SEO Launch typically takes 8–12 weeks. Brand Identity & Logo Design typically takes 2–4 weeks. Timelines depend on feedback speed, content readiness, and approved scope.',
+      'Brand Identity & Logo Design typically takes 1–2 weeks. Custom Website — Built From Scratch typically takes 3–5 weeks. Custom Website + SEO Launch typically takes 4–6 weeks. Timelines assume timely delivery of required content, access and client feedback. Your project schedule is confirmed after scope review—these ranges are estimates, not guaranteed completion dates.',
     pages: ['home', 'pricing', 'web-design', 'branding'],
   },
   {
@@ -95,8 +95,8 @@ export const faqs: FaqItem[] = [
     id: 'payment',
     question: 'How does payment work?',
     answer:
-      'Start with the contact form to request a quote or monthly plan. Scope and payment terms are confirmed in writing before any invoice. This website does not collect card numbers.',
-    pages: ['pricing', 'contact'],
+      'Start with the contact form to request a quote or monthly plan. Scope and payment terms are confirmed in writing before any invoice. For one-time project packages, simple project payments are 50% to begin and 50% after final approval—before launch for website projects, or before final-file delivery for branding. Monthly SEO and Website Care plans are billed monthly. This website does not collect card numbers.',
+    pages: ['pricing', 'contact', 'web-design', 'branding'],
   },
   {
     id: 'strategy-call',

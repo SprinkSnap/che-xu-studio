@@ -39,11 +39,13 @@ export const packages: ServicePackage[] = [
     billing: 'one_time',
     startingPriceCad: 1499,
     priceLabel: 'CAD $1,499',
-    timeline: '2–4 weeks',
+    timeline: '1–2 weeks',
     summary:
       'A practical brand identity system that gives your business a consistent, professional look across your website, social channels, and marketing materials.',
     disclosures: [
       'Starting price. Final scope is confirmed after a short discovery conversation.',
+      'Timeline assumes timely client content, access and feedback.',
+      'Simple project payments: 50% to begin. The remaining 50% is due after final approval and before final-file delivery.',
       'Does not include trademark clearance or legal availability checks.',
     ],
     includes: [
@@ -73,11 +75,13 @@ export const packages: ServicePackage[] = [
     billing: 'one_time',
     startingPriceCad: 4999,
     priceLabel: 'CAD $4,999',
-    timeline: '6–10 weeks',
+    timeline: '3–5 weeks',
     summary:
       'A fast, conversion-focused website designed and developed specifically for your business—without relying on an off-the-shelf commercial theme.',
     disclosures: [
       'Starting price. Complex features, content production, or integrations may change the final quote.',
+      'Timeline assumes timely client content, access and feedback.',
+      'Simple project payments: 50% to begin. The remaining 50% is due after final approval and before launch.',
       'Domain, DNS and SSL launch setup included. Domain registration and renewal fees are paid separately by the client.',
     ],
     includes: [
@@ -110,11 +114,13 @@ export const packages: ServicePackage[] = [
     startingPriceCad: 6999,
     priceLabel: 'CAD $6,999',
     popular: true,
-    timeline: '8–12 weeks',
+    timeline: '4–6 weeks',
     summary:
       'Everything in Custom Website — Built From Scratch, plus a complete SEO launch foundation so your new site is ready to get found from day one.',
     disclosures: [
       'Starting price. SEO scope assumes a standard local or service-business footprint; broader markets are quoted separately.',
+      'Timeline assumes timely client content, access and feedback.',
+      'Simple project payments: 50% to begin. The remaining 50% is due after final approval and before launch.',
       'SEO can improve visibility over time, but specific rankings, traffic, leads, revenue, or conversion results are not guaranteed.',
       'Domain, DNS and SSL launch setup included. Domain registration and renewal fees are paid separately by the client.',
     ],

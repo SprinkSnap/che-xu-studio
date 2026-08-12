@@ -287,6 +287,7 @@ describe('site navigation integrity', () => {
     );
     expect(siteConfig.footer.services.every((link) => link.description)).toBe(true);
     expect(siteConfig.footer.cta.headline).toMatch(/website project/i);
+    expect(siteConfig.footer.cta.reassurance).toMatch(/CAD pricing/i);
 
     const allFooterHrefs = [...serviceHrefs, ...studioHrefs, ...legalHrefs];
     expect(allFooterHrefs.includes('/insights' as (typeof allFooterHrefs)[number])).toBe(false);

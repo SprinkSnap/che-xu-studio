@@ -144,6 +144,7 @@ test.describe('site navigation', () => {
       'href',
       '/#package-finder',
     );
+    await expect(footer.getByText('Serving Canada · CAD')).toBeVisible();
     await expect(footer.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy');
     await expect(footer.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms');
     await expect(

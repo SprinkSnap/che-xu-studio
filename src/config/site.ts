@@ -408,6 +408,7 @@ export const siteConfig = {
       eyebrow: 'Ready when you are',
       headline: 'Start your next website project with clear scope and pricing.',
       body: 'Request a project quote if you know what you need—or use the package finder for a guided recommendation.',
+      reassurance: 'Free scope review · CAD pricing · Direct communication',
     },
     /** One-line summaries under column headings for topical relevance. */
     columnDescriptions: {

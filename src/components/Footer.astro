@@ -6,6 +6,7 @@ const year = new Date().getFullYear();
 const socialEntries = Object.entries(siteConfig.social).filter(([, href]) =>
   Boolean(href),
 ) as Array<[string, string]>;
+const trustPills = siteConfig.trustStrip.split('·').map((item) => item.trim());
 
 function footerLinkTrack(section: string, label: string): string {
   const safeSection = section.replace(/'/g, "\\'");
@@ -14,54 +15,83 @@ function footerLinkTrack(section: string, label: string): string {
 }
 ---
 
-<footer class="border-t border-navy-800 bg-navy-950 text-blue-100" aria-label="Site footer">
-  <div class="container-shell section !pb-10 !pt-14">
-    <section
-      class="mb-12 rounded-[var(--radius-xl)] border border-white/10 bg-white/[0.04] px-6 py-8 sm:px-8 sm:py-10"
-      aria-labelledby="footer-cta-heading"
-    >
-      <p class="eyebrow !text-blue-300">{siteConfig.footer.cta.eyebrow}</p>
-      <h2 id="footer-cta-heading" class="mt-3 max-w-xl font-display text-2xl font-bold text-white sm:text-3xl">
-        {siteConfig.footer.cta.headline}
-      </h2>
-      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-blue-100/85 sm:text-base">
-        {siteConfig.footer.cta.body}
-      </p>
-      <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-        <a
-          href={siteConfig.cta.primary.href}
-          class="btn btn-primary-on-dark"
-          data-track="footer_cta_quote"
-          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'quote', source: 'footer' } })"
-        >
-          {siteConfig.cta.primary.label}
-        </a>
-        <a
-          href={siteConfig.cta.secondary.href}
-          class="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/15"
-          data-track="footer_cta_finder"
-          onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'finder', source: 'footer' } })"
-        >
-          {siteConfig.cta.secondary.label}
-        </a>
+<footer class="footer-shell border-t border-navy-800 text-blue-100" aria-label="Site footer">
+  <div class="container-shell !pb-8 !pt-12 sm:!pb-10 sm:!pt-16 lg:!pt-20">
+    <section class="footer-cta-panel mb-10 sm:mb-12 lg:mb-14" aria-labelledby="footer-cta-heading">
+      <div
+        class="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand-bright/20 blur-3xl"
+        aria-hidden="true"
+      >
       </div>
-      <p class="mt-5 text-xs leading-relaxed text-blue-100/70 sm:text-sm">{siteConfig.trustStrip}</p>
+      <div
+        class="pointer-events-none absolute -bottom-20 -left-12 h-40 w-40 rounded-full bg-purple-500/15 blur-3xl"
+        aria-hidden="true"
+      >
+      </div>
+
+      <div class="relative grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center lg:gap-10 xl:gap-14">
+        <div class="max-w-2xl">
+          <p class="eyebrow !text-blue-300">{siteConfig.footer.cta.eyebrow}</p>
+          <h2
+            id="footer-cta-heading"
+            class="mt-3 font-display text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-[2rem] xl:text-4xl"
+          >
+            {siteConfig.footer.cta.headline}
+          </h2>
+          <p class="mt-3 text-sm leading-relaxed text-blue-100/85 sm:text-base lg:mt-4 lg:text-lg">
+            {siteConfig.footer.cta.body}
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-4 lg:items-stretch">
+          <div class="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+            <a
+              href={siteConfig.cta.primary.href}
+              class="btn btn-primary-on-dark w-full sm:flex-1 lg:w-full xl:flex-1"
+              data-track="footer_cta_quote"
+              onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'quote', source: 'footer' } })"
+            >
+              {siteConfig.cta.primary.label}
+            </a>
+            <a
+              href={siteConfig.cta.secondary.href}
+              class="btn-secondary w-full border-white/20 bg-white/10 text-white hover:border-white/30 hover:bg-white/15 sm:flex-1 lg:w-full xl:flex-1"
+              data-track="footer_cta_finder"
+              onclick="window.__cxTrack && window.__cxTrack({ event: 'service_cta_selected', props: { cta: 'finder', source: 'footer' } })"
+            >
+              {siteConfig.cta.secondary.label}
+            </a>
+          </div>
+          <p class="text-center text-xs text-blue-100/70 lg:text-left">
+            {siteConfig.footer.cta.reassurance}
+          </p>
+          <ul class="flex flex-wrap justify-center gap-2 lg:justify-start" aria-label="Studio trust highlights">
+            {
+              trustPills.map((pill) => (
+                <li>
+                  <span class="footer-trust-pill">{pill}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
     </section>
 
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="space-y-4 sm:col-span-2 lg:col-span-1">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-10">
+      <div class="space-y-5 sm:col-span-2 lg:col-span-4 xl:col-span-4">
         <Wordmark variant="light" withTagline />
-        <p class="max-w-sm text-sm leading-relaxed text-blue-100/80">
-          {siteConfig.tagline}
-        </p>
-        <p class="text-sm font-medium text-white">{siteConfig.supportingMessage}</p>
+        <p class="max-w-sm text-sm leading-relaxed text-blue-100/80">{siteConfig.supportingMessage}</p>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="footer-locale-badge">Serving Canada · {siteConfig.currency}</span>
+        </div>
         {
           (siteConfig.contact.email || siteConfig.contact.phone || socialEntries.length > 0) && (
-            <div class="space-y-1 text-sm">
+            <address class="space-y-3 text-sm not-italic">
               {siteConfig.contact.email && (
                 <p>
                   <a
-                    class="hover:text-white"
+                    class="footer-contact-chip"
                     href={`mailto:${siteConfig.contact.email}`}
                     onclick={footerLinkTrack('contact', 'email')}
                   >
@@ -72,7 +102,7 @@ function footerLinkTrack(section: string, label: string): string {
               {siteConfig.contact.phone && (
                 <p>
                   <a
-                    class="hover:text-white"
+                    class="footer-contact-chip"
                     href={`tel:${siteConfig.contact.phone}`}
                     onclick={footerLinkTrack('contact', 'phone')}
                   >
@@ -81,11 +111,11 @@ function footerLinkTrack(section: string, label: string): string {
                 </p>
               )}
               {socialEntries.length > 0 && (
-                <ul class="mt-3 flex flex-wrap gap-3">
+                <ul class="flex flex-wrap gap-2 pt-1">
                   {socialEntries.map(([network, href]) => (
                     <li>
                       <a
-                        class="hover:text-white"
+                        class="footer-trust-pill capitalize transition hover:border-white/25 hover:bg-white/10 hover:text-white"
                         href={href}
                         rel="noopener noreferrer"
                         onclick={footerLinkTrack('social', network)}
@@ -96,12 +126,12 @@ function footerLinkTrack(section: string, label: string): string {
                   ))}
                 </ul>
               )}
-            </div>
+            </address>
           )
         }
       </div>
 
-      <nav aria-labelledby="footer-services-heading">
+      <nav class="sm:col-span-1 lg:col-span-3" aria-labelledby="footer-services-heading">
         <h2
           id="footer-services-heading"
           class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
@@ -111,17 +141,23 @@ function footerLinkTrack(section: string, label: string): string {
         <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
           {siteConfig.footer.columnDescriptions.services}
         </p>
-        <ul class="space-y-2 text-sm">
+        <ul class="space-y-1 text-sm">
           {
             siteConfig.footer.services.map((link) => (
               <li>
                 <a
-                  class="inline-flex min-h-11 items-center hover:text-white"
+                  class="footer-link"
                   href={link.href}
                   title={link.description}
+                  aria-label={link.label}
                   onclick={footerLinkTrack('services', link.label)}
                 >
-                  {link.label}
+                  <span class="footer-link-label">{link.label}</span>
+                  {link.description && (
+                    <span class="mt-0.5 hidden max-w-[16rem] text-xs leading-snug text-blue-100/55 md:block">
+                      {link.description}
+                    </span>
+                  )}
                 </a>
               </li>
             ))
@@ -129,7 +165,7 @@ function footerLinkTrack(section: string, label: string): string {
         </ul>
       </nav>
 
-      <nav aria-labelledby="footer-studio-heading">
+      <nav class="sm:col-span-1 lg:col-span-2" aria-labelledby="footer-studio-heading">
         <h2
           id="footer-studio-heading"
           class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
@@ -139,17 +175,27 @@ function footerLinkTrack(section: string, label: string): string {
         <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
           {siteConfig.footer.columnDescriptions.studio}
         </p>
-        <ul class="space-y-2 text-sm">
+        <ul class="space-y-1 text-sm">
           {
             siteConfig.footer.studio.map((link) => (
               <li>
                 <a
-                  class="inline-flex min-h-11 items-center hover:text-white"
+                  class:list={[
+                    'footer-link',
+                    link.href === '/contact' &&
+                      'rounded-[var(--radius-md)] border border-white/10 bg-white/[0.05] px-3 py-2 hover:border-white/20 hover:bg-white/10',
+                  ]}
                   href={link.href}
                   title={link.description}
+                  aria-label={link.label}
                   onclick={footerLinkTrack('studio', link.label)}
                 >
-                  {link.label}
+                  <span class="footer-link-label">{link.label}</span>
+                  {link.description && (
+                    <span class="mt-0.5 hidden max-w-[14rem] text-xs leading-snug text-blue-100/55 md:block">
+                      {link.description}
+                    </span>
+                  )}
                 </a>
               </li>
             ))
@@ -157,7 +203,7 @@ function footerLinkTrack(section: string, label: string): string {
         </ul>
       </nav>
 
-      <nav aria-labelledby="footer-legal-heading">
+      <nav class="sm:col-span-2 lg:col-span-3" aria-labelledby="footer-legal-heading">
         <h2
           id="footer-legal-heading"
           class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
@@ -167,17 +213,23 @@ function footerLinkTrack(section: string, label: string): string {
         <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
           {siteConfig.footer.columnDescriptions.legal}
         </p>
-        <ul class="space-y-2 text-sm">
+        <ul class="space-y-1 text-sm sm:max-w-md lg:max-w-none">
           {
             siteConfig.footer.legal.map((link) => (
               <li>
                 <a
-                  class="inline-flex min-h-11 items-center hover:text-white"
+                  class="footer-link"
                   href={link.href}
                   title={link.description}
+                  aria-label={link.label}
                   onclick={footerLinkTrack('legal', link.label)}
                 >
-                  {link.label}
+                  <span class="footer-link-label">{link.label}</span>
+                  {link.description && (
+                    <span class="mt-0.5 hidden max-w-[18rem] text-xs leading-snug text-blue-100/55 md:block">
+                      {link.description}
+                    </span>
+                  )}
                 </a>
               </li>
             ))
@@ -187,10 +239,12 @@ function footerLinkTrack(section: string, label: string): string {
     </div>
 
     <div
-      class="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-blue-100/70 sm:flex-row sm:items-center sm:justify-between"
+      class="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-blue-100/70 sm:mt-12 sm:flex-row sm:items-center sm:justify-between"
     >
       <p>© {year} {siteConfig.legalName}. All rights reserved.</p>
-      <p>Prices shown in CAD. “Starting at” prices are confirmed after scope review.</p>
+      <p class="max-w-xl sm:text-right">
+        Prices shown in CAD. “Starting at” prices are confirmed after scope review.
+      </p>
     </div>
   </div>
 </footer>

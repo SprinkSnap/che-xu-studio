@@ -4,7 +4,7 @@ Premium, mobile-first marketing site for **Che Xu Studio** — high-converting w
 
 Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Workers** (D1, Workers AI, Turnstile, Rate Limiting).
 
-> Brand logo assets live in `public/` (`logo-on-dark.png`, `logo.png`, mark/lockup variants). Header/footer use `src/components/Wordmark.astro`.
+> Brand logo: `public/che-xu-studio-web-design-seo-logo.png`. Header/footer use `src/components/Wordmark.astro`.
 
 > Online card checkout is **not** enabled yet (no Stripe account). Package CTAs route to `/contact` for quotes.
 

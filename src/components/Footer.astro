@@ -78,9 +78,11 @@ function footerLinkTrack(section: string, label: string): string {
       </div>
     </section>
 
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-10">
-      <div class="space-y-5 sm:col-span-2 lg:col-span-4 xl:col-span-4">
-        <Wordmark variant="light" withTagline />
+    <div class="grid gap-10 md:grid-cols-3 md:gap-8 lg:gap-12">
+      <div class="space-y-5">
+        <div class="footer-brand-box">
+          <Wordmark variant="dark" withTagline />
+        </div>
         <p class="max-w-sm text-sm leading-relaxed text-blue-100/80">{siteConfig.supportingMessage}</p>
         <div class="flex flex-wrap items-center gap-2">
           <span class="footer-locale-badge">Serving Canada · {siteConfig.currency}</span>
@@ -131,89 +133,91 @@ function footerLinkTrack(section: string, label: string): string {
         }
       </div>
 
-      <nav class="sm:col-span-1 lg:col-span-3" aria-labelledby="footer-services-heading">
-        <h2
-          id="footer-services-heading"
-          class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
-        >
-          Services
-        </h2>
-        <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
-          {siteConfig.footer.columnDescriptions.services}
-        </p>
-        <ul class="space-y-1 text-sm">
-          {
-            siteConfig.footer.services.map((link) => (
-              <li>
-                <a
-                  class="footer-link"
-                  href={link.href}
-                  title={link.description}
-                  aria-label={link.label}
-                  onclick={footerLinkTrack('services', link.label)}
-                >
-                  <span class="footer-link-label">{link.label}</span>
-                  {link.description && (
-                    <span class="mt-0.5 hidden max-w-[16rem] text-xs leading-snug text-blue-100/55 md:block">
-                      {link.description}
-                    </span>
-                  )}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+      <div class="grid gap-8 sm:grid-cols-2 md:grid-cols-1">
+        <nav aria-labelledby="footer-services-heading">
+          <h2
+            id="footer-services-heading"
+            class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
+          >
+            Services
+          </h2>
+          <p class="mb-4 text-xs leading-relaxed text-blue-100/65">
+            {siteConfig.footer.columnDescriptions.services}
+          </p>
+          <ul class="space-y-1 text-sm">
+            {
+              siteConfig.footer.services.map((link) => (
+                <li>
+                  <a
+                    class="footer-link"
+                    href={link.href}
+                    title={link.description}
+                    aria-label={link.label}
+                    onclick={footerLinkTrack('services', link.label)}
+                  >
+                    <span class="footer-link-label">{link.label}</span>
+                    {link.description && (
+                      <span class="mt-0.5 hidden text-xs leading-snug text-blue-100/55 md:block">
+                        {link.description}
+                      </span>
+                    )}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
 
-      <nav class="sm:col-span-1 lg:col-span-2" aria-labelledby="footer-studio-heading">
-        <h2
-          id="footer-studio-heading"
-          class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
-        >
-          Studio
-        </h2>
-        <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
-          {siteConfig.footer.columnDescriptions.studio}
-        </p>
-        <ul class="space-y-1 text-sm">
-          {
-            siteConfig.footer.studio.map((link) => (
-              <li>
-                <a
-                  class:list={[
-                    'footer-link',
-                    link.href === '/contact' &&
-                      'rounded-[var(--radius-md)] border border-white/10 bg-white/[0.05] px-3 py-2 hover:border-white/20 hover:bg-white/10',
-                  ]}
-                  href={link.href}
-                  title={link.description}
-                  aria-label={link.label}
-                  onclick={footerLinkTrack('studio', link.label)}
-                >
-                  <span class="footer-link-label">{link.label}</span>
-                  {link.description && (
-                    <span class="mt-0.5 hidden max-w-[14rem] text-xs leading-snug text-blue-100/55 md:block">
-                      {link.description}
-                    </span>
-                  )}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+        <nav aria-labelledby="footer-studio-heading">
+          <h2
+            id="footer-studio-heading"
+            class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
+          >
+            Studio
+          </h2>
+          <p class="mb-4 text-xs leading-relaxed text-blue-100/65">
+            {siteConfig.footer.columnDescriptions.studio}
+          </p>
+          <ul class="space-y-1 text-sm">
+            {
+              siteConfig.footer.studio.map((link) => (
+                <li>
+                  <a
+                    class:list={[
+                      'footer-link',
+                      link.href === '/contact' &&
+                        '!mx-0 rounded-[var(--radius-md)] border border-white/10 bg-white/[0.05] px-3 py-2 hover:border-white/20 hover:bg-white/10',
+                    ]}
+                    href={link.href}
+                    title={link.description}
+                    aria-label={link.label}
+                    onclick={footerLinkTrack('studio', link.label)}
+                  >
+                    <span class="footer-link-label">{link.label}</span>
+                    {link.description && (
+                      <span class="mt-0.5 hidden text-xs leading-snug text-blue-100/55 md:block">
+                        {link.description}
+                      </span>
+                    )}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
 
-      <nav class="sm:col-span-2 lg:col-span-3" aria-labelledby="footer-legal-heading">
+      <nav aria-labelledby="footer-legal-heading">
         <h2
           id="footer-legal-heading"
           class="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white"
         >
           Legal
         </h2>
-        <p class="mb-4 max-w-xs text-xs leading-relaxed text-blue-100/65">
+        <p class="mb-4 text-xs leading-relaxed text-blue-100/65">
           {siteConfig.footer.columnDescriptions.legal}
         </p>
-        <ul class="space-y-1 text-sm sm:max-w-md lg:max-w-none">
+        <ul class="space-y-1 text-sm">
           {
             siteConfig.footer.legal.map((link) => (
               <li>
@@ -226,7 +230,7 @@ function footerLinkTrack(section: string, label: string): string {
                 >
                   <span class="footer-link-label">{link.label}</span>
                   {link.description && (
-                    <span class="mt-0.5 hidden max-w-[18rem] text-xs leading-snug text-blue-100/55 md:block">
+                    <span class="mt-0.5 hidden text-xs leading-snug text-blue-100/55 md:block">
                       {link.description}
                     </span>
                   )}

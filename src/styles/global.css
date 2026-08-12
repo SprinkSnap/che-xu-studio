@@ -246,7 +246,7 @@
   }
 
   .footer-brand-box {
-    @apply inline-flex w-full max-w-sm rounded-[var(--radius-lg)] border border-white/20 bg-white p-4 shadow-[0_16px_40px_-24px_rgb(0_0_0_/_0.75)] ring-1 ring-white/10 sm:p-5;
+    @apply inline-flex w-full max-w-sm rounded-[var(--radius-lg)] border border-white/20 bg-navy-950 p-4 shadow-[0_16px_40px_-24px_rgb(0_0_0_/_0.75)] ring-1 ring-white/10 sm:p-5;
   }
 
   .footer-contact-chip {

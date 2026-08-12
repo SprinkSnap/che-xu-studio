@@ -5,20 +5,15 @@ interface Props {
   /** `light` = logo for dark backgrounds; `dark` = logo for light backgrounds */
   variant?: 'light' | 'dark';
   size?: 'sm' | 'md' | 'lg';
-  /** Include the tagline lockup (footer / brand blocks). Default is name mark only. */
+  /** Larger brand lockup (footer / brand blocks). Default is header mark size. */
   withTagline?: boolean;
 }
 
-const { variant = 'dark', size = 'md', withTagline = false } = Astro.props;
+const { size = 'md', withTagline = false } = Astro.props;
 
-const onDark = variant === 'light';
-const src = withTagline
-  ? onDark
-    ? '/logo-lockup-on-dark.png'
-    : '/logo-lockup.png'
-  : onDark
-    ? '/logo-on-dark.png'
-    : '/logo.png';
+// Single brand master (light artwork on transparent). Prefer dark surfaces.
+// `variant` remains accepted for callers; artwork is optimized for dark UI chrome.
+const src = '/che-xu-studio-web-design-seo-logo.png';
 
 const heightClass = withTagline
   ? size === 'lg'
@@ -45,8 +40,8 @@ const maxWidthClass = withTagline
   <img
     src={src}
     alt=""
-    width={withTagline ? 1706 : 1370}
-    height={withTagline ? 360 : 191}
+    width={1433}
+    height={368}
     class:list={[
       'w-auto object-contain object-left transition duration-200 group-hover:opacity-90',
       heightClass,

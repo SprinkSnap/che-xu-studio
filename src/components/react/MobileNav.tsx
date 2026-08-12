@@ -125,10 +125,10 @@ export default function MobileNav({ items, currentPath }: Props) {
       <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-white/10 px-4 pt-[env(safe-area-inset-top)] sm:px-6">
         <a href="/" className="inline-flex items-center" aria-label="Che Xu Studio home">
           <img
-            src="/logo-on-dark.png"
+            src="/che-xu-studio-web-design-seo-logo.png"
             alt=""
-            width={1370}
-            height={191}
+            width={1433}
+            height={368}
             className="h-8 w-auto max-w-[min(100%,12.5rem)] object-contain object-left"
             decoding="async"
           />

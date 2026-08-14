@@ -1,0 +1,66 @@
+---
+/**
+ * Minimal auth surface layout — Che Xu Studio branding, no Studio chrome/nav.
+ */
+import '../styles/studio.css';
+import { siteConfig } from '../config/site';
+import { titleTemplate } from '../lib/seo';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Sign in to Che Xu Studio OS.',
+} = Astro.props;
+
+const fullTitle = titleTemplate(title);
+---
+
+<!doctype html>
+<html lang={siteConfig.locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="/fonts/source-serif-4-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body class="studio-auth-body">
+    <a class="skip-link" href="#studio-auth-main">Skip to main content</a>
+    <div class="studio-auth-shell">
+      <header class="studio-auth-brand">
+        <img
+          src="/logo-mark.png"
+          alt=""
+          width="40"
+          height="40"
+          class="h-10 w-10 object-contain"
+          decoding="async"
+        />
+        <p class="font-display text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
+          Che Xu Studio
+        </p>
+      </header>
+      <main id="studio-auth-main" class="studio-auth-card" tabindex="-1">
+        <slot />
+      </main>
+      <p class="studio-auth-foot">Private operating system · not for public access</p>
+    </div>
+  </body>
+</html>

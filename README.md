@@ -74,7 +74,8 @@ Copy from `.dev.vars.example`. Never commit `.dev.vars` or real secrets.
 | `TURNSTILE_SECRET_KEY`          | Turnstile secret (server)         |
 | `AI_MODEL`                      | Workers AI model id               |
 | `PUBLIC_CF_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics |
-| `STUDIO_OS_ENABLED`             | Enable `/admin` outside `astro dev` (staging only until Phase 5) |
+| `STUDIO_OS_ENABLED`             | Enable Studio surfaces outside `astro dev` |
+| `STUDIO_BASE_URL`               | Studio origin for password-reset redirects (`https://studio.chexustudio.com`) |
 | `PUBLIC_SUPABASE_URL`           | Studio Supabase URL (browser-safe) |
 | `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Studio publishable key (browser-safe) |
 | `SUPABASE_SECRET_KEY`           | Studio secret key (**server only** — never `PUBLIC_`) |

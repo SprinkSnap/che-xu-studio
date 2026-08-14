@@ -20,9 +20,13 @@ PUBLIC_CF_WEB_ANALYTICS_TOKEN=
 
 # Studio OS foundation (Phase 2+)
 # Local `astro dev` always allows /admin. For `astro preview` / production Workers,
-# set STUDIO_OS_ENABLED=true only on intentional staging. Never enable in production
-# until Phase 5 authentication is ready. Do not use passwords or query-string bypasses.
+# set STUDIO_OS_ENABLED=true. Phase 5 requires Supabase Auth + active profiles membership.
+# Do not use passwords or query-string bypasses as authorization.
 # STUDIO_OS_ENABLED=true
+
+# Canonical Studio origin (password-reset redirects). Production:
+# STUDIO_BASE_URL=https://studio.chexustudio.com
+# Local default falls back to the request origin / http://localhost:4321
 
 # Studio OS — Supabase (Phase 3+)
 # Browser-safe (ok as Worker plain vars / PUBLIC_):
@@ -31,4 +35,5 @@ PUBLIC_CF_WEB_ANALYTICS_TOKEN=
 # Server-only (Workers Builds → Encrypt secret). NEVER prefix with PUBLIC_:
 # SUPABASE_SECRET_KEY=sb_secret_xxx
 # Local CLI: npm run supabase:start && npm run supabase:status
-# See docs/architecture/supabase.md
+# First owner: see docs/architecture/studio-auth.md (dashboard SQL or bootstrap script)
+# See docs/architecture/supabase.md and docs/architecture/studio-auth.md

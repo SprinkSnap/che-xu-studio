@@ -211,6 +211,87 @@
   .studio-doc-lede {
     @apply mt-4 text-base leading-relaxed text-ink-muted;
   }
+
+  /* Auth surface — restrained navy/white, no marketing clutter */
+  .studio-auth-body {
+    @apply min-h-dvh bg-[linear-gradient(165deg,#f4f7fb_0%,#e8eef7_45%,#f8fafc_100%)] text-ink;
+  }
+
+  .studio-auth-shell {
+    @apply mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-8 px-4 py-12 sm:px-6;
+  }
+
+  .studio-auth-brand {
+    @apply flex flex-col items-center gap-3 text-center;
+  }
+
+  .studio-auth-card {
+    @apply rounded-[var(--radius-md)] border border-border bg-white px-6 py-8 shadow-sm sm:px-8;
+  }
+
+  .studio-auth-card h1 {
+    @apply font-display text-2xl font-semibold tracking-tight text-navy-900;
+  }
+
+  .studio-auth-card .studio-auth-lede {
+    @apply mt-2 text-sm leading-relaxed text-ink-muted;
+  }
+
+  .studio-auth-form {
+    @apply mt-8 flex flex-col gap-5;
+  }
+
+  .studio-auth-field {
+    @apply flex flex-col gap-2;
+  }
+
+  .studio-auth-field label {
+    @apply text-sm font-semibold text-navy-900;
+  }
+
+  .studio-auth-field input {
+    @apply min-h-11 w-full rounded-[var(--radius-md)] border border-border bg-white px-3 text-base text-ink outline-none transition duration-200 focus:border-brand focus:ring-2 focus:ring-brand/20;
+  }
+
+  .studio-auth-error {
+    @apply rounded-[var(--radius-md)] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800;
+  }
+
+  .studio-auth-success {
+    @apply rounded-[var(--radius-md)] border border-green-100 bg-green-50 px-3 py-2 text-sm text-green-800;
+  }
+
+  .studio-auth-links {
+    @apply mt-6 flex flex-wrap items-center justify-between gap-3 text-sm;
+  }
+
+  .studio-auth-links a {
+    @apply font-medium text-brand underline-offset-2 hover:underline;
+  }
+
+  .studio-auth-foot {
+    @apply text-center text-xs text-ink-muted;
+  }
+
+  .studio-sidebar-user {
+    @apply border-t border-border px-5 py-4 text-xs leading-relaxed text-ink-muted;
+  }
+
+  .studio-sidebar-user-name {
+    @apply text-sm font-semibold text-navy-900;
+  }
+
+  .studio-sidebar-user-role {
+    @apply mt-0.5 capitalize text-ink-muted;
+  }
+
+  .studio-sign-out {
+    @apply mt-3;
+  }
+
+  .studio-sign-out button {
+    @apply inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm font-semibold text-navy-900 transition duration-200 hover:border-brand hover:text-brand;
+  }
 }
 
 @media print {

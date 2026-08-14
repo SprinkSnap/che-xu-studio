@@ -31,6 +31,7 @@ describe('security headers', () => {
   it('includes CSP and frame protection', () => {
     const headers = securityHeaders(true);
     expect(headers['Content-Security-Policy']).toContain("frame-ancestors 'none'");
+    expect(headers['Content-Security-Policy']).toContain('https://*.supabase.co');
     expect(headers['Strict-Transport-Security']).toContain('max-age=');
     expect(headers['X-Content-Type-Options']).toBe('nosniff');
   });

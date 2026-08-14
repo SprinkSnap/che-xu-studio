@@ -90,7 +90,7 @@ describe('supabase server clients', () => {
 });
 
 describe('supabase auth foundation', () => {
-  it('requireStudioAdmin rejects after authenticated-user scaffolding without membership', async () => {
+  it('requireStudioAdmin rejects authenticated users without membership', async () => {
     const client = {
       auth: {
         getUser: vi.fn(async () => ({
@@ -106,6 +106,13 @@ describe('supabase auth foundation', () => {
           error: null,
         })),
       },
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+          })),
+        })),
+      })),
     };
 
     await expect(requireStudioAdmin(client as never)).rejects.toBeInstanceOf(StudioAuthError);

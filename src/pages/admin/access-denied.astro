@@ -1,0 +1,21 @@
+---
+import StudioAuthLayout from '../../layouts/StudioAuthLayout.astro';
+import { GENERIC_ACCESS_DENIED } from '../../lib/auth/validation';
+
+export const prerender = false;
+
+Astro.response.status = 403;
+---
+
+<StudioAuthLayout title="Access denied" description="You do not have access to Studio OS.">
+  <h1>Access denied</h1>
+  <p class="studio-auth-lede">{GENERIC_ACCESS_DENIED}</p>
+
+  <form class="studio-auth-form" method="post" action="/admin/logout">
+    <button type="submit" class="studio-action studio-action-primary w-full">Sign out</button>
+  </form>
+
+  <div class="studio-auth-links">
+    <a href="/admin/login">Return to sign in</a>
+  </div>
+</StudioAuthLayout>

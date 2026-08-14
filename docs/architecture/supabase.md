@@ -45,7 +45,7 @@ Workers Builds:
 | --- | --- |
 | `src/lib/supabase/browser.ts` | `createBrowserClient` — public credentials only |
 | `src/lib/supabase/server.ts` | User/session client (`createServerClient` + cookies) and privileged service client |
-| `src/lib/supabase/auth.ts` | getUser / requireAuthenticatedUser / requireStudioAdmin scaffold / signOut |
+| `src/lib/supabase/auth.ts` | getUser / requireAuthenticatedUser / requireStudioAdmin / requireStudioMember / signOut |
 | `src/lib/supabase/config.ts` | Zod validation + host-only cookie options |
 | `src/lib/supabase/database.types.ts` | Generated DB contract (Phase 4+) |
 
@@ -59,7 +59,7 @@ Phase 4 adds `profiles` membership + RLS helpers (`is_studio_user`, `is_studio_a
 ## Auth / session model
 
 - Supabase Auth owns identity.
-- Profiles/membership arrive in **Phase 4**; route enforcement in **Phase 5**.
+- Profiles/membership (Phase 4) + route enforcement (Phase 5). See [studio-auth.md](./studio-auth.md).
 - Official `@supabase/ssr` cookie session (not localStorage-first).
 - Cookie options: `path=/`, `SameSite=Lax`, `Secure` in production, **host-only** (no `.chexustudio.com` domain) so marketing apex does not receive Studio auth cookies.
 - `@supabase/ssr` uses browser-readable cookies so server + browser clients stay synchronized (not pure HttpOnly-only).
@@ -72,11 +72,13 @@ Phase 4 adds `profiles` membership + RLS helpers (`is_studio_user`, `is_studio_a
 request → identify Studio private path
        → STUDIO_OS_ENABLED gate
        → attach request-scoped user client (if configured)
-       → Phase 5: requireStudioAdmin + set locals.studioUser
+       → resolve Studio profile / permissions for /admin
+       → redirect anonymous to /admin/login; deny non-members & suspended
+       → set locals.studioAuth + locals.studioUser
        → route handler
 ```
 
-Locals: `studioSupabase`, `studioUser` (typed in `src/env.d.ts`). No fake users.
+Locals: `studioSupabase`, `studioAuth`, `studioUser` (typed in `src/env.d.ts`). No fake users.
 
 ## Cloudflare Workers compatibility
 

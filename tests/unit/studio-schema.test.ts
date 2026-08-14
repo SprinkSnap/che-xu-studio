@@ -20,7 +20,22 @@ describe('studio phase 4 migrations', () => {
       '202608140005_operations.sql',
       '202608140006_immutability.sql',
       '202608140007_rls.sql',
+      '202608140008_profile_privilege_guards.sql',
     ]);
+  });
+
+  it('blocks profile self-promotion and open self-enrollment', () => {
+    const guards = readFileSync(
+      path.join(migrationsDir, '202608140008_profile_privilege_guards.sql'),
+      'utf8',
+    );
+    expect(guards).toMatch(/prevent_profile_privilege_escalation/);
+    expect(guards).toMatch(/cannot change role/);
+    expect(guards).toMatch(/is_studio_admin\(\)/);
+    // Insert policy must require admin — no self-enrollment clause on INSERT.
+    expect(guards).toMatch(
+      /profiles_admin_insert[\s\S]*WITH CHECK \(public\.is_studio_admin\(\)\)/,
+    );
   });
 
   it('enables RLS and avoids anonymous true policies', () => {

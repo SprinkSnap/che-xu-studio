@@ -6,8 +6,16 @@ import {
   STUDIO_CACHE_CONTROL,
   STUDIO_ROBOTS_HEADER,
 } from './lib/studio/private-paths';
+import {
+  isStudioProtectedAdminPath,
+  isStudioPublicAuthPath,
+} from './lib/auth/types';
+import { loginUrl, safeStudioRedirect } from './lib/auth/redirects';
+import { resolveStudioAccess } from './lib/auth/profile';
+import { recordAuthActivity, sanitizeAuthMetadata, emailDomain } from './lib/auth/activity';
 import { isSupabasePublicConfigured, resolveSupabaseEnv } from './lib/supabase/config';
 import { tryCreateSupabaseUserClient } from './lib/supabase/server';
+import { signOut, logStudioAuthEvent } from './lib/supabase/auth';
 
 /**
  * Resolve Studio enablement without touching Astro.locals.runtime.env
@@ -49,20 +57,31 @@ async function readSupabaseEnvFromRuntime(): Promise<ReturnType<typeof resolveSu
   return resolveSupabaseEnv(fromWorker);
 }
 
+function privateStudioHeaders(init?: HeadersInit): Headers {
+  const headers = new Headers(init);
+  headers.set('Cache-Control', STUDIO_CACHE_CONTROL);
+  headers.set('X-Robots-Tag', STUDIO_ROBOTS_HEADER);
+  return headers;
+}
+
 /**
- * Studio route lifecycle (Phase 3 groundwork; Phase 5 adds authorization):
+ * Studio route lifecycle (Phase 5):
  * 1. Identify Studio private path
  * 2. Enforce STUDIO_OS_ENABLED gate
- * 3. Attach request-scoped Supabase user client when configured (no fake users)
- * 4. Phase 5: requireStudioAdmin / redirect to login
- * 5. Continue to route + security/cache headers
+ * 3. Attach request-scoped Supabase user client when configured
+ * 4. Resolve membership for /admin (skip expensive work for marketing)
+ * 5. Protect /admin except public auth routes
+ * 6. Continue to route + security/cache headers
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const path = context.url.pathname;
   const privateStudio = isStudioPrivatePath(path);
+  const protectedAdmin = isStudioProtectedAdminPath(path);
+  const publicAuth = isStudioPublicAuthPath(path);
 
   context.locals.studioSupabase = null;
   context.locals.studioUser = null;
+  context.locals.studioAuth = null;
 
   if (privateStudio) {
     const enabled = isStudioOsEnabled({
@@ -73,11 +92,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (!enabled) {
       return new Response('Studio OS is not enabled in this environment.', {
         status: 404,
-        headers: {
+        headers: privateStudioHeaders({
           'Content-Type': 'text/plain; charset=utf-8',
-          'Cache-Control': STUDIO_CACHE_CONTROL,
-          'X-Robots-Tag': STUDIO_ROBOTS_HEADER,
-        },
+        }),
       });
     }
 
@@ -91,9 +108,75 @@ export const onRequest = defineMiddleware(async (context, next) => {
       });
     }
 
-    // Phase 5 insertion point:
-    // const user = await requireStudioAdmin(context.locals.studioSupabase);
-    // context.locals.studioUser = user;
+    // Only resolve Studio auth for /admin surfaces (not every marketing asset,
+    // and not client-document placeholders that use token auth later).
+    if ((protectedAdmin || publicAuth) && context.locals.studioSupabase) {
+      const access = await resolveStudioAccess(context.locals.studioSupabase);
+
+      if (access.kind === 'authorized') {
+        context.locals.studioAuth = access.context;
+        context.locals.studioUser = {
+          id: access.context.user.id,
+          email: access.context.user.email ?? undefined,
+          aud: 'authenticated',
+          role: 'authenticated',
+          created_at: '',
+        };
+      }
+
+      if (protectedAdmin) {
+        if (access.kind === 'anonymous') {
+          const nextPath = `${context.url.pathname}${context.url.search}`;
+          return context.redirect(loginUrl(nextPath), 302);
+        }
+
+        if (access.kind === 'authenticated_non_member') {
+          logStudioAuthEvent('access_denied_non_member');
+          await recordAuthActivity(context.locals.studioSupabase, {
+            action: 'auth.non_member_access_attempt',
+            metadata: sanitizeAuthMetadata({
+              reason: 'non_member',
+              emailDomain: emailDomain(access.user.email),
+            }),
+          });
+          try {
+            await signOut(context.locals.studioSupabase);
+          } catch {
+            /* continue to access-denied */
+          }
+          return context.redirect('/admin/access-denied', 302);
+        }
+
+        if (access.kind === 'suspended') {
+          logStudioAuthEvent('access_denied_suspended');
+          await recordAuthActivity(context.locals.studioSupabase, {
+            actorProfileId: access.profile.id,
+            action: 'auth.suspended_access_attempt',
+            metadata: sanitizeAuthMetadata({ reason: 'suspended' }),
+          });
+          try {
+            await signOut(context.locals.studioSupabase);
+          } catch {
+            /* continue */
+          }
+          return context.redirect('/admin/access-denied', 302);
+        }
+      }
+
+      // Authorized users visiting login should go to Studio (or safe next).
+      if (
+        publicAuth &&
+        path === '/admin/login' &&
+        access.kind === 'authorized' &&
+        context.request.method === 'GET'
+      ) {
+        const nextParam = context.url.searchParams.get('next');
+        return context.redirect(safeStudioRedirect(nextParam), 302);
+      }
+    } else if (protectedAdmin && !context.locals.studioSupabase) {
+      // Fail closed when Studio is enabled but Supabase is not configured.
+      return context.redirect(loginUrl(`${context.url.pathname}${context.url.search}`), 302);
+    }
   }
 
   const response = await next();

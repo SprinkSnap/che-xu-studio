@@ -19,6 +19,8 @@ interface CloudflareEnv {
   ASSETS: Fetcher;
   CHAT_RATE_LIMITER?: RateLimitBinding;
   CONTACT_RATE_LIMITER?: RateLimitBinding;
+  /** Studio auth login / recovery rate limiter. */
+  AUTH_RATE_LIMITER?: RateLimitBinding;
 
   TURNSTILE_SECRET_KEY?: string;
 
@@ -36,10 +38,12 @@ interface CloudflareEnv {
 
   /**
    * Gate for unfinished Studio OS surfaces (/admin, /proposal, /invoice).
-   * Set to "true" for local preview / intentional staging only.
-   * Do not enable in production until Phase 5 authentication is ready.
+   * Production Studio requires authentication (Phase 5) plus this flag.
    */
   STUDIO_OS_ENABLED?: string;
+
+  /** Canonical Studio origin for password-reset redirects, e.g. https://studio.chexustudio.com */
+  STUDIO_BASE_URL?: string;
 
   /** Studio OS — Supabase project URL (browser-safe). */
   PUBLIC_SUPABASE_URL?: string;
@@ -58,6 +62,7 @@ interface ImportMetaEnv {
   readonly PUBLIC_CF_WEB_ANALYTICS_TOKEN?: string;
   /** See CloudflareEnv.STUDIO_OS_ENABLED — used by preview/e2e when set at build/runtime. */
   readonly STUDIO_OS_ENABLED?: string;
+  readonly STUDIO_BASE_URL?: string;
   readonly PUBLIC_SUPABASE_URL?: string;
   readonly PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
   /** Server-only when provided via Vite/process env for local tooling — never PUBLIC_. */
@@ -71,13 +76,19 @@ interface ImportMeta {
 declare namespace App {
   interface Locals {
     /**
-     * Request-scoped Studio Supabase user client (Phase 3 groundwork).
+     * Request-scoped Studio Supabase user client.
      * Null when public Supabase env is not configured. Never a fake user client.
      */
     studioSupabase?: import('./lib/supabase/types').StudioSupabaseClient | null;
     /**
-     * Populated only after Phase 5 auth enforcement. Phase 3 leaves this unset/null.
+     * Lightweight auth user mirror when Studio membership is authorized.
+     * Prefer `studioAuth` for role/permission decisions.
      */
     studioUser?: import('./lib/supabase/types').StudioAuthUser | null;
+    /**
+     * Authorized Studio membership context (active profile + role).
+     * Null when anonymous, non-member, or suspended.
+     */
+    studioAuth?: import('./lib/auth/studio-context').StudioAuthContext | null;
   }
 }

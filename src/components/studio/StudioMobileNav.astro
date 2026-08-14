@@ -3,9 +3,15 @@ import { isStudioNavActive, studioNavItems } from '../../lib/studio/navigation';
 
 interface Props {
   currentPath: string;
+  displayName?: string;
+  roleLabel?: string;
 }
 
-const { currentPath } = Astro.props;
+const {
+  currentPath,
+  displayName = 'Studio user',
+  roleLabel = '',
+} = Astro.props;
 ---
 
 <div
@@ -24,7 +30,7 @@ const { currentPath } = Astro.props;
   hidden
 >
   <div class="flex items-center justify-between border-b border-border px-4 py-4">
-    <p class="font-display text-base font-semibold text-navy-900">Studio OS</p>
+    <p class="font-display text-base font-semibold text-navy-900">Che Xu Studio</p>
     <button type="button" class="studio-action" data-studio-nav-close>
       Close
     </button>
@@ -45,4 +51,11 @@ const { currentPath } = Astro.props;
       })
     }
   </nav>
+  <div class="studio-sidebar-user">
+    <p class="studio-sidebar-user-name">{displayName}</p>
+    {roleLabel && <p class="studio-sidebar-user-role">{roleLabel}</p>}
+    <form class="studio-sign-out" method="post" action="/admin/logout">
+      <button type="submit">Sign Out</button>
+    </form>
+  </div>
 </div>

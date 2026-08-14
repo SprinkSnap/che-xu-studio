@@ -1,0 +1,25 @@
+---
+import ClientDocumentLayout from '../../layouts/ClientDocumentLayout.astro';
+
+export const prerender = false;
+
+const { token } = Astro.params;
+const hasToken = Boolean(token && token !== 'undefined');
+---
+
+<ClientDocumentLayout
+  title="Proposal"
+  description="Private proposal document. Secure token validation arrives in a later phase."
+  documentKind="proposal"
+>
+  <h1 class="studio-doc-title">Proposal unavailable</h1>
+  <p class="studio-doc-lede">
+    This secure proposal link is reserved for client review and acceptance. Document content is not
+    loaded in this foundation phase
+    {hasToken ? ' for the provided token' : ''}.
+  </p>
+  <p class="mt-6 text-sm text-ink-muted">
+    If you received this link from Che Xu Studio, please check back later or contact the studio
+    directly. No proposal details are displayed here.
+  </p>
+</ClientDocumentLayout>

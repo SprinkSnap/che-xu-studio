@@ -1,0 +1,72 @@
+---
+import '../styles/studio.css';
+import { siteConfig } from '../config/site';
+import { titleTemplate } from '../lib/seo';
+
+interface Props {
+  title: string;
+  description?: string;
+  documentKind?: 'proposal' | 'invoice' | 'receipt' | 'document';
+}
+
+const {
+  title,
+  description = 'Private Che Xu Studio client document. Not for public indexing.',
+  documentKind = 'document',
+} = Astro.props;
+
+const fullTitle = titleTemplate(title);
+const kindLabel =
+  documentKind === 'proposal'
+    ? 'Proposal'
+    : documentKind === 'invoice'
+      ? 'Invoice'
+      : documentKind === 'receipt'
+        ? 'Receipt'
+        : 'Document';
+---
+
+<!doctype html>
+<html lang={siteConfig.locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="/fonts/source-serif-4-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body class="studio-doc-shell">
+    <a class="skip-link studio-doc-no-print" href="#document-main">Skip to document</a>
+    <div class="studio-doc-frame">
+      <article id="document-main" class="studio-doc-paper" tabindex="-1">
+        <header class="studio-doc-brand">
+          <img
+            src="/logo-mark.png"
+            alt=""
+            width="40"
+            height="40"
+            class="mb-4 h-10 w-10 object-contain"
+            decoding="async"
+          />
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand">{kindLabel}</p>
+          <p class="font-display text-xl font-semibold text-navy-900">{siteConfig.name}</p>
+          <p>Private client document · secure link access only</p>
+        </header>
+        <slot />
+      </article>
+    </div>
+  </body>
+</html>

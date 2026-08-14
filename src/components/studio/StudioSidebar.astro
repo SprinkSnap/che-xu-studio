@@ -1,0 +1,47 @@
+---
+import { isStudioNavActive, studioNavItems } from '../../lib/studio/navigation';
+
+interface Props {
+  currentPath: string;
+  id?: string;
+}
+
+const { currentPath, id = 'studio-sidebar-nav' } = Astro.props;
+---
+
+<aside class="studio-sidebar" aria-label="Studio">
+  <div class="studio-sidebar-brand">
+    <a href="/admin" class="group inline-flex min-h-11 items-center gap-3">
+      <img
+        src="/logo-mark.png"
+        alt=""
+        width="36"
+        height="36"
+        class="h-9 w-9 object-contain"
+        decoding="async"
+      />
+      <span class="font-display text-base font-semibold text-navy-900 group-hover:text-brand">
+        Studio OS
+      </span>
+    </a>
+  </div>
+  <nav class="studio-sidebar-nav" aria-label="Studio primary" id={id}>
+    {
+      studioNavItems.map((item) => {
+        const active = isStudioNavActive(currentPath, item.href);
+        return (
+          <a
+            href={item.href}
+            class="studio-nav-link"
+            aria-current={active ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+        );
+      })
+    }
+  </nav>
+  <div class="border-t border-border px-5 py-4 text-xs leading-relaxed text-ink-muted">
+    Che Xu Studio · private
+  </div>
+</aside>

@@ -17,3 +17,9 @@ PUBLIC_CF_WEB_ANALYTICS_TOKEN=
 # RESEND_API_KEY=re_xxxxxxxxx
 # CONTACT_FROM_EMAIL=Che Xu Studio <info@chexustudio.com>
 # CONTACT_NOTIFY_EMAIL=info@chexustudio.com
+
+# Studio OS foundation (Phase 2+)
+# Local `astro dev` always allows /admin. For `astro preview` / production Workers,
+# set STUDIO_OS_ENABLED=true only on intentional staging. Never enable in production
+# until Phase 5 authentication is ready. Do not use passwords or query-string bypasses.
+# STUDIO_OS_ENABLED=true

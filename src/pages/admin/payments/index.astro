@@ -1,0 +1,22 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Payments" description="Payment history for Studio OS.">
+  <StudioPageHeader
+    slot="header"
+    title="Payments"
+    description="Stripe-verified payments only. Checkout and webhooks arrive in Phase 11."
+  />
+  <StudioPanel title="Payments">
+    <StudioEmptyState
+      title="No payments yet"
+      description="Successful payments are recorded only after verified Stripe webhook processing — never from a browser success page alone."
+    />
+  </StudioPanel>
+</StudioLayout>

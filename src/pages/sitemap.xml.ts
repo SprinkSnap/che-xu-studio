@@ -1,36 +1,19 @@
 import type { APIRoute } from 'astro';
-import { getSiteUrl, siteConfig } from '../config/site';
+import { getSiteUrl } from '../config/site';
+import { assertPublicSitemapPath, getPublicSitemapPaths } from '../lib/studio/sitemap';
 
 export const prerender = true;
 
-const staticRoutes = [
-  '/',
-  '/services/branding',
-  '/services/web-design',
-  '/services/seo',
-  '/services/website-care',
-  '/pricing',
-  '/about',
-  '/work',
-  '/contact',
-  '/insights',
-  '/privacy',
-  '/terms',
-  '/refund-cancellation-policy',
-];
-
-const projectRoutes = siteConfig.projects.map((project) => `/work/${project.slug}`);
-const routes = [...staticRoutes, ...projectRoutes];
-
 export const GET: APIRoute = () => {
   const siteUrl = getSiteUrl(import.meta.env.PUBLIC_SITE_URL);
-  const lastmod = new Date().toISOString();
+  const routes = getPublicSitemapPaths().filter(assertPublicSitemapPath);
 
+  // lastmod omitted intentionally — build-time "now" timestamps misrepresent freshness.
+  // Follow-up: restore lastmod only with real significant modification dates.
   const urls = routes
     .map(
       (path) => `  <url>
     <loc>${siteUrl}${path === '/' ? '' : path}</loc>
-    <lastmod>${lastmod}</lastmod>
   </url>`,
     )
     .join('\n');

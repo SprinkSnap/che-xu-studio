@@ -16,6 +16,11 @@ export default defineConfig({
         url: 'http://127.0.0.1:4321',
         reuseExistingServer: true,
         timeout: 120_000,
+        env: {
+          ...process.env,
+          // Required for /admin in production preview builds (Phase 2 enablement gate).
+          STUDIO_OS_ENABLED: 'true',
+        },
       },
   projects: [
     {

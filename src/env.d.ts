@@ -40,6 +40,16 @@ interface CloudflareEnv {
    * Do not enable in production until Phase 5 authentication is ready.
    */
   STUDIO_OS_ENABLED?: string;
+
+  /** Studio OS — Supabase project URL (browser-safe). */
+  PUBLIC_SUPABASE_URL?: string;
+  /** Studio OS — Supabase publishable key (browser-safe). */
+  PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
+  /**
+   * Studio OS — Supabase secret key (server-only).
+   * Never prefix with PUBLIC_. Never expose to browser bundles.
+   */
+  SUPABASE_SECRET_KEY?: string;
 }
 
 interface ImportMetaEnv {
@@ -48,8 +58,26 @@ interface ImportMetaEnv {
   readonly PUBLIC_CF_WEB_ANALYTICS_TOKEN?: string;
   /** See CloudflareEnv.STUDIO_OS_ENABLED — used by preview/e2e when set at build/runtime. */
   readonly STUDIO_OS_ENABLED?: string;
+  readonly PUBLIC_SUPABASE_URL?: string;
+  readonly PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
+  /** Server-only when provided via Vite/process env for local tooling — never PUBLIC_. */
+  readonly SUPABASE_SECRET_KEY?: string;
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+declare namespace App {
+  interface Locals {
+    /**
+     * Request-scoped Studio Supabase user client (Phase 3 groundwork).
+     * Null when public Supabase env is not configured. Never a fake user client.
+     */
+    studioSupabase?: import('./lib/supabase/types').StudioSupabaseClient | null;
+    /**
+     * Populated only after Phase 5 auth enforcement. Phase 3 leaves this unset/null.
+     */
+    studioUser?: import('./lib/supabase/types').StudioAuthUser | null;
+  }
 }

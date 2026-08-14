@@ -24,6 +24,12 @@
     "db:create": "node scripts/create-d1.mjs",
     "db:migrate:local": "wrangler d1 migrations apply che-xu-studio-db --local --config wrangler.jsonc",
     "db:migrate:remote": "wrangler d1 migrations apply che-xu-studio-db --remote --config wrangler.jsonc",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:db:reset": "supabase db reset",
+    "supabase:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
+    "check:supabase-secret-leak": "node scripts/check-supabase-secret-leak.mjs",
     "deploy": "npm run build && node scripts/cf-deploy.mjs",
     "deploy:dry-run": "npm run build && node scripts/cf-deploy.mjs --dry-run",
     "cf:deploy": "node scripts/cf-deploy.mjs",
@@ -32,6 +38,8 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.1.7",
     "@astrojs/react": "^6.0.2",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
@@ -56,6 +64,7 @@
     "eslint-plugin-astro": "^1.7.0",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
+    "supabase": "^2.114.0",
     "typescript": "~5.8.3",
     "vitest": "^4.1.10"
   }

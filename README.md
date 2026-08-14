@@ -17,6 +17,7 @@ Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Work
 | `src/config/*`            | Owner-editable site, package, and FAQ source of truth                |
 | `/api/*` Worker endpoints | Contact leads, AI chat (`import { env } from 'cloudflare:workers'`)  |
 | Cloudflare D1             | Consented lead records (optional until `database_id` is set)         |
+| Supabase Postgres (Studio)| Future Studio OS data/auth — see `docs/architecture/supabase.md`     |
 | Workers AI                | Chat assistant grounded in package + FAQ data                        |
 | Turnstile + rate limits   | Abuse protection on sensitive endpoints                              |
 
@@ -28,6 +29,18 @@ Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Work
 - `/privacy`, `/terms`, `/refund-cancellation-policy`
 - Custom `404`
 - `/api/contact`, `/api/chat`
+- `/admin` Studio OS shell (Phase 2+; gated by `STUDIO_OS_ENABLED` outside `astro dev`)
+- `/api/studio/health` Studio config probe (no secrets)
+
+## Data stores (intentional dual database)
+
+| Store | Tooling | Purpose |
+| --- | --- | --- |
+| **Cloudflare D1** | `/migrations`, `npm run db:*` | Public contact leads (`/api/contact`) |
+| **Supabase Postgres** | `/supabase/migrations`, `npm run supabase:*` | Studio OS (clients, projects, invoices, auth) — schema from Phase 4 |
+
+Do **not** run D1 SQL through the Supabase CLI or Supabase SQL through Wrangler D1.  
+Marketing pages must keep working when Supabase env vars are absent. Details: [`docs/architecture/supabase.md`](./docs/architecture/supabase.md).
 
 ## Local setup
 
@@ -41,6 +54,15 @@ npm run dev
 
 Open `http://localhost:4321`.
 
+Optional local Supabase (Docker required):
+
+```bash
+npm run supabase:start
+npm run supabase:status   # copy URL + keys into .dev.vars
+# npm run supabase:types  # after Phase 4 migrations exist
+npm run supabase:stop
+```
+
 ## Environment-variable reference
 
 Copy from `.dev.vars.example`. Never commit `.dev.vars` or real secrets.
@@ -52,6 +74,10 @@ Copy from `.dev.vars.example`. Never commit `.dev.vars` or real secrets.
 | `TURNSTILE_SECRET_KEY`          | Turnstile secret (server)         |
 | `AI_MODEL`                      | Workers AI model id               |
 | `PUBLIC_CF_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics |
+| `STUDIO_OS_ENABLED`             | Enable `/admin` outside `astro dev` (staging only until Phase 5) |
+| `PUBLIC_SUPABASE_URL`           | Studio Supabase URL (browser-safe) |
+| `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Studio publishable key (browser-safe) |
+| `SUPABASE_SECRET_KEY`           | Studio secret key (**server only** — never `PUBLIC_`) |
 
 Owner-editable non-secret content lives in:
 

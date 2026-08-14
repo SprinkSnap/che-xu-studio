@@ -1,0 +1,395 @@
+---
+import StudioLayout from '../../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../../components/studio/StudioEmptyState.astro';
+import StudioStatusBadge from '../../../../components/studio/StudioStatusBadge.astro';
+import ProjectWorkflowActions from '../../../../components/studio/projects/ProjectWorkflowActions.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../../lib/auth/origin';
+import { roleHasPermission } from '../../../../lib/auth/permissions';
+import { getProjectDetail } from '../../../../lib/projects/queries';
+import {
+  archiveProject,
+  ProjectMutationError,
+  restoreProject,
+  transitionProject,
+} from '../../../../lib/projects/mutations';
+import {
+  formDataToObject,
+  GENERIC_ARCHIVE_ERROR,
+  GENERIC_RESTORE_ERROR,
+  GENERIC_TRANSITION_ERROR,
+  PROJECT_TRANSITION_CONFLICT_ERROR,
+  transitionProjectSchema,
+  uuidParamSchema,
+} from '../../../../lib/projects/validation';
+import { depositPreview } from '../../../../lib/projects/form-values';
+import {
+  PROJECT_STATUS_LABELS,
+  projectStatusTone,
+  type ProjectStatus,
+} from '../../../../lib/projects/workflow';
+import {
+  clientDisplayName,
+  formatDateOnly,
+  formatMoney,
+  formatStudioDateTime,
+} from '../../../../lib/clients/format';
+import { humanizeStudioActivity } from '../../../../lib/studio/activity';
+import { bpsToPercentInput } from '../../../../lib/money/parse';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.projects.read');
+const canWrite = roleHasPermission(auth.profile.role, 'studio.projects.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const idParsed = uuidParamSchema.safeParse(Astro.params.id);
+if (!idParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+const projectId = idParsed.data;
+
+let flashError = '';
+let flashSuccess = '';
+
+if (Astro.request.method === 'POST') {
+  if (!canWrite) {
+    flashError = 'You do not have permission to perform this action.';
+  } else {
+    const origin = requestSiteOrigin(Astro.request, Astro.url);
+    if (!isSameOriginMutation(Astro.request, origin)) {
+      return new Response('Invalid request origin.', { status: 403 });
+    }
+
+    const form = await Astro.request.formData();
+    const intent = String(form.get('intent') ?? '');
+    const actorId = auth.profile.id;
+    const raw = formDataToObject(form);
+
+    try {
+      if (intent === 'transition' || intent === 'archive') {
+        const parsed = transitionProjectSchema.safeParse({
+          expectedStatus: raw.expectedStatus,
+          targetStatus: intent === 'archive' ? 'archived' : raw.targetStatus,
+        });
+        if (!parsed.success) {
+          flashError = parsed.error.issues[0]?.message || GENERIC_TRANSITION_ERROR;
+        } else if (intent === 'archive') {
+          await archiveProject(
+            supabase,
+            projectId,
+            parsed.data.expectedStatus,
+            actorId,
+          );
+          return Astro.redirect(`/admin/projects/${projectId}?notice=archived`, 303);
+        } else {
+          await transitionProject(
+            supabase,
+            projectId,
+            parsed.data.expectedStatus,
+            parsed.data.targetStatus,
+            actorId,
+          );
+          return Astro.redirect(`/admin/projects/${projectId}?notice=status`, 303);
+        }
+      } else if (intent === 'restore') {
+        await restoreProject(supabase, projectId, actorId);
+        return Astro.redirect(`/admin/projects/${projectId}?notice=restored`, 303);
+      }
+    } catch (error) {
+      if (error instanceof ProjectMutationError) {
+        flashError =
+          error.code === 'conflict' ? PROJECT_TRANSITION_CONFLICT_ERROR : error.message;
+      } else if (intent === 'archive') {
+        flashError = GENERIC_ARCHIVE_ERROR;
+      } else if (intent === 'restore') {
+        flashError = GENERIC_RESTORE_ERROR;
+      } else {
+        flashError = GENERIC_TRANSITION_ERROR;
+      }
+    }
+  }
+}
+
+let detail = null as Awaited<ReturnType<typeof getProjectDetail>>;
+try {
+  detail = await getProjectDetail(supabase, projectId);
+} catch {
+  detail = null;
+}
+
+if (!detail) {
+  return new Response('Not found', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'private, no-store',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    },
+  });
+}
+
+const notice = Astro.url.searchParams.get('notice');
+const noticeMap: Record<string, string> = {
+  archived: 'Project archived.',
+  restored: 'Project restored to Inquiry.',
+  status: 'Project status updated.',
+  saved: 'Project saved.',
+};
+if (notice && noticeMap[notice]) flashSuccess = noticeMap[notice];
+
+const { project, client, proposals, invoices, activity } = detail;
+const status = project.status as ProjectStatus;
+const isArchived = status === 'archived';
+const preview = depositPreview(project.project_price_minor, project.deposit_bps);
+const clientName = clientDisplayName(client);
+---
+
+<StudioLayout title={project.name} description={`Project ${project.name}.`}>
+  <StudioPageHeader
+    slot="header"
+    title={project.name}
+    description={`Client: ${clientName}`}
+  />
+  <Fragment slot="actions">
+    {
+      canWrite && !isArchived && (
+        <a class="studio-action" href={`/admin/projects/${project.id}/edit`}>
+          Edit
+        </a>
+      )
+    }
+    {
+      canWrite && isArchived && (
+        <form method="post" action={`/admin/projects/${project.id}`}>
+          <input type="hidden" name="intent" value="restore" />
+          <button type="submit" class="studio-action studio-action-primary">
+            Restore project
+          </button>
+        </form>
+      )
+    }
+    <a class="studio-action" href={`/admin/clients/${client.id}`}>
+      View client
+    </a>
+    <a class="studio-action" href="/admin/projects">All projects</a>
+  </Fragment>
+
+  {
+    flashError && (
+      <p class="studio-auth-error mb-6" role="alert">
+        {flashError}
+      </p>
+    )
+  }
+  {
+    flashSuccess && (
+      <p class="studio-auth-success mb-6" role="status">
+        {flashSuccess}
+      </p>
+    )
+  }
+
+  <div class="mb-6 flex flex-wrap items-center gap-3">
+    <StudioStatusBadge
+      label={PROJECT_STATUS_LABELS[status]}
+      tone={projectStatusTone(status)}
+    />
+    {!isArchived && <ProjectWorkflowActions projectId={project.id} status={status} canWrite={canWrite} />}
+  </div>
+
+  <div class="studio-detail-grid mb-8">
+    <StudioPanel title="Overview">
+      <dl class="studio-dl">
+        <div>
+          <dt>Project type</dt>
+          <dd>{project.project_type || '—'}</dd>
+        </div>
+        <div>
+          <dt>Description</dt>
+          <dd class="studio-prewrap">{project.description || '—'}</dd>
+        </div>
+        <div>
+          <dt>Start date</dt>
+          <dd>{formatDateOnly(project.start_date)}</dd>
+        </div>
+        <div>
+          <dt>Target completion</dt>
+          <dd>{formatDateOnly(project.target_completion_date)}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{formatStudioDateTime(project.created_at)}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{formatStudioDateTime(project.updated_at)}</dd>
+        </div>
+        {
+          project.completed_at && (
+            <div>
+              <dt>Completed</dt>
+              <dd>{formatStudioDateTime(project.completed_at)}</dd>
+            </div>
+          )
+        }
+      </dl>
+    </StudioPanel>
+
+    <StudioPanel title="Financials">
+      <dl class="studio-dl">
+        <div>
+          <dt>Project value</dt>
+          <dd class="studio-project-value">
+            {formatMoney(project.project_price_minor, project.currency)}
+          </dd>
+        </div>
+        <div>
+          <dt>Currency</dt>
+          <dd>{project.currency}</dd>
+        </div>
+        <div>
+          <dt>Tax</dt>
+          <dd>{bpsToPercentInput(project.tax_bps)}%</dd>
+        </div>
+        <div>
+          <dt>Deposit</dt>
+          <dd>{bpsToPercentInput(project.deposit_bps)}%</dd>
+        </div>
+        <div>
+          <dt>Deposit base (informational)</dt>
+          <dd class="studio-project-value">
+            {formatMoney(preview.depositBaseMinor, project.currency)}
+          </dd>
+        </div>
+        <div>
+          <dt>Remaining project value</dt>
+          <dd class="studio-project-value">
+            {formatMoney(preview.remainingMinor, project.currency)}
+          </dd>
+        </div>
+      </dl>
+      <p class="mt-4 text-xs text-ink-muted">
+        Tax is calculated when invoiced. Deposit split uses integer truncation toward zero; Phase 9
+        defines authoritative invoice allocation. Project value is not revenue.
+      </p>
+    </StudioPanel>
+  </div>
+
+  <div class="studio-detail-grid mb-8">
+    <StudioPanel title="Scope of work">
+      {
+        project.scope ? (
+          <p class="studio-prewrap">{project.scope}</p>
+        ) : (
+          <StudioEmptyState title="No scope yet" description="Add scope boundaries on edit." />
+        )
+      }
+    </StudioPanel>
+    <StudioPanel title="Deliverables">
+      {
+        project.deliverables ? (
+          <p class="studio-prewrap">{project.deliverables}</p>
+        ) : (
+          <StudioEmptyState
+            title="No deliverables yet"
+            description="List expected outputs on edit."
+          />
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="studio-detail-grid mb-8">
+    <StudioPanel title="Related proposal">
+      {
+        proposals.length === 0 ? (
+          <StudioEmptyState
+            title="No proposal created yet"
+            description="Proposal creation will be available in the proposal workflow (Phase 8)."
+          />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {proposals.map((proposal) => (
+              <li class="flex items-center justify-between gap-3 py-3 text-sm">
+                <span class="font-medium text-navy-900">Proposal {proposal.id.slice(0, 8)}</span>
+                <span class="text-ink-muted capitalize">
+                  {proposal.status.replaceAll('_', ' ')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+    <StudioPanel title="Related invoices">
+      {
+        invoices.length === 0 ? (
+          <StudioEmptyState
+            title="No invoices yet"
+            description="Invoice workflows arrive in Phase 9. Existing rows would appear here read-only."
+          />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {invoices.map((invoice) => (
+              <li class="flex items-center justify-between gap-3 py-3 text-sm">
+                <span class="font-medium text-navy-900">{invoice.invoice_number}</span>
+                <span class="text-ink-muted">
+                  {formatMoney(invoice.total_minor, invoice.currency as 'CAD' | 'USD')} ·{' '}
+                  {invoice.status.replaceAll('_', ' ')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="mb-8">
+    <StudioPanel title="Internal notes">
+      {
+        project.internal_notes ? (
+          <p class="studio-prewrap">{project.internal_notes}</p>
+        ) : (
+          <StudioEmptyState title="No notes" description="Studio-only notes appear here." />
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <StudioPanel title="Activity">
+    {
+      activity.length === 0 ? (
+        <StudioEmptyState title="No activity yet" description="Project changes will be listed here." />
+      ) : (
+        <ul class="divide-y divide-border" role="list">
+          {activity.map((entry) => (
+            <li class="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
+              <span class="font-medium text-navy-900">
+                {humanizeStudioActivity(entry.action)}
+                {entry.action === 'project.status_changed' &&
+                  typeof entry.metadata?.from === 'string' &&
+                  typeof entry.metadata?.to === 'string' && (
+                    <span class="font-normal text-ink-muted">
+                      {' '}
+                      ({String(entry.metadata.from).replaceAll('_', ' ')} →{' '}
+                      {String(entry.metadata.to).replaceAll('_', ' ')})
+                    </span>
+                  )}
+              </span>
+              <time class="text-ink-muted" datetime={entry.created_at}>
+                {formatStudioDateTime(entry.created_at)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </StudioPanel>
+</StudioLayout>

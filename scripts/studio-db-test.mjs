@@ -284,6 +284,42 @@ ROLLBACK;
     }
   };
 
+  /** Like asRole but COMMITs — needed when later assertions depend on prior writes. */
+  const asRoleCommit = (role, jwtSub, sql) => {
+    const tmp = mkdtempSync(path.join(tmpdir(), 'studio-rls-c-'));
+    run('chmod', ['755', tmp]);
+    const file = path.join(tmp, 'q.sql');
+    writeFileSync(
+      file,
+      `BEGIN;
+SELECT set_config('request.jwt.claim.sub', '${jwtSub}', true);
+SET LOCAL ROLE ${role};
+${sql}
+COMMIT;
+`,
+      { mode: 0o644 },
+    );
+    run('chmod', ['644', file]);
+    try {
+      const out = run('sudo', [
+        '-u',
+        'postgres',
+        'psql',
+        adminUrl,
+        '-v',
+        'ON_ERROR_STOP=1',
+        '-q',
+        '-At',
+        '-f',
+        file,
+      ]).trim();
+      const lines = out.split('\n').map((line) => line.trim()).filter(Boolean);
+      return lines.at(-1) || '';
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  };
+
   // Anonymous cannot read clients
   try {
     asRole('anon', '', `SELECT count(*) FROM public.clients;`);
@@ -450,6 +486,72 @@ ROLLBACK;
     `SELECT count(*)::text FROM public.client_contacts WHERE client_id = '${finClient}';`,
   ).trim();
   assert(contactSurvives === '1', `contacts must survive archive, got ${contactSurvives}`);
+
+  // Phase 7 — project workflow RPC (allowed, forbidden, stale concurrency)
+  const wfProject = adminPsql(`
+    INSERT INTO public.projects (client_id, name, status, project_price_minor, deposit_bps, tax_bps, currency)
+    VALUES ('${clientId}', 'Workflow Project', 'inquiry', 100000, 5000, 0, 'CAD')
+    RETURNING id;
+  `).trim();
+
+  const moved = asRoleCommit(
+    'authenticated',
+    ownerAuth,
+    `SELECT (public.transition_project('${wfProject}'::uuid, 'inquiry'::public.project_status, 'proposal'::public.project_status)).status::text;`,
+  ).trim();
+  assert(moved === 'proposal', `transition inquiry→proposal should yield proposal, got ${moved}`);
+  assert(
+    adminPsql(`SELECT status::text FROM public.projects WHERE id = '${wfProject}';`) === 'proposal',
+    'committed status should be proposal',
+  );
+
+  let forbiddenFailed = false;
+  try {
+    asRole(
+      'authenticated',
+      ownerAuth,
+      `SELECT public.transition_project('${wfProject}'::uuid, 'proposal'::public.project_status, 'completed'::public.project_status);`,
+    );
+  } catch (err) {
+    forbiddenFailed = /invalid project transition|22023/i.test(String(err));
+    if (!forbiddenFailed) throw err;
+  }
+  assert(forbiddenFailed, 'forbidden transition proposal→completed should fail');
+
+  let staleFailed = false;
+  try {
+    asRole(
+      'authenticated',
+      ownerAuth,
+      `SELECT public.transition_project('${wfProject}'::uuid, 'inquiry'::public.project_status, 'archived'::public.project_status);`,
+    );
+  } catch (err) {
+    staleFailed = /project status conflict|40001|serialization/i.test(String(err));
+    if (!staleFailed) throw err;
+  }
+  assert(staleFailed, 'stale expected status should fail');
+
+  const archivedStatus = asRoleCommit(
+    'authenticated',
+    ownerAuth,
+    `SELECT (public.transition_project('${wfProject}'::uuid, 'proposal'::public.project_status, 'archived'::public.project_status)).status::text;`,
+  ).trim();
+  assert(archivedStatus === 'archived', `archive should set archived, got ${archivedStatus}`);
+  const beforeArchive = adminPsql(
+    `SELECT status_before_archive::text FROM public.projects WHERE id = '${wfProject}';`,
+  ).trim();
+  assert(beforeArchive === 'proposal', `status_before_archive should be proposal, got ${beforeArchive}`);
+
+  const restoredStatus = asRoleCommit(
+    'authenticated',
+    ownerAuth,
+    `SELECT (public.transition_project('${wfProject}'::uuid, 'archived'::public.project_status, 'inquiry'::public.project_status)).status::text;`,
+  ).trim();
+  assert(restoredStatus === 'inquiry', `restore should return inquiry, got ${restoredStatus}`);
+  assert(
+    adminPsql(`SELECT status::text FROM public.projects WHERE id = '${wfProject}';`) === 'inquiry',
+    'restored project should persist as inquiry',
+  );
 
   // Table inventory
   const tableCount = adminPsql(`

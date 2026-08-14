@@ -22,7 +22,19 @@ describe('studio phase 4 migrations', () => {
       '202608140007_rls.sql',
       '202608140008_profile_privilege_guards.sql',
       '202608140009_client_management_helpers.sql',
+      '202608140010_project_workflow_helpers.sql',
     ]);
+  });
+
+  it('ships atomic project transition helpers', () => {
+    const helpers = readFileSync(
+      path.join(migrationsDir, '202608140010_project_workflow_helpers.sql'),
+      'utf8',
+    );
+    expect(helpers).toMatch(/transition_project/);
+    expect(helpers).toMatch(/status_before_archive/);
+    expect(helpers).toMatch(/SECURITY INVOKER/);
+    expect(helpers).toMatch(/project status conflict/);
   });
 
   it('blocks profile self-promotion and open self-enrollment', () => {

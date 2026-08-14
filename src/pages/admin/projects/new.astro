@@ -1,0 +1,124 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import ProjectFormFields from '../../../components/studio/projects/ProjectFormFields.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../lib/auth/origin';
+import {
+  assertClientAccessible,
+  getStudioSettingsDefaults,
+  listActiveClientsForSelect,
+} from '../../../lib/projects/queries';
+import { createProject, ProjectMutationError } from '../../../lib/projects/mutations';
+import {
+  createProjectSchema,
+  formDataToObject,
+  GENERIC_PROJECT_SAVE_ERROR,
+  uuidParamSchema,
+} from '../../../lib/projects/validation';
+import {
+  emptyProjectFormValues,
+  type ProjectFormValues,
+} from '../../../lib/projects/form-values';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.projects.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const defaults = await getStudioSettingsDefaults(supabase);
+const clients = await listActiveClientsForSelect(supabase);
+
+const clientParam = Astro.url.searchParams.get('client') ?? '';
+let preselectedClientId = '';
+let clientLocked = false;
+if (clientParam) {
+  const parsedClient = uuidParamSchema.safeParse(clientParam);
+  if (parsedClient.success) {
+    try {
+      await assertClientAccessible(supabase, parsedClient.data);
+      preselectedClientId = parsedClient.data;
+      clientLocked = true;
+    } catch {
+      // Ignore unauthorized/invalid client query params — do not trust them.
+    }
+  }
+}
+
+let errorMessage = '';
+let values: ProjectFormValues = emptyProjectFormValues(defaults, preselectedClientId);
+
+if (Astro.request.method === 'POST') {
+  const origin = requestSiteOrigin(Astro.request, Astro.url);
+  if (!isSameOriginMutation(Astro.request, origin)) {
+    return new Response('Invalid request origin.', { status: 403 });
+  }
+
+  const form = await Astro.request.formData();
+  const raw = formDataToObject(form);
+  values = {
+    ...emptyProjectFormValues(defaults, preselectedClientId),
+    name: raw.name ?? '',
+    clientId: raw.clientId ?? '',
+    projectType: raw.projectType ?? '',
+    description: raw.description ?? '',
+    scope: raw.scope ?? '',
+    deliverables: raw.deliverables ?? '',
+    startDate: raw.startDate ?? '',
+    targetCompletionDate: raw.targetCompletionDate ?? '',
+    projectPrice: raw.projectPrice ?? '',
+    currency: raw.currency === 'USD' ? 'USD' : 'CAD',
+    taxPercent: raw.taxPercent ?? '',
+    depositPercent: raw.depositPercent ?? '',
+    internalNotes: raw.internalNotes ?? '',
+  };
+
+  const parsed = createProjectSchema.safeParse(raw);
+  if (!parsed.success) {
+    errorMessage = parsed.error.issues[0]?.message || GENERIC_PROJECT_SAVE_ERROR;
+  } else {
+    try {
+      return Astro.redirect(
+        `/admin/projects/${await createProject(supabase, parsed.data, auth.profile.id)}`,
+        303,
+      );
+    } catch (error) {
+      errorMessage =
+        error instanceof ProjectMutationError
+          ? error.message
+          : error instanceof Error && error.message === 'Client not found'
+            ? 'Select an active client you can access.'
+            : GENERIC_PROJECT_SAVE_ERROR;
+    }
+  }
+}
+---
+
+<StudioLayout title="New project" description="Create a Studio project.">
+  <StudioPageHeader
+    slot="header"
+    title="New project"
+    description="Defaults for currency, tax, and deposit come from Studio settings when available."
+  />
+  <a slot="actions" class="studio-action" href="/admin/projects">Back to projects</a>
+
+  <StudioPanel title="Project details">
+    <form method="post" action="/admin/projects/new" novalidate>
+      <ProjectFormFields
+        values={values}
+        mode="create"
+        clients={clients}
+        errorMessage={errorMessage}
+        clientLocked={clientLocked && Boolean(values.clientId)}
+      />
+      <div class="studio-actions mt-2">
+        <button type="submit" class="studio-action studio-action-primary">Save project</button>
+        <a class="studio-action" href="/admin/projects">Cancel</a>
+      </div>
+    </form>
+  </StudioPanel>
+</StudioLayout>

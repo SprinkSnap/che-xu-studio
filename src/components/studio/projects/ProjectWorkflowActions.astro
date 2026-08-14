@@ -1,0 +1,64 @@
+---
+import {
+  getAllowedProjectTransitions,
+  projectTransitionLabel,
+  shouldWarnBeforeArchive,
+  type ProjectStatus,
+} from '../../../lib/projects/workflow';
+
+interface Props {
+  projectId: string;
+  status: ProjectStatus;
+  canWrite: boolean;
+}
+
+const { projectId, status, canWrite } = Astro.props;
+const transitions = getAllowedProjectTransitions(status).filter((to) => to !== 'archived');
+const canArchive = getAllowedProjectTransitions(status).includes('archived');
+const warnArchive = shouldWarnBeforeArchive(status);
+---
+
+{
+  canWrite && (
+    <div class="studio-actions flex-wrap" role="group" aria-label="Project status actions">
+      {transitions.map((to) => (
+        <form method="post" action={`/admin/projects/${projectId}`}>
+          <input type="hidden" name="intent" value="transition" />
+          <input type="hidden" name="expectedStatus" value={status} />
+          <input type="hidden" name="targetStatus" value={to} />
+          <button type="submit" class="studio-action studio-action-primary">
+            {projectTransitionLabel(status, to)}
+          </button>
+        </form>
+      ))}
+      {canArchive && (
+        <form method="post" action={`/admin/projects/${projectId}`}>
+          <input type="hidden" name="intent" value="archive" />
+          <input type="hidden" name="expectedStatus" value={status} />
+          <button
+            type="submit"
+            class="studio-action"
+            data-confirm-archive={warnArchive ? 'financial' : 'default'}
+          >
+            Archive
+          </button>
+        </form>
+      )}
+    </div>
+  )
+}
+
+<script is:inline>
+  (() => {
+    document.querySelectorAll('[data-confirm-archive]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const mode = button.getAttribute('data-confirm-archive');
+        const message =
+          mode === 'financial'
+            ? 'This project may have financial obligations (active, deposit due, or awaiting final payment). Archive anyway? History is preserved.'
+            : 'Archive this project? Data, proposals, and invoices are preserved.';
+        if (!confirm(message)) event.preventDefault();
+      });
+    });
+  })();
+</script>

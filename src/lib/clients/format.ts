@@ -31,6 +31,24 @@ export function formatStudioDate(iso: string): string {
   }
 }
 
+/** Format Postgres `date` (YYYY-MM-DD) without timezone shift. */
+export function formatDateOnly(value: string | null | undefined): string {
+  if (!value) return '—';
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) return value;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      dateStyle: 'medium',
+      timeZone: 'UTC',
+    }).format(new Date(Date.UTC(year, month - 1, day)));
+  } catch {
+    return value;
+  }
+}
+
 export function clientDisplayName(client: {
   company_name?: string;
   companyName?: string;

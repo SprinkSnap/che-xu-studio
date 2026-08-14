@@ -28,6 +28,7 @@ import {
 } from '../../../../lib/clients/validation';
 import {
   clientDisplayName,
+  formatDateOnly,
   formatMoney,
   formatStudioDate,
   formatStudioDateTime,
@@ -38,6 +39,7 @@ export const prerender = false;
 
 const auth = await requireStudioPermission(Astro, 'studio.clients.read');
 const canWrite = roleHasPermission(auth.profile.role, 'studio.clients.write');
+const canWriteProjects = roleHasPermission(auth.profile.role, 'studio.projects.write');
 const canRemoveContacts = isStudioAdminRole(auth.profile.role);
 const supabase = Astro.locals.studioSupabase;
 if (!supabase) {
@@ -453,17 +455,58 @@ function formatAddress(parts: Array<string | null | undefined>): string {
   <div class="studio-detail-grid mb-8">
     <StudioPanel title="Projects">
       {
+        canWriteProjects && !isArchived && projects.length > 0 && (
+          <div class="mb-4">
+            <a
+              class="studio-action studio-action-primary"
+              href={`/admin/projects/new?client=${client.id}`}
+            >
+              New Project
+            </a>
+          </div>
+        )
+      }
+      {
         projects.length === 0 ? (
           <StudioEmptyState
             title="No projects yet"
-            description="Project management arrives in Phase 7. Related projects will appear here."
-          />
+            description="Create a project to track scope, pricing, and workflow status for this client."
+          >
+            {canWriteProjects && !isArchived && (
+              <a
+                class="studio-action studio-action-primary mt-2"
+                href={`/admin/projects/new?client=${client.id}`}
+              >
+                New Project
+              </a>
+            )}
+          </StudioEmptyState>
         ) : (
           <ul class="divide-y divide-border" role="list">
             {projects.map((project) => (
-              <li class="flex items-center justify-between gap-3 py-3 text-sm">
-                <span class="font-medium text-navy-900">{project.name}</span>
-                <span class="text-ink-muted capitalize">{project.status.replaceAll('_', ' ')}</span>
+              <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                <div>
+                  <a class="studio-client-link" href={`/admin/projects/${project.id}`}>
+                    {project.name}
+                  </a>
+                  <p class="mt-1 text-ink-muted">
+                    {project.status.replaceAll('_', ' ')}
+                    <span class="mx-2" aria-hidden="true">
+                      ·
+                    </span>
+                    {formatMoney(
+                      project.project_price_minor,
+                      project.currency as 'CAD' | 'USD',
+                    )}
+                    <span class="mx-2" aria-hidden="true">
+                      ·
+                    </span>
+                    Target {formatDateOnly(project.target_completion_date)}
+                  </p>
+                </div>
+                <a class="studio-action" href={`/admin/projects/${project.id}`}>
+                  View Project
+                </a>
               </li>
             ))}
           </ul>

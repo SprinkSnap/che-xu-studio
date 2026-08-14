@@ -3,23 +3,181 @@ import StudioLayout from '../../../layouts/StudioLayout.astro';
 import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
 import StudioPanel from '../../../components/studio/StudioPanel.astro';
 import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+import ProjectList from '../../../components/studio/projects/ProjectList.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { roleHasPermission } from '../../../lib/auth/permissions';
+import { listProjects } from '../../../lib/projects/queries';
+import { projectListQuerySchema } from '../../../lib/projects/validation';
+import { PROJECT_STATUS_LABELS, PROJECT_STATUSES } from '../../../lib/projects/workflow';
+import { PROJECT_LIST_PAGE_SIZE } from '../../../lib/projects/types';
 
 export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.projects.read');
+const canWrite = roleHasPermission(auth.profile.role, 'studio.projects.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const raw = Object.fromEntries(Astro.url.searchParams.entries());
+const parsed = projectListQuerySchema.safeParse(raw);
+const query = parsed.success
+  ? parsed.data
+  : projectListQuerySchema.parse({
+      status: 'operational',
+      sort: 'updated_desc',
+      page: 1,
+      pageSize: PROJECT_LIST_PAGE_SIZE,
+    });
+
+let listError = '';
+let result = {
+  items: [] as Awaited<ReturnType<typeof listProjects>>['items'],
+  total: 0,
+  page: query.page,
+  pageSize: query.pageSize,
+  pageCount: 1,
+};
+
+try {
+  result = await listProjects(supabase, query);
+} catch {
+  listError = 'Unable to load projects.';
+}
+
+const hasFilters =
+  Boolean(query.q) || query.status !== 'operational' || Boolean(query.clientId);
+const emptyTitle = hasFilters ? 'No projects match this search.' : 'No projects yet';
+const emptyDescription = hasFilters
+  ? 'Try a different name, status, or clear filters.'
+  : 'Create a project from a client to track scope, pricing, and workflow status.';
+
+function pageHref(page: number): string {
+  const params = new URLSearchParams();
+  if (query.q) params.set('q', query.q);
+  params.set('status', query.status);
+  params.set('sort', query.sort);
+  if (query.clientId) params.set('clientId', query.clientId);
+  params.set('page', String(page));
+  return `/admin/projects?${params.toString()}`;
+}
 ---
 
 <StudioLayout title="Projects" description="Project workflow for Studio OS.">
   <StudioPageHeader
     slot="header"
     title="Projects"
-    description="Track studio engagements from inquiry through completion. Project CRUD arrives in Phase 7."
+    description="Track engagements from inquiry through completion. Project value is not revenue until paid."
   />
-  <button slot="actions" type="button" class="studio-action studio-action-primary" disabled>
-    New Project
-  </button>
-  <StudioPanel title="Projects">
-    <StudioEmptyState
-      title="No projects yet"
-      description="Projects will list here with status, payment schedule, and linked proposals once the workflow engine is connected."
-    />
+  {
+    canWrite ? (
+      <a slot="actions" class="studio-action studio-action-primary" href="/admin/projects/new">
+        New Project
+      </a>
+    ) : (
+      <span slot="actions" />
+    )
+  }
+
+  <StudioPanel title="Project directory">
+    <form
+      class="mb-6 grid gap-3 lg:grid-cols-[1fr_14rem_14rem_auto]"
+      method="get"
+      action="/admin/projects"
+    >
+      <label class="block text-sm font-medium text-navy-900">
+        Search
+        <input
+          type="search"
+          name="q"
+          value={query.q}
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+          placeholder="Project, client, or type"
+        />
+      </label>
+      <label class="block text-sm font-medium text-navy-900">
+        Status
+        <select
+          name="status"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+        >
+          <option value="operational" selected={query.status === 'operational'}>
+            Active workflow
+          </option>
+          <option value="all" selected={query.status === 'all'}>All</option>
+          {PROJECT_STATUSES.map((status) => (
+            <option value={status} selected={query.status === status}>
+              {PROJECT_STATUS_LABELS[status]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label class="block text-sm font-medium text-navy-900">
+        Sort
+        <select
+          name="sort"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+        >
+          <option value="updated_desc" selected={query.sort === 'updated_desc'}>
+            Recently updated
+          </option>
+          <option value="created_desc" selected={query.sort === 'created_desc'}>Newest</option>
+          <option value="name_asc" selected={query.sort === 'name_asc'}>Project name</option>
+          <option value="target_date_asc" selected={query.sort === 'target_date_asc'}>
+            Target date
+          </option>
+          <option value="value_desc" selected={query.sort === 'value_desc'}>
+            Highest value
+          </option>
+          <option value="value_asc" selected={query.sort === 'value_asc'}>Lowest value</option>
+        </select>
+      </label>
+      <div class="flex items-end">
+        <button type="submit" class="studio-action w-full lg:w-auto">Apply</button>
+      </div>
+    </form>
+
+    {
+      listError ? (
+        <p class="studio-auth-error" role="alert">
+          {listError}
+        </p>
+      ) : result.items.length === 0 ? (
+        <StudioEmptyState title={emptyTitle} description={emptyDescription}>
+          {canWrite && !hasFilters && (
+            <a class="studio-action studio-action-primary mt-2" href="/admin/projects/new">
+              New Project
+            </a>
+          )}
+        </StudioEmptyState>
+      ) : (
+        <>
+          <p class="mb-4 text-sm text-ink-muted">
+            {result.total} project{result.total === 1 ? '' : 's'}
+          </p>
+          <ProjectList items={result.items} />
+          {result.pageCount > 1 && (
+            <nav class="studio-pagination" aria-label="Project list pages">
+              <p>
+                Page {result.page} of {result.pageCount}
+              </p>
+              <div class="studio-actions">
+                {result.page > 1 && (
+                  <a class="studio-action" href={pageHref(result.page - 1)}>
+                    Previous
+                  </a>
+                )}
+                {result.page < result.pageCount && (
+                  <a class="studio-action" href={pageHref(result.page + 1)}>
+                    Next
+                  </a>
+                )}
+              </div>
+            </nav>
+          )}
+        </>
+      )
+    }
   </StudioPanel>
 </StudioLayout>

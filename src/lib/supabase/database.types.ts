@@ -578,6 +578,7 @@ export type Database = {
           internal_notes: string | null
           completed_at: string | null
           archived_at: string | null
+          status_before_archive: 'inquiry' | 'proposal' | 'awaiting_approval' | 'deposit_due' | 'active' | 'awaiting_final_payment' | 'completed' | 'archived' | null
           created_at: string
           updated_at: string
         }
@@ -599,6 +600,7 @@ export type Database = {
           internal_notes?: string | null
           completed_at?: string | null
           archived_at?: string | null
+          status_before_archive?: 'inquiry' | 'proposal' | 'awaiting_approval' | 'deposit_due' | 'active' | 'awaiting_final_payment' | 'completed' | 'archived' | null
           created_at?: string
           updated_at?: string
         }
@@ -620,6 +622,7 @@ export type Database = {
           internal_notes?: string | null
           completed_at?: string | null
           archived_at?: string | null
+          status_before_archive?: 'inquiry' | 'proposal' | 'awaiting_approval' | 'deposit_due' | 'active' | 'awaiting_final_payment' | 'completed' | 'archived' | null
           created_at?: string
           updated_at?: string
         }
@@ -1174,6 +1177,14 @@ export type Database = {
           p_contact_id: string
         }
         Returns: undefined
+      }
+      transition_project: {
+        Args: {
+          p_project_id: string
+          p_expected_status: Database['public']['Enums']['project_status']
+          p_target_status: Database['public']['Enums']['project_status']
+        }
+        Returns: Database['public']['Tables']['projects']['Row']
       }
     }
     Enums: {

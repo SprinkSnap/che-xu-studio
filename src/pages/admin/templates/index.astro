@@ -1,0 +1,23 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Templates" description="Reusable proposal and document templates.">
+  <StudioPageHeader
+    slot="header"
+    title="Templates"
+    description="Reusable proposal and document structures. Template management arrives with the proposal system."
+  />
+  <button slot="actions" type="button" class="studio-action" disabled>New Template</button>
+  <StudioPanel title="Templates">
+    <StudioEmptyState
+      title="No templates yet"
+      description="Saved proposal structures will live here so new engagements start from the studio’s editorial standards."
+    />
+  </StudioPanel>
+</StudioLayout>

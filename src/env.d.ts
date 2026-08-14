@@ -33,12 +33,21 @@ interface CloudflareEnv {
   PUBLIC_SITE_URL?: string;
   PUBLIC_CF_WEB_ANALYTICS_TOKEN?: string;
   AI_MODEL?: string;
+
+  /**
+   * Gate for unfinished Studio OS surfaces (/admin, /proposal, /invoice).
+   * Set to "true" for local preview / intentional staging only.
+   * Do not enable in production until Phase 5 authentication is ready.
+   */
+  STUDIO_OS_ENABLED?: string;
 }
 
 interface ImportMetaEnv {
   readonly PUBLIC_TURNSTILE_SITE_KEY?: string;
   readonly PUBLIC_SITE_URL?: string;
   readonly PUBLIC_CF_WEB_ANALYTICS_TOKEN?: string;
+  /** See CloudflareEnv.STUDIO_OS_ENABLED — used by preview/e2e when set at build/runtime. */
+  readonly STUDIO_OS_ENABLED?: string;
 }
 
 interface ImportMeta {

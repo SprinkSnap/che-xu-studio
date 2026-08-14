@@ -1,0 +1,230 @@
+/* Studio OS chrome — imports shared brand tokens from the marketing stylesheet.
+   Do not redefine CSS variables here. Avoid marketing hero/footer utilities in markup. */
+@import "./global.css";
+
+@layer components {
+  .studio-shell {
+    @apply min-h-dvh bg-[color:var(--color-brand-wash)] text-ink;
+  }
+
+  .studio-frame {
+    @apply mx-auto flex min-h-dvh w-full max-w-[90rem];
+  }
+
+  .studio-sidebar {
+    @apply hidden w-60 shrink-0 flex-col border-r border-border bg-white lg:flex;
+  }
+
+  .studio-sidebar-brand {
+    @apply flex items-center gap-3 border-b border-border px-5 py-5;
+  }
+
+  .studio-sidebar-nav {
+    @apply flex flex-1 flex-col gap-0.5 p-3;
+  }
+
+  .studio-nav-link {
+    @apply flex min-h-11 items-center rounded-[var(--radius-md)] px-3 text-sm font-medium text-ink-muted transition duration-200 hover:bg-brand-wash hover:text-navy-900;
+  }
+
+  .studio-nav-link[aria-current='page'] {
+    @apply bg-brand-tint text-navy-900;
+  }
+
+  .studio-main-column {
+    @apply flex min-w-0 flex-1 flex-col;
+  }
+
+  .studio-mobile-header {
+    @apply sticky top-0 z-40 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-white/95 px-4 backdrop-blur lg:hidden;
+  }
+
+  .studio-content {
+    @apply flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8;
+  }
+
+  .studio-page-header {
+    @apply mb-8 max-w-3xl;
+  }
+
+  .studio-page-header h1 {
+    @apply font-display text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl;
+  }
+
+  .studio-page-header p {
+    @apply mt-2 text-sm leading-relaxed text-ink-muted sm:text-base;
+  }
+
+  .studio-panel {
+    @apply rounded-[var(--radius-md)] border border-border bg-white;
+  }
+
+  .studio-panel-header {
+    @apply border-b border-border px-5 py-4;
+  }
+
+  .studio-panel-header h2,
+  .studio-panel-header h3 {
+    @apply font-display text-lg font-semibold text-navy-900;
+  }
+
+  .studio-panel-body {
+    @apply p-5;
+  }
+
+  .studio-metric-grid {
+    @apply grid gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .studio-metric-card {
+    @apply rounded-[var(--radius-md)] border border-border bg-white px-5 py-4;
+  }
+
+  .studio-metric-label {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted;
+  }
+
+  .studio-metric-value {
+    @apply mt-3 font-display text-2xl font-semibold text-navy-900;
+  }
+
+  .studio-metric-hint {
+    @apply mt-1 text-sm text-ink-muted;
+  }
+
+  .studio-empty {
+    @apply flex flex-col items-start gap-2 py-2;
+  }
+
+  .studio-empty-title {
+    @apply text-sm font-semibold text-navy-900;
+  }
+
+  .studio-empty-copy {
+    @apply max-w-prose text-sm leading-relaxed text-ink-muted;
+  }
+
+  .studio-status {
+    @apply inline-flex min-h-7 items-center rounded-[var(--radius-sm)] border px-2.5 text-xs font-semibold;
+  }
+
+  .studio-status-neutral {
+    @apply border-border bg-brand-wash text-ink-muted;
+  }
+
+  .studio-status-info {
+    @apply border-brand-soft/60 bg-brand-tint text-navy-800;
+  }
+
+  .studio-status-success {
+    @apply border-green-100 bg-green-100 text-green-600;
+  }
+
+  .studio-status-warning {
+    @apply border-gold-100 bg-gold-100 text-gold-600;
+  }
+
+  .studio-table-wrap {
+    @apply -mx-5 overflow-x-auto px-5;
+  }
+
+  .studio-table {
+    @apply w-full min-w-[36rem] border-collapse text-left text-sm;
+  }
+
+  .studio-table th {
+    @apply border-b border-border px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted;
+  }
+
+  .studio-table td {
+    @apply border-b border-border px-3 py-3.5 text-ink;
+  }
+
+  .studio-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .studio-action {
+    @apply inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-border bg-white px-4 text-sm font-semibold text-navy-900 transition duration-200;
+  }
+
+  .studio-action:hover:not(:disabled) {
+    @apply border-brand text-brand;
+  }
+
+  .studio-action:disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+
+  .studio-action-primary {
+    background-color: #0b45bf;
+    color: #ffffff;
+    border-color: #0b45bf;
+  }
+
+  .studio-action-primary:hover:not(:disabled) {
+    background-color: #0939a0;
+    border-color: #0939a0;
+    color: #ffffff;
+  }
+
+  .studio-notice {
+    @apply mb-6 rounded-[var(--radius-md)] border border-border bg-white px-4 py-3 text-sm text-ink-muted;
+  }
+
+  .studio-drawer-backdrop {
+    @apply fixed inset-0 z-50 bg-navy-950/40 lg:hidden;
+  }
+
+  .studio-drawer {
+    @apply fixed inset-y-0 left-0 z-50 flex w-[min(100%,18rem)] flex-col border-r border-border bg-white shadow-lift lg:hidden;
+  }
+
+  .studio-drawer[hidden] {
+    display: none;
+  }
+
+  .studio-doc-shell {
+    @apply min-h-dvh bg-brand-wash text-ink;
+  }
+
+  .studio-doc-frame {
+    @apply mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-14 lg:py-16;
+  }
+
+  .studio-doc-paper {
+    @apply rounded-[var(--radius-md)] border border-border bg-white px-6 py-10 sm:px-10 sm:py-12;
+  }
+
+  .studio-doc-brand {
+    @apply mb-10 border-b border-border pb-6;
+  }
+
+  .studio-doc-brand p {
+    @apply mt-2 text-sm text-ink-muted;
+  }
+
+  .studio-doc-title {
+    @apply font-display text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl;
+  }
+
+  .studio-doc-lede {
+    @apply mt-4 text-base leading-relaxed text-ink-muted;
+  }
+}
+
+@media print {
+  .studio-doc-shell {
+    background: white;
+  }
+
+  .studio-doc-paper {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .studio-doc-no-print {
+    display: none !important;
+  }
+}

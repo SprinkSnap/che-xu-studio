@@ -1,0 +1,51 @@
+---
+import StudioLayout from '../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../components/studio/StudioPanel.astro';
+import StudioMetricCard from '../../components/studio/StudioMetricCard.astro';
+import StudioEmptyState from '../../components/studio/StudioEmptyState.astro';
+import StudioStatusBadge from '../../components/studio/StudioStatusBadge.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Dashboard" description="Studio OS dashboard foundation.">
+  <StudioPageHeader
+    slot="header"
+    title="Dashboard"
+    description="Operational overview for clients, proposals, invoices, and payments. Metrics connect in later phases."
+  />
+
+  <a slot="actions" class="studio-action studio-action-primary" href="/admin/clients">New Client</a>
+  <a slot="actions" class="studio-action" href="/admin/projects">New Project</a>
+  <a slot="actions" class="studio-action" href="/admin/proposals">New Proposal</a>
+  <a slot="actions" class="studio-action" href="/admin/invoices">New Invoice</a>
+
+  <div class="studio-metric-grid mb-8">
+    <StudioMetricCard label="Outstanding invoices" />
+    <StudioMetricCard label="Revenue this month" />
+    <StudioMetricCard label="Revenue this year" />
+    <StudioMetricCard label="Active projects" />
+    <StudioMetricCard label="Proposals awaiting approval" />
+    <StudioMetricCard label="Unpaid invoices" />
+    <StudioMetricCard label="Overdue invoices" />
+    <StudioMetricCard label="Recently paid invoices" />
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <StudioPanel title="Upcoming deadlines">
+      <StudioEmptyState
+        title="No deadlines yet"
+        description="Project milestones and proposal expirations will appear here once Studio data is connected."
+      />
+    </StudioPanel>
+    <StudioPanel title="Recent client activity">
+      <StudioEmptyState
+        title="No activity yet"
+        description="Proposal views, acceptances, and payments will stream into this timeline in later phases."
+      >
+        <StudioStatusBadge label="Unconnected" tone="info" />
+      </StudioEmptyState>
+    </StudioPanel>
+  </div>
+</StudioLayout>

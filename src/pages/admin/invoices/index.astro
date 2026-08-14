@@ -1,0 +1,43 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Invoices" description="Invoice status and issuance.">
+  <StudioPageHeader
+    slot="header"
+    title="Invoices"
+    description="Issue deposit and final invoices with atomic numbering. Invoice engine arrives in Phase 9."
+  />
+  <button slot="actions" type="button" class="studio-action studio-action-primary" disabled>
+    New Invoice
+  </button>
+  <StudioPanel title="Invoices">
+    <div class="studio-table-wrap mb-4">
+      <table class="studio-table">
+        <thead>
+          <tr>
+            <th scope="col">Invoice</th>
+            <th scope="col">Client</th>
+            <th scope="col">Status</th>
+            <th scope="col">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4">
+              <StudioEmptyState
+                title="No invoices yet"
+                description="Invoice rows will appear here without fabricated balances. Totals use integer minor units in later phases."
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </StudioPanel>
+</StudioLayout>

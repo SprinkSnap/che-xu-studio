@@ -1,0 +1,25 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Projects" description="Project workflow for Studio OS.">
+  <StudioPageHeader
+    slot="header"
+    title="Projects"
+    description="Track studio engagements from inquiry through completion. Project CRUD arrives in Phase 7."
+  />
+  <button slot="actions" type="button" class="studio-action studio-action-primary" disabled>
+    New Project
+  </button>
+  <StudioPanel title="Projects">
+    <StudioEmptyState
+      title="No projects yet"
+      description="Projects will list here with status, payment schedule, and linked proposals once the workflow engine is connected."
+    />
+  </StudioPanel>
+</StudioLayout>

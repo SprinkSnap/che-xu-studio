@@ -1,0 +1,25 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+import StudioStatusBadge from '../../../components/studio/StudioStatusBadge.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Settings" description="Studio OS configuration.">
+  <StudioPageHeader
+    slot="header"
+    title="Settings"
+    description="Studio preferences, invoice numbering, and integration status. Configuration screens arrive after auth."
+  />
+  <StudioPanel title="Workspace">
+    <StudioEmptyState
+      title="Settings unavailable"
+      description="Administrator authentication (Phase 5) is required before settings can be changed. No temporary password bypass exists."
+    >
+      <StudioStatusBadge label="Auth deferred" tone="warning" />
+    </StudioEmptyState>
+  </StudioPanel>
+</StudioLayout>

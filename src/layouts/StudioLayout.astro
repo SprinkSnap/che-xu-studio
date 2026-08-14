@@ -1,0 +1,107 @@
+---
+import '../styles/studio.css';
+import StudioSidebar from '../components/studio/StudioSidebar.astro';
+import StudioMobileHeader from '../components/studio/StudioMobileHeader.astro';
+import StudioMobileNav from '../components/studio/StudioMobileNav.astro';
+import { siteConfig } from '../config/site';
+import { titleTemplate } from '../lib/seo';
+
+interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+}
+
+const {
+  title,
+  description = 'Private Che Xu Studio operating system. Not for public indexing.',
+  path = Astro.url.pathname,
+} = Astro.props;
+
+const fullTitle = titleTemplate(title);
+const currentPath = path;
+---
+
+<!doctype html>
+<html lang={siteConfig.locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="/fonts/source-serif-4-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body class="studio-shell">
+    <a class="skip-link" href="#studio-main">Skip to main content</a>
+    <div class="studio-frame">
+      <StudioSidebar currentPath={currentPath} />
+      <div class="studio-main-column">
+        <StudioMobileHeader title={title} />
+        <StudioMobileNav currentPath={currentPath} />
+        <main id="studio-main" class="studio-content" tabindex="-1">
+          <div class="studio-notice" role="status">
+            Studio OS foundation — authentication arrives in Phase 5. Do not expose this surface in
+            production until then. Enable only with <code>STUDIO_OS_ENABLED=true</code> for preview.
+          </div>
+          <slot name="header" />
+          {
+            Astro.slots.has('actions') && (
+              <div class="studio-actions mb-6" data-studio-actions>
+                <slot name="actions" />
+              </div>
+            )
+          }
+          <slot />
+        </main>
+      </div>
+    </div>
+    <script is:inline>
+      (() => {
+        const openBtn = document.querySelector('[data-studio-nav-open]');
+        const closeBtn = document.querySelector('[data-studio-nav-close]');
+        const drawer = document.querySelector('[data-studio-nav-drawer]');
+        const backdrop = document.querySelector('[data-studio-nav-backdrop]');
+        if (!openBtn || !closeBtn || !drawer || !backdrop) return;
+
+        const focusableSelector =
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
+        function setOpen(open) {
+          drawer.hidden = !open;
+          backdrop.hidden = !open;
+          openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          document.body.style.overflow = open ? 'hidden' : '';
+          if (open) {
+            const first = drawer.querySelector(focusableSelector);
+            if (first instanceof HTMLElement) first.focus();
+          } else {
+            openBtn.focus();
+          }
+        }
+
+        openBtn.addEventListener('click', () => setOpen(true));
+        closeBtn.addEventListener('click', () => setOpen(false));
+        backdrop.addEventListener('click', () => setOpen(false));
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !drawer.hidden) {
+            event.preventDefault();
+            setOpen(false);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Clients" description="Client records for Studio OS.">
+  <StudioPageHeader
+    slot="header"
+    title="Clients"
+    description="Find and manage client records. Search, filters, and CRUD arrive in Phase 6."
+  />
+  <button slot="actions" type="button" class="studio-action studio-action-primary" disabled>
+    New Client
+  </button>
+  <StudioPanel title="Client directory">
+    <div class="mb-6 grid gap-3 sm:grid-cols-2">
+      <label class="block text-sm font-medium text-navy-900">
+        Search
+        <input
+          type="search"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-brand-wash px-3 text-sm"
+          placeholder="Search clients"
+          disabled
+          aria-disabled="true"
+        />
+      </label>
+      <label class="block text-sm font-medium text-navy-900">
+        Status filter
+        <select
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-brand-wash px-3 text-sm"
+          disabled
+          aria-disabled="true"
+        >
+          <option>All clients</option>
+        </select>
+      </label>
+    </div>
+    <StudioEmptyState
+      title="No clients yet"
+      description="Client records will appear here after Supabase foundation and client management are implemented."
+    />
+  </StudioPanel>
+</StudioLayout>

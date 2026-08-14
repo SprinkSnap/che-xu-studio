@@ -1,0 +1,25 @@
+---
+import ClientDocumentLayout from '../../layouts/ClientDocumentLayout.astro';
+
+export const prerender = false;
+
+const { token } = Astro.params;
+const hasToken = Boolean(token && token !== 'undefined');
+---
+
+<ClientDocumentLayout
+  title="Invoice"
+  description="Private invoice document. Secure token validation and payment arrive in later phases."
+  documentKind="invoice"
+>
+  <h1 class="studio-doc-title">Invoice unavailable</h1>
+  <p class="studio-doc-lede">
+    This secure invoice link is reserved for client payment. Invoice totals and line items are not
+    loaded in this foundation phase
+    {hasToken ? ' for the provided token' : ''}.
+  </p>
+  <p class="mt-6 text-sm text-ink-muted">
+    If you received this link from Che Xu Studio, please check back later or contact the studio
+    directly. No invoice or payment details are displayed here.
+  </p>
+</ClientDocumentLayout>

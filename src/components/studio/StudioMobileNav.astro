@@ -1,0 +1,48 @@
+---
+import { isStudioNavActive, studioNavItems } from '../../lib/studio/navigation';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+---
+
+<div
+  class="studio-drawer-backdrop"
+  data-studio-nav-backdrop
+  hidden
+  tabindex="-1"
+></div>
+<div
+  id="studio-mobile-drawer"
+  class="studio-drawer"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Studio navigation"
+  data-studio-nav-drawer
+  hidden
+>
+  <div class="flex items-center justify-between border-b border-border px-4 py-4">
+    <p class="font-display text-base font-semibold text-navy-900">Studio OS</p>
+    <button type="button" class="studio-action" data-studio-nav-close>
+      Close
+    </button>
+  </div>
+  <nav class="studio-sidebar-nav" aria-label="Studio mobile">
+    {
+      studioNavItems.map((item) => {
+        const active = isStudioNavActive(currentPath, item.href);
+        return (
+          <a
+            href={item.href}
+            class="studio-nav-link"
+            aria-current={active ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+        );
+      })
+    }
+  </nav>
+</div>

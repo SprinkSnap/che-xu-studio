@@ -100,6 +100,8 @@ test.describe('site navigation', () => {
     expect(box!.width).toBeGreaterThan(300);
     expect(box!.height).toBeGreaterThan(500);
 
+    // Exact names: the logo uses aria-label "Che Xu Studio home", which would
+    // otherwise substring-match Playwright's default { name: 'Home' }.
     for (const label of [
       'Home',
       'Branding',
@@ -111,7 +113,7 @@ test.describe('site navigation', () => {
       'About',
       'Contact',
     ]) {
-      await expect(dialog.getByRole('link', { name: label })).toBeVisible();
+      await expect(dialog.getByRole('link', { name: label, exact: true })).toBeVisible();
     }
 
     // Conversion CTAs belong in the sticky bar / hero, not the page menu.

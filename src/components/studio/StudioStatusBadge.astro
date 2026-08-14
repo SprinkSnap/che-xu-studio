@@ -1,0 +1,18 @@
+---
+interface Props {
+  label: string;
+  tone?: 'neutral' | 'info' | 'success' | 'warning';
+}
+
+const { label, tone = 'neutral' } = Astro.props;
+const toneClass =
+  tone === 'info'
+    ? 'studio-status-info'
+    : tone === 'success'
+      ? 'studio-status-success'
+      : tone === 'warning'
+        ? 'studio-status-warning'
+        : 'studio-status-neutral';
+---
+
+<span class:list={['studio-status', toneClass]}>{label}</span>

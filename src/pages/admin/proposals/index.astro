@@ -1,0 +1,25 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+
+export const prerender = false;
+---
+
+<StudioLayout title="Proposals" description="Proposal drafts and sent versions.">
+  <StudioPageHeader
+    slot="header"
+    title="Proposals"
+    description="Draft, send, and version proposals. Builder and immutable versions arrive in Phase 8."
+  />
+  <button slot="actions" type="button" class="studio-action studio-action-primary" disabled>
+    New Proposal
+  </button>
+  <StudioPanel title="Proposals">
+    <StudioEmptyState
+      title="No proposals yet"
+      description="Sent proposal versions will remain immutable. Acceptance will record the exact version and timestamp."
+    />
+  </StudioPanel>
+</StudioLayout>

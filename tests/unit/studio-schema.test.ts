@@ -1,0 +1,70 @@
+import { describe, expect, it } from 'vitest';
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { bpsToPercent, percentToBps, formatMinorUnits } from '../../src/lib/supabase/domain';
+import type { Database } from '../../src/lib/supabase/database.types';
+
+const migrationsDir = path.join(process.cwd(), 'supabase/migrations');
+
+describe('studio phase 4 migrations', () => {
+  const files = readdirSync(migrationsDir)
+    .filter((name) => name.endsWith('.sql'))
+    .sort();
+
+  it('ships the expected ordered migration set', () => {
+    expect(files).toEqual([
+      '202608140001_core_identity.sql',
+      '202608140002_clients_projects.sql',
+      '202608140003_proposals.sql',
+      '202608140004_invoices_payments.sql',
+      '202608140005_operations.sql',
+      '202608140006_immutability.sql',
+      '202608140007_rls.sql',
+    ]);
+  });
+
+  it('enables RLS and avoids anonymous true policies', () => {
+    const rls = readFileSync(path.join(migrationsDir, '202608140007_rls.sql'), 'utf8');
+    expect(rls).toMatch(/ENABLE ROW LEVEL SECURITY/);
+    expect(rls).toMatch(/is_studio_user\(\)/);
+    expect(rls).not.toMatch(/TO anon[\s\S]*USING\s*\(\s*true\s*\)/i);
+    expect(rls).toMatch(/SET search_path = public/);
+  });
+
+  it('stores public link hashes and forbids float money types', () => {
+    const all = files.map((file) => readFileSync(path.join(migrationsDir, file), 'utf8')).join('\n');
+    expect(all).toMatch(/token_hash/);
+    expect(all).toMatch(/never plaintext tokens/i);
+    expect(all).not.toMatch(/\bdouble precision\b/);
+    expect(all).not.toMatch(/amount_minor (double|real|float)/i);
+    expect(all).toMatch(/deposit_bps/);
+    expect(all).toMatch(/next_document_number/);
+  });
+
+  it('protects financial history with restrict/immutability', () => {
+    const all = files.map((file) => readFileSync(path.join(migrationsDir, file), 'utf8')).join('\n');
+    expect(all).toMatch(/ON DELETE RESTRICT/);
+    expect(all).toMatch(/is_immutable/);
+    expect(all).toMatch(/financial snapshot/);
+  });
+});
+
+describe('studio domain money helpers', () => {
+  it('converts basis points exactly', () => {
+    expect(percentToBps(50)).toBe(5000);
+    expect(bpsToPercent(1300)).toBe(13);
+  });
+
+  it('formats minor units without implying float persistence', () => {
+    expect(formatMinorUnits(800000, 'CAD')).toMatch(/8,000/);
+  });
+});
+
+describe('generated database types', () => {
+  it('includes core Studio tables and enums', () => {
+    type ProjectStatus = Database['public']['Enums']['project_status'];
+    const status: ProjectStatus = 'deposit_due';
+    expect(status).toBe('deposit_due');
+    expect(typeof status).toBe('string');
+  });
+});

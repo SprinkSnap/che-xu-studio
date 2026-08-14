@@ -126,13 +126,15 @@ describe('supabase module boundaries', () => {
     expect(browserSrc).not.toContain('createSupabaseServiceClient');
   });
 
-  it('placeholder database types contain no business tables yet', () => {
+  it('database types include Studio tables after Phase 4', () => {
     const typesSrc = readFileSync(
       path.join(process.cwd(), 'src/lib/supabase/database.types.ts'),
       'utf8',
     );
-    expect(typesSrc).not.toMatch(/\bclients\b/);
-    expect(typesSrc).not.toMatch(/\binvoices\b/);
-    expect(typesSrc).toContain('Record<string, never>');
+    expect(typesSrc).toMatch(/clients:/);
+    expect(typesSrc).toMatch(/invoices:/);
+    expect(typesSrc).toMatch(/proposal_versions:/);
+    expect(typesSrc).toMatch(/webhook_events:/);
+    expect(typesSrc).toMatch(/Enums:/);
   });
 });

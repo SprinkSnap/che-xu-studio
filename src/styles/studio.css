@@ -360,6 +360,31 @@
   .studio-sign-out button {
     @apply inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm font-semibold text-navy-900 transition duration-200 hover:border-brand hover:text-brand;
   }
+
+  .studio-project-form-grid {
+    @apply flex flex-col gap-6;
+  }
+
+  .studio-form-two-col {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
+  .studio-auth-field textarea,
+  .studio-auth-field select {
+    @apply min-h-11 w-full rounded-[var(--radius-md)] border border-border bg-white px-3 py-2 text-base text-ink outline-none transition duration-200 focus:border-brand focus:ring-2 focus:ring-brand/20;
+  }
+
+  .studio-auth-field textarea {
+    @apply min-h-[6rem] leading-relaxed;
+  }
+
+  .studio-project-value {
+    @apply tabular-nums text-navy-900;
+  }
+
+  .studio-prewrap {
+    @apply whitespace-pre-wrap text-sm leading-relaxed text-navy-900;
+  }
 }
 
 @media print {

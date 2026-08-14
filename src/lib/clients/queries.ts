@@ -222,7 +222,9 @@ export async function getClientDetail(
         .maybeSingle(),
       supabase
         .from('projects')
-        .select('id, name, status, updated_at')
+        .select(
+          'id, name, status, project_price_minor, currency, target_completion_date, archived_at, updated_at',
+        )
         .eq('client_id', clientId)
         .order('updated_at', { ascending: false })
         .limit(20),

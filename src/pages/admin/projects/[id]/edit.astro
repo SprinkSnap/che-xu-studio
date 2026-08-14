@@ -1,0 +1,173 @@
+---
+import StudioLayout from '../../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../../components/studio/StudioPanel.astro';
+import ProjectFormFields from '../../../../components/studio/projects/ProjectFormFields.astro';
+import StudioStatusBadge from '../../../../components/studio/StudioStatusBadge.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../../lib/auth/origin';
+import {
+  getProjectById,
+  listActiveClientsForSelect,
+} from '../../../../lib/projects/queries';
+import { ProjectMutationError, updateProject } from '../../../../lib/projects/mutations';
+import {
+  formDataToObject,
+  GENERIC_PROJECT_SAVE_ERROR,
+  PROJECT_CONFLICT_ERROR,
+  updateProjectSchema,
+  uuidParamSchema,
+} from '../../../../lib/projects/validation';
+import {
+  emptyProjectFormValues,
+  projectRowToFormValues,
+  type ProjectFormValues,
+} from '../../../../lib/projects/form-values';
+import { getStudioSettingsDefaults } from '../../../../lib/projects/queries';
+import {
+  PROJECT_STATUS_LABELS,
+  projectStatusTone,
+  type ProjectStatus,
+} from '../../../../lib/projects/workflow';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.projects.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const idParsed = uuidParamSchema.safeParse(Astro.params.id);
+if (!idParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+const projectId = idParsed.data;
+
+let project = await getProjectById(supabase, projectId);
+if (!project) {
+  return new Response('Not found', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'private, no-store',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    },
+  });
+}
+
+if (project.status === 'archived') {
+  return Astro.redirect(`/admin/projects/${projectId}`, 303);
+}
+
+const defaults = await getStudioSettingsDefaults(supabase);
+let clients = await listActiveClientsForSelect(supabase);
+if (!clients.some((c) => c.id === project!.client_id)) {
+  const { data: linked } = await supabase
+    .from('clients')
+    .select('id, company_name, display_name')
+    .eq('id', project.client_id)
+    .maybeSingle();
+  if (linked) {
+    clients = [
+      {
+        id: linked.id,
+        label: `${linked.display_name?.trim() || linked.company_name} (archived)`,
+      },
+      ...clients,
+    ];
+  }
+}
+
+let errorMessage = '';
+let values: ProjectFormValues = projectRowToFormValues(project);
+
+if (Astro.request.method === 'POST') {
+  const origin = requestSiteOrigin(Astro.request, Astro.url);
+  if (!isSameOriginMutation(Astro.request, origin)) {
+    return new Response('Invalid request origin.', { status: 403 });
+  }
+
+  const form = await Astro.request.formData();
+  const raw = formDataToObject(form);
+  values = {
+    ...emptyProjectFormValues(defaults, project.client_id),
+    name: raw.name ?? '',
+    clientId: raw.clientId ?? '',
+    projectType: raw.projectType ?? '',
+    description: raw.description ?? '',
+    scope: raw.scope ?? '',
+    deliverables: raw.deliverables ?? '',
+    startDate: raw.startDate ?? '',
+    targetCompletionDate: raw.targetCompletionDate ?? '',
+    projectPrice: raw.projectPrice ?? '',
+    currency: raw.currency === 'USD' ? 'USD' : 'CAD',
+    taxPercent: raw.taxPercent ?? '',
+    depositPercent: raw.depositPercent ?? '',
+    internalNotes: raw.internalNotes ?? '',
+    expectedUpdatedAt: raw.expectedUpdatedAt,
+  };
+
+  const parsed = updateProjectSchema.safeParse({
+    ...raw,
+    expectedUpdatedAt: raw.expectedUpdatedAt || undefined,
+  });
+
+  if (!parsed.success) {
+    errorMessage = parsed.error.issues[0]?.message || GENERIC_PROJECT_SAVE_ERROR;
+  } else {
+    try {
+      // TODO(Phase 8/9): once an accepted proposal or issued invoice exists, restrict
+      // direct edits to project_price_minor / tax_bps / deposit_bps so documents remain snapshots.
+      await updateProject(supabase, projectId, parsed.data, auth.profile.id);
+      return Astro.redirect(`/admin/projects/${projectId}?notice=saved`, 303);
+    } catch (error) {
+      if (error instanceof ProjectMutationError && error.code === 'conflict') {
+        errorMessage = PROJECT_CONFLICT_ERROR;
+        const refreshed = await getProjectById(supabase, projectId);
+        if (refreshed) {
+          project = refreshed;
+          values = projectRowToFormValues(refreshed);
+        }
+      } else {
+        errorMessage =
+          error instanceof ProjectMutationError ? error.message : GENERIC_PROJECT_SAVE_ERROR;
+      }
+    }
+  }
+}
+
+const status = project.status as ProjectStatus;
+---
+
+<StudioLayout title={`Edit ${project.name}`} description="Edit project details.">
+  <StudioPageHeader
+    slot="header"
+    title={`Edit ${project.name}`}
+    description="Status changes use workflow actions on the project detail page — not this form."
+  />
+  <Fragment slot="actions">
+    <StudioStatusBadge
+      label={PROJECT_STATUS_LABELS[status]}
+      tone={projectStatusTone(status)}
+    />
+    <a class="studio-action" href={`/admin/projects/${project.id}`}>
+      Cancel
+    </a>
+  </Fragment>
+
+  <StudioPanel title="Project details">
+    <form method="post" action={`/admin/projects/${project.id}/edit`} novalidate>
+      <ProjectFormFields
+        values={values}
+        mode="edit"
+        clients={clients}
+        errorMessage={errorMessage}
+      />
+      <div class="studio-actions mt-2">
+        <button type="submit" class="studio-action studio-action-primary">Save changes</button>
+        <a class="studio-action" href={`/admin/projects/${project.id}`}>Cancel</a>
+      </div>
+    </form>
+  </StudioPanel>
+</StudioLayout>

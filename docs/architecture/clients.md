@@ -31,7 +31,7 @@ All page mutations call `requireStudioPermission` and use the **request-scoped u
 | --- | --- |
 | `/admin/clients` | Search, status filter, sort, offset pagination (25/page) |
 | `/admin/clients/new` | Create client + primary contact |
-| `/admin/clients/[id]` | Detail, contacts, archive/restore, related read-only sections |
+| `/admin/clients/[id]` | Detail, contacts, archive/restore, related projects (Phase 7), payments/activity |
 | `/admin/clients/[id]/edit` | Edit allowlisted client fields |
 
 Pagination strategy: **offset** (`page` / `pageSize`), sufficient for Studio scale.

@@ -1,5 +1,5 @@
 /**
- * Studio activity logging (clients and future domains).
+ * Studio activity logging (clients, projects, and future domains).
  * Never store passwords, tokens, full addresses, notes, phones, or emails in metadata.
  */
 
@@ -14,7 +14,12 @@ export type StudioActivityAction =
   | 'client.contact_added'
   | 'client.contact_updated'
   | 'client.contact_removed'
-  | 'client.primary_contact_changed';
+  | 'client.primary_contact_changed'
+  | 'project.created'
+  | 'project.updated'
+  | 'project.status_changed'
+  | 'project.archived'
+  | 'project.restored';
 
 type ActivityClient = SupabaseClient<Database>;
 
@@ -24,6 +29,7 @@ export async function recordStudioActivity(
     actorProfileId?: string | null;
     action: StudioActivityAction;
     clientId?: string | null;
+    projectId?: string | null;
     subjectType?: string;
     subjectId?: string | null;
     metadata?: Record<string, Json | undefined>;
@@ -41,9 +47,10 @@ export async function recordStudioActivity(
       actor_user_id: input.actorProfileId ?? null,
       actor_type: input.actorProfileId ? 'user' : 'system',
       client_id: input.clientId ?? null,
+      project_id: input.projectId ?? null,
       action: input.action,
       subject_type: input.subjectType ?? 'client',
-      subject_id: input.subjectId ?? input.clientId ?? null,
+      subject_id: input.subjectId ?? input.projectId ?? input.clientId ?? null,
       metadata,
     });
   } catch {
@@ -61,6 +68,11 @@ export function humanizeStudioActivity(action: string): string {
     'client.contact_updated': 'Contact updated',
     'client.contact_removed': 'Contact removed',
     'client.primary_contact_changed': 'Primary contact changed',
+    'project.created': 'Project created',
+    'project.updated': 'Project updated',
+    'project.status_changed': 'Project status changed',
+    'project.archived': 'Project archived',
+    'project.restored': 'Project restored',
   };
   return map[action] ?? action.replace(/\./g, ' ');
 }

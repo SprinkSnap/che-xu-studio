@@ -1,0 +1,252 @@
+---
+import { PROJECT_TYPE_PRESETS } from '../../../lib/projects/validation';
+import type { ProjectFormValues } from '../../../lib/projects/form-values';
+
+interface Props {
+  values: ProjectFormValues;
+  mode: 'create' | 'edit';
+  clients: Array<{ id: string; label: string }>;
+  errorMessage?: string;
+  clientLocked?: boolean;
+}
+
+const {
+  values,
+  mode,
+  clients,
+  errorMessage = '',
+  clientLocked = false,
+} = Astro.props;
+
+const typePreset =
+  values.projectType &&
+  (PROJECT_TYPE_PRESETS as readonly string[]).includes(values.projectType)
+    ? values.projectType
+    : values.projectType
+      ? 'Other'
+      : '';
+const customType =
+  typePreset === 'Other' &&
+  !(PROJECT_TYPE_PRESETS as readonly string[]).includes(values.projectType)
+    ? values.projectType
+    : typePreset === 'Other'
+      ? ''
+      : '';
+---
+
+{
+  errorMessage && (
+    <p class="studio-auth-error mb-6" role="alert" id="project-form-error">
+      {errorMessage}
+    </p>
+  )
+}
+
+{
+  mode === 'edit' && values.expectedUpdatedAt && (
+    <input type="hidden" name="expectedUpdatedAt" value={values.expectedUpdatedAt} />
+  )
+}
+
+<div class="studio-project-form-grid">
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Basics</legend>
+    <div class="studio-auth-field">
+      <label for="name">Project name</label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        required
+        maxlength="200"
+        value={values.name}
+        aria-describedby={errorMessage ? 'project-form-error' : undefined}
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="clientId">Client</label>
+      <select id="clientId" name="clientId" required disabled={clientLocked}>
+        <option value="">Select a client</option>
+        {clients.map((client) => (
+          <option value={client.id} selected={client.id === values.clientId}>
+            {client.label}
+          </option>
+        ))}
+      </select>
+      {
+        clientLocked && values.clientId && (
+          <input type="hidden" name="clientId" value={values.clientId} />
+        )
+      }
+      <p class="text-xs text-ink-muted">Projects must belong to an active client.</p>
+    </div>
+    <div class="studio-auth-field">
+      <label for="projectTypePreset">Project type</label>
+      <select id="projectTypePreset" name="projectTypePreset" data-project-type-preset>
+        <option value="" selected={!typePreset}>
+          Select a type
+        </option>
+        {PROJECT_TYPE_PRESETS.map((preset) => (
+          <option value={preset} selected={typePreset === preset}>
+            {preset}
+          </option>
+        ))}
+      </select>
+      <input type="hidden" name="projectType" id="projectType" value={values.projectType} />
+    </div>
+    <div class="studio-auth-field" data-project-type-other hidden={typePreset !== 'Other'}>
+      <label for="projectTypeOther">Describe type</label>
+      <input
+        id="projectTypeOther"
+        type="text"
+        maxlength="120"
+        value={customType}
+        data-project-type-other-input
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="3" maxlength="5000"
+        >{values.description}</textarea
+      >
+      <p class="text-xs text-ink-muted">Short internal summary of the engagement.</p>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Scope</legend>
+    <div class="studio-auth-field">
+      <label for="scope">Scope of work</label>
+      <textarea id="scope" name="scope" rows="5" maxlength="20000">{values.scope}</textarea>
+      <p class="text-xs text-ink-muted">List the work included in this project.</p>
+    </div>
+    <div class="studio-auth-field">
+      <label for="deliverables">Deliverables</label>
+      <textarea id="deliverables" name="deliverables" rows="5" maxlength="20000"
+        >{values.deliverables}</textarea
+      >
+      <p class="text-xs text-ink-muted">List the final items the client will receive.</p>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Schedule</legend>
+    <div class="studio-form-two-col">
+      <div class="studio-auth-field">
+        <label for="startDate">Start date</label>
+        <input id="startDate" name="startDate" type="date" value={values.startDate} />
+      </div>
+      <div class="studio-auth-field">
+        <label for="targetCompletionDate">Target completion</label>
+        <input
+          id="targetCompletionDate"
+          name="targetCompletionDate"
+          type="date"
+          value={values.targetCompletionDate}
+        />
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Financials</legend>
+    <div class="studio-form-two-col">
+      <div class="studio-auth-field">
+        <label for="projectPrice">Project price</label>
+        <input
+          id="projectPrice"
+          name="projectPrice"
+          type="text"
+          inputmode="decimal"
+          required
+          value={values.projectPrice}
+          autocomplete="off"
+        />
+      </div>
+      <div class="studio-auth-field">
+        <label for="currency">Currency</label>
+        <select id="currency" name="currency" required>
+          <option value="CAD" selected={values.currency === 'CAD'}>CAD</option>
+          <option value="USD" selected={values.currency === 'USD'}>USD</option>
+        </select>
+      </div>
+      <div class="studio-auth-field">
+        <label for="taxPercent">Tax (%)</label>
+        <input
+          id="taxPercent"
+          name="taxPercent"
+          type="text"
+          inputmode="decimal"
+          required
+          value={values.taxPercent}
+          autocomplete="off"
+        />
+      </div>
+      <div class="studio-auth-field">
+        <label for="depositPercent">Deposit (%)</label>
+        <input
+          id="depositPercent"
+          name="depositPercent"
+          type="text"
+          inputmode="decimal"
+          required
+          value={values.depositPercent}
+          autocomplete="off"
+          list="deposit-presets"
+        />
+        <datalist id="deposit-presets">
+          <option value="25"></option>
+          <option value="40"></option>
+          <option value="50"></option>
+          <option value="60"></option>
+          <option value="100"></option>
+        </datalist>
+      </div>
+    </div>
+    <p class="text-xs text-ink-muted">
+      Price is stored in minor units. Tax and deposit use exact basis points. Tax is calculated when
+      invoiced (Phase 9).
+    </p>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Internal</legend>
+    <div class="studio-auth-field">
+      <label for="internalNotes">Internal notes</label>
+      <textarea id="internalNotes" name="internalNotes" rows="4" maxlength="10000"
+        >{values.internalNotes}</textarea
+      >
+      <p class="text-xs text-ink-muted">Studio-only. Never shown on proposals or invoices.</p>
+    </div>
+  </fieldset>
+</div>
+
+<script is:inline>
+  (() => {
+    const preset = document.querySelector('[data-project-type-preset]');
+    const hidden = document.getElementById('projectType');
+    const otherWrap = document.querySelector('[data-project-type-other]');
+    const otherInput = document.querySelector('[data-project-type-other-input]');
+    if (!preset || !hidden || !(preset instanceof HTMLSelectElement) || !(hidden instanceof HTMLInputElement)) {
+      return;
+    }
+
+    const sync = () => {
+      const value = preset.value;
+      if (otherWrap instanceof HTMLElement) {
+        otherWrap.hidden = value !== 'Other';
+      }
+      if (value === 'Other') {
+        hidden.value = otherInput instanceof HTMLInputElement ? otherInput.value.trim() : '';
+      } else {
+        hidden.value = value;
+      }
+    };
+
+    preset.addEventListener('change', sync);
+    if (otherInput instanceof HTMLInputElement) {
+      otherInput.addEventListener('input', sync);
+    }
+    sync();
+  })();
+</script>

@@ -451,6 +451,60 @@ ROLLBACK;
   ).trim();
   assert(contactSurvives === '1', `contacts must survive archive, got ${contactSurvives}`);
 
+  // Phase 7 — project workflow RPC (allowed, forbidden, stale concurrency)
+  const wfProject = adminPsql(`
+    INSERT INTO public.projects (client_id, name, status, project_price_minor, deposit_bps, tax_bps, currency)
+    VALUES ('${clientId}', 'Workflow Project', 'inquiry', 100000, 5000, 0, 'CAD')
+    RETURNING id;
+  `).trim();
+
+  const moved = asRole(
+    'authenticated',
+    ownerAuth,
+    `SELECT status::text FROM public.transition_project('${wfProject}'::uuid, 'inquiry'::public.project_status, 'proposal'::public.project_status);`,
+  ).trim();
+  assert(moved === 'proposal', `transition inquiry→proposal should yield proposal, got ${moved}`);
+
+  try {
+    asRole(
+      'authenticated',
+      ownerAuth,
+      `SELECT public.transition_project('${wfProject}'::uuid, 'proposal'::public.project_status, 'completed'::public.project_status);`,
+    );
+    throw new Error('forbidden transition proposal→completed should fail');
+  } catch (err) {
+    assert(/invalid project transition|22023/i.test(String(err)), String(err));
+  }
+
+  try {
+    asRole(
+      'authenticated',
+      ownerAuth,
+      `SELECT public.transition_project('${wfProject}'::uuid, 'inquiry'::public.project_status, 'archived'::public.project_status);`,
+    );
+    throw new Error('stale expected status should fail');
+  } catch (err) {
+    assert(/project status conflict|40001|serialization/i.test(String(err)), String(err));
+  }
+
+  const archivedStatus = asRole(
+    'authenticated',
+    ownerAuth,
+    `SELECT status::text FROM public.transition_project('${wfProject}'::uuid, 'proposal'::public.project_status, 'archived'::public.project_status);`,
+  ).trim();
+  assert(archivedStatus === 'archived', `archive should set archived, got ${archivedStatus}`);
+  const beforeArchive = adminPsql(
+    `SELECT status_before_archive::text FROM public.projects WHERE id = '${wfProject}';`,
+  ).trim();
+  assert(beforeArchive === 'proposal', `status_before_archive should be proposal, got ${beforeArchive}`);
+
+  const restoredStatus = asRole(
+    'authenticated',
+    ownerAuth,
+    `SELECT status::text FROM public.transition_project('${wfProject}'::uuid, 'archived'::public.project_status, 'inquiry'::public.project_status);`,
+  ).trim();
+  assert(restoredStatus === 'inquiry', `restore should return inquiry, got ${restoredStatus}`);
+
   // Table inventory
   const tableCount = adminPsql(`
     SELECT count(*) FROM information_schema.tables

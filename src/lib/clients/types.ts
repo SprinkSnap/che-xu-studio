@@ -44,6 +44,10 @@ export type ClientDetail = {
     id: string;
     name: string;
     status: string;
+    project_price_minor: number;
+    currency: string;
+    target_completion_date: string | null;
+    archived_at: string | null;
     updated_at: string;
   }>;
   payments: Array<{

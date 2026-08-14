@@ -47,12 +47,14 @@ Workers Builds:
 | `src/lib/supabase/server.ts` | User/session client (`createServerClient` + cookies) and privileged service client |
 | `src/lib/supabase/auth.ts` | getUser / requireAuthenticatedUser / requireStudioAdmin scaffold / signOut |
 | `src/lib/supabase/config.ts` | Zod validation + host-only cookie options |
-| `src/lib/supabase/database.types.ts` | Placeholder until `npm run supabase:types` after Phase 4 |
+| `src/lib/supabase/database.types.ts` | Generated DB contract (Phase 4+) |
 
 ### User vs privileged clients
 
 - **User client:** publishable key + request cookies → RLS-aware. Default for Studio queries.
 - **Service client:** `SUPABASE_SECRET_KEY` → webhooks/automation only. Never the default path to “skip RLS”.
+
+Phase 4 adds `profiles` membership + RLS helpers (`is_studio_user`, `is_studio_admin`). See [studio-database.md](./studio-database.md).
 
 ## Auth / session model
 

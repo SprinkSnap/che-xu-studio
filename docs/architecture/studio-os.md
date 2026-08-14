@@ -93,9 +93,9 @@ Phase 2 does not implement host-based redirects; path-based routes are the sourc
 | Data | Store | Phase |
 | --- | --- | --- |
 | Marketing leads / contact | Cloudflare D1 (existing) | Keep intact |
-| Studio client libraries / Auth scaffolding | Supabase JS + SSR cookies | Phase 3 (done) |
-| Studio business entities + RLS | Supabase Postgres | Phase 4 |
-| Administrator identity + route enforcement | Supabase Auth + membership | Phase 5 |
+| Studio client libraries / Auth scaffolding | Supabase JS + SSR cookies | Phase 3 |
+| Studio business schema + RLS | Supabase Postgres | Phase 4 |
+| Administrator route enforcement | Supabase Auth + membership | Phase 5 |
 | Private PDFs / documents | Supabase Storage (non-enumerable) | Phase 13 |
 | Payments | Stripe Checkout + webhooks (no card data in our DB) | Phase 11 |
 | Transactional email | Resend + `email_logs` | Phase 12 |

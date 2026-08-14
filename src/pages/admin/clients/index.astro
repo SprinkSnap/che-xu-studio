@@ -3,45 +3,160 @@ import StudioLayout from '../../../layouts/StudioLayout.astro';
 import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
 import StudioPanel from '../../../components/studio/StudioPanel.astro';
 import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+import ClientList from '../../../components/studio/clients/ClientList.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { listClients } from '../../../lib/clients/queries';
+import { clientListQuerySchema } from '../../../lib/clients/validation';
 
 export const prerender = false;
+
+await requireStudioPermission(Astro, 'studio.clients.read');
+
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const raw = Object.fromEntries(Astro.url.searchParams.entries());
+const parsed = clientListQuerySchema.safeParse(raw);
+const query = parsed.success
+  ? parsed.data
+  : clientListQuerySchema.parse({ status: 'active', sort: 'updated_desc', page: 1 });
+
+let listError = '';
+let result = {
+  items: [] as Awaited<ReturnType<typeof listClients>>['items'],
+  total: 0,
+  page: query.page,
+  pageSize: query.pageSize,
+  pageCount: 1,
+};
+
+try {
+  result = await listClients(supabase, query);
+} catch {
+  listError = 'Unable to load clients.';
+}
+
+const hasFilters = Boolean(query.q) || query.status !== 'active';
+const emptyTitle = hasFilters ? 'No clients match this search.' : 'No clients yet';
+const emptyDescription = hasFilters
+  ? 'Try a different name, email, or clear filters.'
+  : 'Add your first client to start organizing projects, proposals, and billing.';
 ---
 
 <StudioLayout title="Clients" description="Client records for Studio OS.">
   <StudioPageHeader
     slot="header"
     title="Clients"
-    description="Find and manage client records. Search, filters, and CRUD arrive in Phase 6."
+    description="Search and manage client companies, contacts, and billing details."
   />
-  <button slot="actions" type="button" class="studio-action studio-action-primary" disabled>
+  <a slot="actions" class="studio-action studio-action-primary" href="/admin/clients/new">
     New Client
-  </button>
+  </a>
+
   <StudioPanel title="Client directory">
-    <div class="mb-6 grid gap-3 sm:grid-cols-2">
+    <form class="mb-6 grid gap-3 sm:grid-cols-[1fr_12rem_12rem_auto]" method="get" action="/admin/clients">
       <label class="block text-sm font-medium text-navy-900">
         Search
         <input
           type="search"
-          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-brand-wash px-3 text-sm"
-          placeholder="Search clients"
-          disabled
-          aria-disabled="true"
+          name="q"
+          value={query.q}
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+          placeholder="Company, contact, or email"
         />
       </label>
       <label class="block text-sm font-medium text-navy-900">
-        Status filter
+        Status
         <select
-          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-brand-wash px-3 text-sm"
-          disabled
-          aria-disabled="true"
+          name="status"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
         >
-          <option>All clients</option>
+          <option value="active" selected={query.status === 'active'}>Active</option>
+          <option value="archived" selected={query.status === 'archived'}>Archived</option>
+          <option value="all" selected={query.status === 'all'}>All</option>
         </select>
       </label>
-    </div>
-    <StudioEmptyState
-      title="No clients yet"
-      description="Client records will appear here after Supabase foundation and client management are implemented."
-    />
+      <label class="block text-sm font-medium text-navy-900">
+        Sort
+        <select
+          name="sort"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+        >
+          <option value="updated_desc" selected={query.sort === 'updated_desc'}>
+            Recently updated
+          </option>
+          <option value="name_asc" selected={query.sort === 'name_asc'}>Client name</option>
+          <option value="outstanding_desc" selected={query.sort === 'outstanding_desc'}>
+            Highest outstanding
+          </option>
+          <option value="lifetime_desc" selected={query.sort === 'lifetime_desc'}>
+            Highest lifetime revenue
+          </option>
+        </select>
+      </label>
+      <div class="flex items-end">
+        <button type="submit" class="studio-action w-full sm:w-auto">Apply</button>
+      </div>
+    </form>
+
+    {
+      listError ? (
+        <p class="studio-auth-error" role="alert">
+          {listError}
+        </p>
+      ) : result.items.length === 0 ? (
+        <StudioEmptyState title={emptyTitle} description={emptyDescription}>
+          {!hasFilters && (
+            <a class="studio-action studio-action-primary mt-2" href="/admin/clients/new">
+              New Client
+            </a>
+          )}
+        </StudioEmptyState>
+      ) : (
+        <>
+          <p class="mb-4 text-sm text-ink-muted">
+            {result.total} client{result.total === 1 ? '' : 's'}
+          </p>
+          <ClientList items={result.items} />
+          {result.pageCount > 1 && (
+            <nav class="studio-pagination" aria-label="Client list pages">
+              <p>
+                Page {result.page} of {result.pageCount}
+              </p>
+              <div class="studio-actions">
+                {result.page > 1 && (
+                  <a
+                    class="studio-action"
+                    href={`/admin/clients?${new URLSearchParams({
+                      q: query.q,
+                      status: query.status,
+                      sort: query.sort,
+                      page: String(result.page - 1),
+                    }).toString()}`}
+                  >
+                    Previous
+                  </a>
+                )}
+                {result.page < result.pageCount && (
+                  <a
+                    class="studio-action"
+                    href={`/admin/clients?${new URLSearchParams({
+                      q: query.q,
+                      status: query.status,
+                      sort: query.sort,
+                      page: String(result.page + 1),
+                    }).toString()}`}
+                  >
+                    Next
+                  </a>
+                )}
+              </div>
+            </nav>
+          )}
+        </>
+      )
+    }
   </StudioPanel>
 </StudioLayout>

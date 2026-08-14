@@ -21,6 +21,7 @@ describe('studio phase 4 migrations', () => {
       '202608140006_immutability.sql',
       '202608140007_rls.sql',
       '202608140008_profile_privilege_guards.sql',
+      '202608140009_client_management_helpers.sql',
     ]);
   });
 

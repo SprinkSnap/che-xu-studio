@@ -1,0 +1,552 @@
+---
+import StudioLayout from '../../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../../components/studio/StudioEmptyState.astro';
+import StudioStatusBadge from '../../../../components/studio/StudioStatusBadge.astro';
+import StudioMetricCard from '../../../../components/studio/StudioMetricCard.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../../lib/auth/origin';
+import { isStudioAdminRole, roleHasPermission } from '../../../../lib/auth/permissions';
+import { getClientDetail } from '../../../../lib/clients/queries';
+import {
+  addClientContact,
+  archiveClient,
+  ClientMutationError,
+  removeClientContact,
+  restoreClient,
+  setPrimaryContact,
+  updateClientContact,
+} from '../../../../lib/clients/mutations';
+import {
+  contactWriteSchema,
+  formDataToObject,
+  GENERIC_ARCHIVE_ERROR,
+  GENERIC_CONTACT_ERROR,
+  GENERIC_RESTORE_ERROR,
+  uuidParamSchema,
+} from '../../../../lib/clients/validation';
+import {
+  clientDisplayName,
+  formatMoney,
+  formatStudioDate,
+  formatStudioDateTime,
+} from '../../../../lib/clients/format';
+import { humanizeStudioActivity } from '../../../../lib/studio/activity';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.clients.read');
+const canWrite = roleHasPermission(auth.profile.role, 'studio.clients.write');
+const canRemoveContacts = isStudioAdminRole(auth.profile.role);
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const idParsed = uuidParamSchema.safeParse(Astro.params.id);
+if (!idParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+const clientId = idParsed.data;
+
+let flashError = '';
+let flashSuccess = '';
+
+if (Astro.request.method === 'POST') {
+  if (!canWrite) {
+    flashError = 'You do not have permission to perform this action.';
+  } else {
+    const origin = requestSiteOrigin(Astro.request, Astro.url);
+    if (!isSameOriginMutation(Astro.request, origin)) {
+      return new Response('Invalid request origin.', { status: 403 });
+    }
+
+    const form = await Astro.request.formData();
+    const intent = String(form.get('intent') ?? '');
+    const actorId = auth.profile.id;
+
+    try {
+      if (intent === 'archive') {
+        await archiveClient(supabase, clientId, actorId);
+        return Astro.redirect(`/admin/clients/${clientId}?notice=archived`, 303);
+      }
+      if (intent === 'restore') {
+        await restoreClient(supabase, clientId, actorId);
+        return Astro.redirect(`/admin/clients/${clientId}?notice=restored`, 303);
+      }
+      if (intent === 'add_contact') {
+        const parsed = contactWriteSchema.safeParse(formDataToObject(form));
+        if (!parsed.success) {
+          flashError = parsed.error.issues[0]?.message || GENERIC_CONTACT_ERROR;
+        } else {
+          await addClientContact(supabase, clientId, parsed.data, actorId);
+          return Astro.redirect(`/admin/clients/${clientId}?notice=contact_added`, 303);
+        }
+      } else if (intent === 'update_contact') {
+        const contactId = uuidParamSchema.safeParse(String(form.get('contactId') ?? ''));
+        const parsed = contactWriteSchema.safeParse(formDataToObject(form));
+        if (!contactId.success || !parsed.success) {
+          flashError = parsed.success
+            ? GENERIC_CONTACT_ERROR
+            : parsed.error.issues[0]?.message || GENERIC_CONTACT_ERROR;
+        } else {
+          await updateClientContact(supabase, clientId, contactId.data, parsed.data, actorId);
+          return Astro.redirect(`/admin/clients/${clientId}?notice=contact_updated`, 303);
+        }
+      } else if (intent === 'set_primary') {
+        const contactId = uuidParamSchema.safeParse(String(form.get('contactId') ?? ''));
+        if (!contactId.success) {
+          flashError = GENERIC_CONTACT_ERROR;
+        } else {
+          await setPrimaryContact(supabase, clientId, contactId.data, actorId);
+          return Astro.redirect(`/admin/clients/${clientId}?notice=primary_changed`, 303);
+        }
+      } else if (intent === 'remove_contact') {
+        if (!canRemoveContacts) {
+          flashError = 'You do not have permission to remove contacts.';
+        } else {
+          const contactId = uuidParamSchema.safeParse(String(form.get('contactId') ?? ''));
+          if (!contactId.success) {
+            flashError = GENERIC_CONTACT_ERROR;
+          } else {
+            await removeClientContact(supabase, clientId, contactId.data, actorId);
+            return Astro.redirect(`/admin/clients/${clientId}?notice=contact_removed`, 303);
+          }
+        }
+      }
+    } catch (error) {
+      if (error instanceof ClientMutationError) {
+        flashError = error.message;
+      } else if (intent === 'archive') {
+        flashError = GENERIC_ARCHIVE_ERROR;
+      } else if (intent === 'restore') {
+        flashError = GENERIC_RESTORE_ERROR;
+      } else {
+        flashError = GENERIC_CONTACT_ERROR;
+      }
+    }
+  }
+}
+
+let detail = null as Awaited<ReturnType<typeof getClientDetail>>;
+try {
+  detail = await getClientDetail(supabase, clientId);
+} catch {
+  detail = null;
+}
+
+if (!detail) {
+  return new Response('Not found', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'private, no-store',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    },
+  });
+}
+
+const notice = Astro.url.searchParams.get('notice');
+const noticeMap: Record<string, string> = {
+  archived: 'Client archived.',
+  restored: 'Client restored.',
+  contact_added: 'Contact added.',
+  contact_updated: 'Contact updated.',
+  primary_changed: 'Primary contact updated.',
+  contact_removed: 'Contact removed.',
+  saved: 'Client saved.',
+};
+if (notice && noticeMap[notice]) flashSuccess = noticeMap[notice];
+
+const { client, contacts, primaryContact, financial, projects, payments, activity, archiveWarnings } =
+  detail;
+const titleName = clientDisplayName(client);
+const isArchived = client.status === 'archived';
+
+function formatAddress(parts: Array<string | null | undefined>): string {
+  return parts.filter(Boolean).join(', ') || '—';
+}
+---
+
+<StudioLayout title={titleName} description={`Client record for ${titleName}.`}>
+  <StudioPageHeader
+    slot="header"
+    title={titleName}
+    description={primaryContact ? `Primary contact: ${primaryContact.name}` : 'Client overview'}
+  />
+  <Fragment slot="actions">
+    {
+      canWrite && (
+        <a class="studio-action" href={`/admin/clients/${client.id}/edit`}>
+          Edit
+        </a>
+      )
+    }
+    {
+      canWrite && !isArchived && (
+        <form method="post" action={`/admin/clients/${client.id}`}>
+          <input type="hidden" name="intent" value="archive" />
+          <button type="submit" class="studio-action" data-confirm-archive>
+            Archive
+          </button>
+        </form>
+      )
+    }
+    {
+      canWrite && isArchived && (
+        <form method="post" action={`/admin/clients/${client.id}`}>
+          <input type="hidden" name="intent" value="restore" />
+          <button type="submit" class="studio-action studio-action-primary">Restore client</button>
+        </form>
+      )
+    }
+    <a class="studio-action" href="/admin/clients">All clients</a>
+  </Fragment>
+
+  {
+    flashError && (
+      <p class="studio-auth-error mb-6" role="alert">
+        {flashError}
+      </p>
+    )
+  }
+  {
+    flashSuccess && (
+      <p class="studio-auth-success mb-6" role="status">
+        {flashSuccess}
+      </p>
+    )
+  }
+
+  <div class="mb-6 flex flex-wrap items-center gap-3">
+    <StudioStatusBadge
+      label={isArchived ? 'Archived' : 'Active'}
+      tone={isArchived ? 'neutral' : 'success'}
+    />
+    {
+      !isArchived && (archiveWarnings.hasActiveProjects || archiveWarnings.hasOutstandingBalance) && (
+        <p class="text-sm text-ink-muted">
+          Archive warning:
+          {archiveWarnings.hasActiveProjects && ' active projects'}
+          {archiveWarnings.hasActiveProjects && archiveWarnings.hasOutstandingBalance && ','}
+          {archiveWarnings.hasOutstandingBalance && ' outstanding balance'}
+        </p>
+      )
+    }
+  </div>
+
+  <div class="studio-metric-grid mb-8">
+    <StudioMetricCard
+      label="Lifetime revenue"
+      value={formatMoney(financial.lifetimePaidMinor)}
+      hint="Succeeded payments net of refunds"
+    />
+    <StudioMetricCard
+      label="Outstanding balance"
+      value={formatMoney(financial.outstandingBalanceMinor)}
+      hint="Issued unpaid invoice balances"
+    />
+  </div>
+
+  <div class="studio-detail-grid mb-8">
+    <StudioPanel title="Overview">
+      <dl class="studio-dl">
+        <div>
+          <dt>Company</dt>
+          <dd>{client.company_name}</dd>
+        </div>
+        <div>
+          <dt>Display name</dt>
+          <dd>{client.display_name || '—'}</dd>
+        </div>
+        <div>
+          <dt>Billing email</dt>
+          <dd>{client.billing_email || '—'}</dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd>{client.phone || '—'}</dd>
+        </div>
+        <div>
+          <dt>Billing address</dt>
+          <dd>
+            {
+              formatAddress([
+                client.billing_address_line1,
+                client.billing_address_line2,
+                client.billing_city,
+                client.billing_region,
+                client.billing_postal_code,
+                client.billing_country,
+              ])
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Company address</dt>
+          <dd>
+            {
+              formatAddress([
+                client.company_address_line1,
+                client.company_address_line2,
+                client.company_city,
+                client.company_region,
+                client.company_postal_code,
+                client.company_country,
+              ])
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{formatStudioDateTime(client.created_at)}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{formatStudioDateTime(client.updated_at)}</dd>
+        </div>
+      </dl>
+    </StudioPanel>
+
+    <StudioPanel title="Internal notes">
+      {
+        client.notes ? (
+          <p class="whitespace-pre-wrap text-sm leading-relaxed text-navy-900">{client.notes}</p>
+        ) : (
+          <StudioEmptyState title="No notes" description="Internal Studio notes appear here." />
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="mb-8">
+    <StudioPanel title="Contacts">
+      {
+        contacts.length === 0 ? (
+          <StudioEmptyState title="No contacts" description="Add a contact for this client." />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {contacts.map((contact) => (
+              <li class="py-4">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p class="font-semibold text-navy-900">
+                      {contact.name}
+                      {contact.is_primary && (
+                        <span class="ml-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                          Primary
+                        </span>
+                      )}
+                    </p>
+                    <p class="mt-1 text-sm text-ink-muted">
+                      {[contact.job_title, contact.email, contact.phone].filter(Boolean).join(' · ') ||
+                        'No details'}
+                    </p>
+                  </div>
+                  {canWrite && (
+                    <div class="studio-actions">
+                      {!contact.is_primary && (
+                        <form method="post" action={`/admin/clients/${client.id}`}>
+                          <input type="hidden" name="intent" value="set_primary" />
+                          <input type="hidden" name="contactId" value={contact.id} />
+                          <button type="submit" class="studio-action">
+                            Set primary
+                          </button>
+                        </form>
+                      )}
+                      {canRemoveContacts && (
+                        <form method="post" action={`/admin/clients/${client.id}`}>
+                          <input type="hidden" name="intent" value="remove_contact" />
+                          <input type="hidden" name="contactId" value={contact.id} />
+                          <button type="submit" class="studio-action" data-confirm-remove>
+                            Remove
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {canWrite && (
+                  <details class="mt-3">
+                    <summary class="cursor-pointer text-sm font-semibold text-brand">Edit contact</summary>
+                    <form
+                      method="post"
+                      action={`/admin/clients/${client.id}`}
+                      class="studio-inline-form mt-3"
+                    >
+                      <input type="hidden" name="intent" value="update_contact" />
+                      <input type="hidden" name="contactId" value={contact.id} />
+                      <label class="studio-auth-field">
+                        Name
+                        <input name="name" required value={contact.name} />
+                      </label>
+                      <label class="studio-auth-field">
+                        Email
+                        <input name="email" type="email" value={contact.email ?? ''} />
+                      </label>
+                      <label class="studio-auth-field">
+                        Phone
+                        <input name="phone" type="tel" value={contact.phone ?? ''} />
+                      </label>
+                      <label class="studio-auth-field">
+                        Job title
+                        <input name="jobTitle" value={contact.job_title ?? ''} />
+                      </label>
+                      <label class="studio-checkbox">
+                        <input
+                          type="checkbox"
+                          name="setPrimary"
+                          value="on"
+                          checked={contact.is_primary}
+                        />
+                        <span>Primary contact</span>
+                      </label>
+                      <button type="submit" class="studio-action studio-action-primary">
+                        Save contact
+                      </button>
+                    </form>
+                  </details>
+                )}
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      {
+        canWrite && (
+          <details class="mt-4 border-t border-border pt-4">
+            <summary class="cursor-pointer text-sm font-semibold text-brand">Add contact</summary>
+            <form method="post" action={`/admin/clients/${client.id}`} class="studio-inline-form">
+              <input type="hidden" name="intent" value="add_contact" />
+              <label class="studio-auth-field">
+                Name
+                <input name="name" required autocomplete="name" />
+              </label>
+              <label class="studio-auth-field">
+                Email
+                <input name="email" type="email" autocomplete="email" />
+              </label>
+              <label class="studio-auth-field">
+                Phone
+                <input name="phone" type="tel" autocomplete="tel" />
+              </label>
+              <label class="studio-auth-field">
+                Job title
+                <input name="jobTitle" autocomplete="organization-title" />
+              </label>
+              <label class="studio-checkbox">
+                <input type="checkbox" name="setPrimary" value="on" />
+                <span>Make primary</span>
+              </label>
+              <button type="submit" class="studio-action studio-action-primary">
+                Add contact
+              </button>
+            </form>
+          </details>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="studio-detail-grid mb-8">
+    <StudioPanel title="Projects">
+      {
+        projects.length === 0 ? (
+          <StudioEmptyState
+            title="No projects yet"
+            description="Project management arrives in Phase 7. Related projects will appear here."
+          />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {projects.map((project) => (
+              <li class="flex items-center justify-between gap-3 py-3 text-sm">
+                <span class="font-medium text-navy-900">{project.name}</span>
+                <span class="text-ink-muted capitalize">{project.status.replaceAll('_', ' ')}</span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+
+    <StudioPanel title="Payment history">
+      {
+        payments.length === 0 ? (
+          <StudioEmptyState
+            title="No payments yet"
+            description="Payment records from later billing phases will appear here."
+          />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {payments.map((payment) => (
+              <li class="flex items-center justify-between gap-3 py-3 text-sm">
+                <span>{formatMoney(payment.amount_minor, payment.currency as 'CAD' | 'USD')}</span>
+                <span class="text-ink-muted capitalize">
+                  {payment.status.replaceAll('_', ' ')} ·{' '}
+                  {formatStudioDate(payment.paid_at || payment.created_at)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="studio-detail-grid mb-8">
+    <StudioPanel title="Proposals">
+      <StudioEmptyState
+        title="Proposal builder later"
+        description="Related proposals will appear here after Phase 8."
+      />
+    </StudioPanel>
+    <StudioPanel title="Invoices">
+      <StudioEmptyState
+        title="Invoice engine later"
+        description="Related invoices will appear here after Phase 9. Outstanding balance already uses invoice records when present."
+      />
+    </StudioPanel>
+  </div>
+
+  <StudioPanel title="Activity">
+    {
+      activity.length === 0 ? (
+        <StudioEmptyState title="No activity yet" description="Client changes will be listed here." />
+      ) : (
+        <ul class="divide-y divide-border" role="list">
+          {activity.map((entry) => (
+            <li class="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
+              <span class="font-medium text-navy-900">{humanizeStudioActivity(entry.action)}</span>
+              <time class="text-ink-muted" datetime={entry.created_at}>
+                {formatStudioDateTime(entry.created_at)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </StudioPanel>
+</StudioLayout>
+
+<script is:inline>
+  (() => {
+    document.querySelectorAll('[data-confirm-archive]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        if (
+          !confirm(
+            'Archive this client? Projects, invoices, and payments are preserved.',
+          )
+        ) {
+          event.preventDefault();
+        }
+      });
+    });
+    document.querySelectorAll('[data-confirm-remove]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        if (!confirm('Remove this contact?')) event.preventDefault();
+      });
+    });
+  })();
+</script>

@@ -212,6 +212,74 @@
     @apply mt-4 text-base leading-relaxed text-ink-muted;
   }
 
+  .studio-fieldset {
+    @apply mb-8 border-0 p-0;
+  }
+
+  .studio-legend {
+    @apply mb-4 font-display text-lg font-semibold text-navy-900;
+  }
+
+  .studio-form-row {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+
+  .studio-checkbox {
+    @apply mb-4 flex min-h-11 items-start gap-3 text-sm text-navy-900;
+  }
+
+  .studio-checkbox input {
+    @apply mt-1 h-4 w-4 shrink-0;
+  }
+
+  .studio-textarea {
+    @apply min-h-28 w-full rounded-[var(--radius-md)] border border-border bg-white px-3 py-2 text-base text-ink outline-none transition duration-200 focus:border-brand focus:ring-2 focus:ring-brand/20;
+  }
+
+  .studio-client-link {
+    @apply font-semibold text-navy-900 underline-offset-2 hover:text-brand hover:underline;
+  }
+
+  .studio-table-row:hover td {
+    @apply bg-brand-wash/60;
+  }
+
+  .studio-client-mobile-list {
+    @apply flex flex-col gap-3;
+  }
+
+  .studio-client-mobile-card {
+    @apply block rounded-[var(--radius-md)] border border-border bg-white px-4 py-4 transition duration-200 hover:border-brand;
+  }
+
+  .studio-client-mobile-name {
+    @apply font-display text-base font-semibold text-navy-900;
+  }
+
+  .studio-detail-grid {
+    @apply grid gap-6 lg:grid-cols-2;
+  }
+
+  .studio-dl {
+    @apply grid gap-3 text-sm;
+  }
+
+  .studio-dl dt {
+    @apply text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted;
+  }
+
+  .studio-dl dd {
+    @apply text-navy-900;
+  }
+
+  .studio-inline-form {
+    @apply mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end;
+  }
+
+  .studio-pagination {
+    @apply mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-muted;
+  }
+
   /* Auth surface — restrained navy/white, no marketing clutter */
   .studio-auth-body {
     @apply min-h-dvh bg-[linear-gradient(165deg,#f4f7fb_0%,#e8eef7_45%,#f8fafc_100%)] text-ink;

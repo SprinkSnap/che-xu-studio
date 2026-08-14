@@ -60,7 +60,7 @@ function main() {
   const files = readdirSync(migrationsDir)
     .filter((name) => name.endsWith('.sql'))
     .sort();
-  assert(files.length >= 8, 'Expected Phase 4+ migration SQL files (incl. Phase 5 privilege guards)');
+  assert(files.length >= 9, 'Expected Phase 4+ migration SQL files (incl. client management helpers)');
 
   for (const file of files) {
     adminPsqlFile(path.join(migrationsDir, file));
@@ -370,6 +370,86 @@ ROLLBACK;
      SELECT display_name FROM public.profiles WHERE id = '${staffProfile}';`,
   ).trim();
   assert(staffName === 'Staff Updated', `staff should update display_name, got ${staffName}`);
+
+  // --- Phase 6: client RPCs + financial summary net of refunds ---
+  // asRole wraps BEGIN/ROLLBACK — assert create+primary in one transaction.
+  const createdBundle = asRole(
+    'authenticated',
+    ownerAuth,
+    `CREATE TEMP TABLE _phase6_client ON COMMIT DROP AS
+       SELECT public.create_client_with_primary_contact(
+         'Phase6 Co',
+         'Pat Primary'
+       ) AS client_id;
+     SELECT count(*)::text
+     FROM public.client_contacts c
+     JOIN _phase6_client t ON t.client_id = c.client_id
+     WHERE c.is_primary;`,
+  ).trim();
+  assert(createdBundle === '1', `create RPC should leave one primary in-tx, got ${createdBundle}`);
+
+  const switchPrimary = asRole(
+    'authenticated',
+    ownerAuth,
+    `SELECT public.create_client_with_primary_contact('Switch Co', 'First');
+     INSERT INTO public.client_contacts (client_id, name, is_primary)
+     SELECT id, 'Second', false FROM public.clients WHERE company_name = 'Switch Co';
+     SELECT public.set_primary_client_contact(
+       (SELECT id FROM public.clients WHERE company_name = 'Switch Co'),
+       (SELECT id FROM public.client_contacts WHERE name = 'Second')
+     );
+     SELECT name FROM public.client_contacts WHERE is_primary
+       AND client_id = (SELECT id FROM public.clients WHERE company_name = 'Switch Co');`,
+  ).trim();
+  assert(switchPrimary === 'Second', `primary should switch to Second, got ${switchPrimary}`);
+
+  // Financial fixtures (committed via admin) — also proves archive preserves contacts
+  const finClient = adminPsql(`
+    INSERT INTO public.clients (company_name, billing_email, status)
+    VALUES ('Finance Co', 'finance@phase6.test', 'active')
+    RETURNING id;
+  `).trim();
+  adminPsql(`
+    INSERT INTO public.client_contacts (client_id, name, email, is_primary)
+    VALUES ('${finClient}', 'Fin Contact', 'fin@phase6.test', true);
+  `);
+  const finProject = adminPsql(`
+    INSERT INTO public.projects (client_id, name, status, project_price_minor)
+    VALUES ('${finClient}', 'Billable', 'active', 100000)
+    RETURNING id;
+  `).trim();
+  adminPsql(`
+    INSERT INTO public.invoices (client_id, project_id, invoice_number, status, currency, subtotal_minor, tax_minor, total_minor, amount_paid_minor, balance_due_minor, issue_date)
+    VALUES ('${finClient}', '${finProject}', 'CXS-DRAFT-1', 'draft', 'CAD', 50000, 0, 50000, 0, 50000, CURRENT_DATE);
+  `);
+  const issuedInvoice = adminPsql(`
+    INSERT INTO public.invoices (client_id, project_id, invoice_number, status, currency, subtotal_minor, tax_minor, total_minor, amount_paid_minor, balance_due_minor, issue_date)
+    VALUES ('${finClient}', '${finProject}', 'CXS-ISSUE-1', 'issued', 'CAD', 40000, 0, 40000, 0, 40000, CURRENT_DATE)
+    RETURNING id;
+  `).trim();
+  adminPsql(`
+    INSERT INTO public.payments (invoice_id, client_id, amount_minor, currency, status, paid_at, refunded_minor)
+    VALUES ('${issuedInvoice}', '${finClient}', 25000, 'CAD', 'succeeded', now(), 5000);
+  `);
+
+  const lifetime = asRole(
+    'authenticated',
+    ownerAuth,
+    `SELECT lifetime_paid_minor::text FROM public.client_financial_summary WHERE client_id = '${finClient}';`,
+  ).trim();
+  const outstanding = asRole(
+    'authenticated',
+    ownerAuth,
+    `SELECT outstanding_balance_minor::text FROM public.client_financial_summary WHERE client_id = '${finClient}';`,
+  ).trim();
+  assert(lifetime === '20000', `lifetime should be 25000-5000=20000, got ${lifetime}`);
+  assert(outstanding === '40000', `outstanding should exclude draft and equal 40000, got ${outstanding}`);
+
+  adminPsql(`UPDATE public.clients SET status = 'archived', archived_at = now() WHERE id = '${finClient}';`);
+  const contactSurvives = adminPsql(
+    `SELECT count(*)::text FROM public.client_contacts WHERE client_id = '${finClient}';`,
+  ).trim();
+  assert(contactSurvives === '1', `contacts must survive archive, got ${contactSurvives}`);
 
   // Table inventory
   const tableCount = adminPsql(`

@@ -139,7 +139,7 @@ export function transitionSideEffects(
 
   if (to === 'completed') {
     effects.completed_at = nowIso;
-  } else if (from === 'completed' && to !== 'completed') {
+  } else if (from === 'completed') {
     effects.completed_at = null;
   }
 

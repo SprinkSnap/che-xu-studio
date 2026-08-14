@@ -82,8 +82,10 @@ if (Astro.request.method === 'POST') {
     errorMessage = parsed.error.issues[0]?.message || GENERIC_PROJECT_SAVE_ERROR;
   } else {
     try {
-      const id = await createProject(supabase, parsed.data, auth.profile.id);
-      return Astro.redirect(`/admin/projects/${id}`, 303);
+      return Astro.redirect(
+        `/admin/projects/${await createProject(supabase, parsed.data, auth.profile.id)}`,
+        303,
+      );
     } catch (error) {
       errorMessage =
         error instanceof ProjectMutationError

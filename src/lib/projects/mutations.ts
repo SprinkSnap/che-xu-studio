@@ -147,7 +147,12 @@ export async function transitionProject(
   }
 
   const effects = transitionSideEffects(expectedStatus, targetStatus);
-  const patch: Record<string, unknown> = {
+  const patch: {
+    status: ProjectStatus;
+    completed_at?: string | null;
+    archived_at?: string | null;
+    status_before_archive?: ProjectStatus | null;
+  } = {
     status: targetStatus,
   };
   if (effects.completed_at !== undefined) patch.completed_at = effects.completed_at;

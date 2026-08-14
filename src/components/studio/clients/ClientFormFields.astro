@@ -1,0 +1,299 @@
+---
+import type { ClientFormValues } from '../../../lib/clients/form-values';
+
+interface Props {
+  values: ClientFormValues;
+  mode: 'create' | 'edit';
+  errorMessage?: string;
+}
+
+const { values, mode, errorMessage = '' } = Astro.props;
+const showPrimaryContact = mode === 'create';
+---
+
+{
+  errorMessage && (
+    <p class="studio-auth-error mb-6" role="alert">
+      {errorMessage}
+    </p>
+  )
+}
+
+<div class="studio-client-form-grid">
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Client identity</legend>
+    <div class="studio-auth-field">
+      <label for="companyName">Company / client name</label>
+      <input
+        id="companyName"
+        name="companyName"
+        type="text"
+        required
+        autocomplete="organization"
+        value={values.companyName}
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="displayName">Display name <span class="text-ink-muted font-normal">(optional)</span></label>
+      <input
+        id="displayName"
+        name="displayName"
+        type="text"
+        autocomplete="organization"
+        value={values.displayName}
+      />
+    </div>
+  </fieldset>
+
+  {
+    showPrimaryContact && (
+      <fieldset class="studio-fieldset">
+        <legend class="studio-legend">Primary contact</legend>
+        <div class="studio-auth-field">
+          <label for="contactName">Contact name</label>
+          <input
+            id="contactName"
+            name="contactName"
+            type="text"
+            required
+            autocomplete="name"
+            value={values.contactName ?? ''}
+          />
+        </div>
+        <div class="studio-auth-field">
+          <label for="contactEmail">Email</label>
+          <input
+            id="contactEmail"
+            name="contactEmail"
+            type="email"
+            autocomplete="email"
+            inputmode="email"
+            value={values.contactEmail ?? ''}
+          />
+        </div>
+        <div class="studio-auth-field">
+          <label for="contactPhone">Phone</label>
+          <input
+            id="contactPhone"
+            name="contactPhone"
+            type="tel"
+            autocomplete="tel"
+            inputmode="tel"
+            value={values.contactPhone ?? ''}
+          />
+        </div>
+        <div class="studio-auth-field">
+          <label for="contactJobTitle">Job title</label>
+          <input
+            id="contactJobTitle"
+            name="contactJobTitle"
+            type="text"
+            autocomplete="organization-title"
+            value={values.contactJobTitle ?? ''}
+          />
+        </div>
+      </fieldset>
+    )
+  }
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Billing</legend>
+    <div class="studio-auth-field">
+      <label for="billingEmail">Billing email</label>
+      <input
+        id="billingEmail"
+        name="billingEmail"
+        type="email"
+        autocomplete="email"
+        inputmode="email"
+        value={values.billingEmail}
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="phone">Phone</label>
+      <input
+        id="phone"
+        name="phone"
+        type="tel"
+        autocomplete="tel"
+        inputmode="tel"
+        value={values.phone}
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="billingAddressLine1">Address line 1</label>
+      <input
+        id="billingAddressLine1"
+        name="billingAddressLine1"
+        type="text"
+        autocomplete="address-line1"
+        value={values.billingAddressLine1}
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="billingAddressLine2">Address line 2</label>
+      <input
+        id="billingAddressLine2"
+        name="billingAddressLine2"
+        type="text"
+        autocomplete="address-line2"
+        value={values.billingAddressLine2}
+      />
+    </div>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label for="billingCity">City</label>
+        <input
+          id="billingCity"
+          name="billingCity"
+          type="text"
+          autocomplete="address-level2"
+          value={values.billingCity}
+        />
+      </div>
+      <div class="studio-auth-field">
+        <label for="billingRegion">Province / state</label>
+        <input
+          id="billingRegion"
+          name="billingRegion"
+          type="text"
+          autocomplete="address-level1"
+          value={values.billingRegion}
+        />
+      </div>
+    </div>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label for="billingPostalCode">Postal / ZIP</label>
+        <input
+          id="billingPostalCode"
+          name="billingPostalCode"
+          type="text"
+          autocomplete="postal-code"
+          value={values.billingPostalCode}
+        />
+      </div>
+      <div class="studio-auth-field">
+        <label for="billingCountry">Country</label>
+        <input
+          id="billingCountry"
+          name="billingCountry"
+          type="text"
+          maxlength="2"
+          autocomplete="country"
+          placeholder="CA"
+          value={values.billingCountry}
+        />
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset" data-company-address>
+    <legend class="studio-legend">Company address</legend>
+    <label class="studio-checkbox">
+      <input
+        type="checkbox"
+        name="companySameAsBilling"
+        value="on"
+        checked={values.companySameAsBilling}
+        data-same-as-billing
+      />
+      <span>Company address is the same as billing address</span>
+    </label>
+    <div class="studio-company-fields" data-company-fields hidden={values.companySameAsBilling}>
+      <div class="studio-auth-field">
+        <label for="companyAddressLine1">Address line 1</label>
+        <input
+          id="companyAddressLine1"
+          name="companyAddressLine1"
+          type="text"
+          autocomplete="address-line1"
+          value={values.companyAddressLine1}
+        />
+      </div>
+      <div class="studio-auth-field">
+        <label for="companyAddressLine2">Address line 2</label>
+        <input
+          id="companyAddressLine2"
+          name="companyAddressLine2"
+          type="text"
+          autocomplete="address-line2"
+          value={values.companyAddressLine2}
+        />
+      </div>
+      <div class="studio-form-row">
+        <div class="studio-auth-field">
+          <label for="companyCity">City</label>
+          <input
+            id="companyCity"
+            name="companyCity"
+            type="text"
+            autocomplete="address-level2"
+            value={values.companyCity}
+          />
+        </div>
+        <div class="studio-auth-field">
+          <label for="companyRegion">Province / state</label>
+          <input
+            id="companyRegion"
+            name="companyRegion"
+            type="text"
+            autocomplete="address-level1"
+            value={values.companyRegion}
+          />
+        </div>
+      </div>
+      <div class="studio-form-row">
+        <div class="studio-auth-field">
+          <label for="companyPostalCode">Postal / ZIP</label>
+          <input
+            id="companyPostalCode"
+            name="companyPostalCode"
+            type="text"
+            autocomplete="postal-code"
+            value={values.companyPostalCode}
+          />
+        </div>
+        <div class="studio-auth-field">
+          <label for="companyCountry">Country</label>
+          <input
+            id="companyCountry"
+            name="companyCountry"
+            type="text"
+            maxlength="2"
+            autocomplete="country"
+            placeholder="CA"
+            value={values.companyCountry}
+          />
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Internal notes</legend>
+    <div class="studio-auth-field">
+      <label for="notes">Notes <span class="text-ink-muted font-normal">(Studio only)</span></label>
+      <textarea id="notes" name="notes" rows="5" class="studio-textarea">{values.notes}</textarea>
+    </div>
+  </fieldset>
+</div>
+
+{
+  values.expectedUpdatedAt && (
+    <input type="hidden" name="expectedUpdatedAt" value={values.expectedUpdatedAt} />
+  )
+}
+
+<script is:inline>
+  (() => {
+    const checkbox = document.querySelector('[data-same-as-billing]');
+    const fields = document.querySelector('[data-company-fields]');
+    if (!(checkbox instanceof HTMLInputElement) || !(fields instanceof HTMLElement)) return;
+    function sync() {
+      fields.hidden = checkbox.checked;
+    }
+    checkbox.addEventListener('change', sync);
+    sync();
+  })();
+</script>

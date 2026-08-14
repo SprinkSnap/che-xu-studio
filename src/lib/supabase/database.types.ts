@@ -1142,6 +1142,39 @@ export type Database = {
         }
         Returns: string
       }
+      create_client_with_primary_contact: {
+        Args: {
+          p_company_name: string
+          p_contact_name: string
+          p_display_name?: string | null
+          p_billing_email?: string | null
+          p_phone?: string | null
+          p_billing_address_line1?: string | null
+          p_billing_address_line2?: string | null
+          p_billing_city?: string | null
+          p_billing_region?: string | null
+          p_billing_postal_code?: string | null
+          p_billing_country?: string | null
+          p_company_address_line1?: string | null
+          p_company_address_line2?: string | null
+          p_company_city?: string | null
+          p_company_region?: string | null
+          p_company_postal_code?: string | null
+          p_company_country?: string | null
+          p_notes?: string | null
+          p_contact_email?: string | null
+          p_contact_phone?: string | null
+          p_contact_job_title?: string | null
+        }
+        Returns: string
+      }
+      set_primary_client_contact: {
+        Args: {
+          p_client_id: string
+          p_contact_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       activity_actor_type: 'user' | 'client' | 'system' | 'stripe'

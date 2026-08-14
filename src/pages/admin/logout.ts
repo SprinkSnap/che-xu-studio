@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import { isSameOriginMutation, requestSiteOrigin } from '../../../lib/auth/origin';
-import { recordAuthActivity, sanitizeAuthMetadata } from '../../../lib/auth/activity';
-import { logStudioAuthEvent, signOut } from '../../../lib/supabase/auth';
-import { STUDIO_CACHE_CONTROL, STUDIO_ROBOTS_HEADER } from '../../../lib/studio/private-paths';
+import { isSameOriginMutation, requestSiteOrigin } from '../../lib/auth/origin';
+import { recordAuthActivity, sanitizeAuthMetadata } from '../../lib/auth/activity';
+import { logStudioAuthEvent, signOut } from '../../lib/supabase/auth';
+import { STUDIO_CACHE_CONTROL, STUDIO_ROBOTS_HEADER } from '../../lib/studio/private-paths';
 
 export const prerender = false;
 

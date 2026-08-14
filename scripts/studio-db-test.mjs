@@ -362,13 +362,13 @@ ROLLBACK;
   }
   assert(outsiderInserted === 'denied', 'non-member must not self-insert an owner profile');
 
-  // Staff may still update their own display_name
-  asRole(
+  // Staff may still update their own display_name (verified inside the RLS transaction)
+  const staffName = asRole(
     'authenticated',
     staffAuth,
-    `UPDATE public.profiles SET display_name = 'Staff Updated' WHERE id = '${staffProfile}';`,
-  );
-  const staffName = adminPsql(`SELECT display_name FROM public.profiles WHERE id = '${staffProfile}';`).trim();
+    `UPDATE public.profiles SET display_name = 'Staff Updated' WHERE id = '${staffProfile}';
+     SELECT display_name FROM public.profiles WHERE id = '${staffProfile}';`,
+  ).trim();
   assert(staffName === 'Staff Updated', `staff should update display_name, got ${staffName}`);
 
   // Table inventory

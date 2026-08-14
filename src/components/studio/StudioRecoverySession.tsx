@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { tryCreateSupabaseBrowserClient } from '../lib/supabase/browser';
+import { tryCreateSupabaseBrowserClient } from '../../lib/supabase/browser';
 
 /**
  * Hydrates a Supabase recovery session from URL (PKCE code or hash tokens)

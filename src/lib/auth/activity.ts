@@ -28,8 +28,8 @@ export async function recordAuthActivity(
   input: {
     actorProfileId?: string | null;
     action: AuthActivityAction;
-    entityType?: string;
-    entityId?: string | null;
+    subjectType?: string;
+    subjectId?: string | null;
     metadata?: Record<string, Json | undefined>;
   },
 ): Promise<void> {
@@ -42,10 +42,11 @@ export async function recordAuthActivity(
     }
 
     await client.from('activity_logs').insert({
-      actor_profile_id: input.actorProfileId ?? null,
+      actor_user_id: input.actorProfileId ?? null,
+      actor_type: input.actorProfileId ? 'user' : 'system',
       action: input.action,
-      entity_type: input.entityType ?? 'auth',
-      entity_id: input.entityId ?? null,
+      subject_type: input.subjectType ?? 'auth',
+      subject_id: input.subjectId ?? null,
       metadata,
     });
   } catch {

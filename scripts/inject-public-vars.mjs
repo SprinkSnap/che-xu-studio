@@ -16,6 +16,9 @@ const WORKER_VAR_KEYS = [
   // Studio OS — browser-safe Supabase public config (never SUPABASE_SECRET_KEY).
   'PUBLIC_SUPABASE_URL',
   'PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  // Studio OS gate + password-reset origin (plain vars; not secrets).
+  'STUDIO_OS_ENABLED',
+  'STUDIO_BASE_URL',
 ];
 
 /**
@@ -49,6 +52,8 @@ export function injectPublicWorkerVars(config, env = process.env, { log = true }
         '  CONTACT_FROM_EMAIL=Che Xu Studio <info@chexustudio.com>',
         '  PUBLIC_SUPABASE_URL',
         '  PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+        '  STUDIO_OS_ENABLED=true',
+        '  STUDIO_BASE_URL=https://chexustudio.com',
         'And Encrypt secrets: TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY.',
       ].join('\n'),
     );

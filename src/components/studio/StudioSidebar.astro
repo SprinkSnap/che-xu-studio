@@ -4,9 +4,16 @@ import { isStudioNavActive, studioNavItems } from '../../lib/studio/navigation';
 interface Props {
   currentPath: string;
   id?: string;
+  displayName?: string;
+  roleLabel?: string;
 }
 
-const { currentPath, id = 'studio-sidebar-nav' } = Astro.props;
+const {
+  currentPath,
+  id = 'studio-sidebar-nav',
+  displayName = 'Studio user',
+  roleLabel = '',
+} = Astro.props;
 ---
 
 <aside class="studio-sidebar" aria-label="Studio">
@@ -21,7 +28,7 @@ const { currentPath, id = 'studio-sidebar-nav' } = Astro.props;
         decoding="async"
       />
       <span class="font-display text-base font-semibold text-navy-900 group-hover:text-brand">
-        Studio OS
+        Che Xu Studio
       </span>
     </a>
   </div>
@@ -41,7 +48,11 @@ const { currentPath, id = 'studio-sidebar-nav' } = Astro.props;
       })
     }
   </nav>
-  <div class="border-t border-border px-5 py-4 text-xs leading-relaxed text-ink-muted">
-    Che Xu Studio · private
+  <div class="studio-sidebar-user">
+    <p class="studio-sidebar-user-name">{displayName}</p>
+    {roleLabel && <p class="studio-sidebar-user-role">{roleLabel}</p>}
+    <form class="studio-sign-out" method="post" action="/admin/logout">
+      <button type="submit">Sign Out</button>
+    </form>
   </div>
 </aside>

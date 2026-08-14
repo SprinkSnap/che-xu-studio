@@ -20,6 +20,13 @@ const {
 
 const fullTitle = titleTemplate(title);
 const currentPath = path;
+const studioAuth = Astro.locals.studioAuth;
+const displayName =
+  studioAuth?.profile.displayName?.trim() ||
+  studioAuth?.profile.email ||
+  studioAuth?.user.email ||
+  'Studio user';
+const roleLabel = studioAuth?.profile.role ?? '';
 ---
 
 <!doctype html>
@@ -47,15 +54,19 @@ const currentPath = path;
   <body class="studio-shell">
     <a class="skip-link" href="#studio-main">Skip to main content</a>
     <div class="studio-frame">
-      <StudioSidebar currentPath={currentPath} />
+      <StudioSidebar
+        currentPath={currentPath}
+        displayName={displayName}
+        roleLabel={roleLabel}
+      />
       <div class="studio-main-column">
         <StudioMobileHeader title={title} />
-        <StudioMobileNav currentPath={currentPath} />
+        <StudioMobileNav
+          currentPath={currentPath}
+          displayName={displayName}
+          roleLabel={roleLabel}
+        />
         <main id="studio-main" class="studio-content" tabindex="-1">
-          <div class="studio-notice" role="status">
-            Studio OS foundation — authentication arrives in Phase 5. Do not expose this surface in
-            production until then. Enable only with <code>STUDIO_OS_ENABLED=true</code> for preview.
-          </div>
           <slot name="header" />
           {
             Astro.slots.has('actions') && (

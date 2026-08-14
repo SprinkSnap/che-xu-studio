@@ -4,7 +4,7 @@
 **Date:** 2026-08-14  
 **Related:** [Phase 1 audit](../studio-os/PHASE-1-AUDIT.md)
 
-This document locks architectural boundaries for the private Che Xu Studio operating system. Phase 3 adds Supabase client/auth infrastructure; business schema remains Phase 4; login UI and route enforcement remain Phase 5. See also [supabase.md](./supabase.md).
+This document locks architectural boundaries for the private Che Xu Studio operating system. Phase 3–4 deliver Supabase clients, Postgres schema, and RLS. Phase 5 delivers authentication and Studio membership enforcement. See also [supabase.md](./supabase.md) and [studio-auth.md](./studio-auth.md).
 
 ---
 
@@ -122,15 +122,15 @@ Phase 2 does not implement host-based redirects; path-based routes are the sourc
 | Surface | Access model |
 | --- | --- |
 | Marketing routes | Public |
-| `/admin/*` | Private — Supabase Auth + server authorization (Phase 5). Phase 2: gated by `STUDIO_OS_ENABLED` in non-dev environments; **no fake passwords** |
+| `/admin/*` | Private — Supabase Auth + active Studio profile + server permission checks ([studio-auth.md](./studio-auth.md)) |
 | `/proposal/*`, `/invoice/*` | Capability-style secure links (high-entropy tokens, hashed at rest) |
 | Payments | Processed by Stripe; no raw card data stored |
 | Secrets | Server-only env/bindings |
 | Mutations | Zod validation + server authorization; CSRF-safe patterns when cookie sessions exist |
 
-Auth type contracts live in `src/lib/auth/types.ts` for Phase 5 insertion. Middleware already isolates private paths for cache/robots; Phase 5 adds `RequireStudioAdmin` after path detection.
+Auth helpers live in `src/lib/auth/*`. Middleware attaches request-scoped Supabase clients and enforces `/admin` membership after private-path detection.
 
-**Production must not publish `studio.chexustudio.com` or set `STUDIO_OS_ENABLED=true` until authentication (Phase 5) is ready.**
+**Production Studio** requires `STUDIO_OS_ENABLED=true`, Supabase env, and an active Owner profile (see bootstrap in [studio-auth.md](./studio-auth.md)).
 
 ---
 

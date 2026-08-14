@@ -122,7 +122,8 @@ export function securityHeaders(isProduction: boolean): Record<string, string> {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com",
+      // Supabase Auth + PostgREST (Studio OS). Keep hosts narrow — no connect-src *.
+      "connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com https://*.supabase.co wss://*.supabase.co",
       "frame-src https://challenges.cloudflare.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",

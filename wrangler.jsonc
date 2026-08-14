@@ -56,6 +56,14 @@
         "limit": 8,
         "period": 60
       }
+    },
+    {
+      "name": "AUTH_RATE_LIMITER",
+      "namespace_id": "1003",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
     }
   ]
 }

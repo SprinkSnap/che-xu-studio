@@ -60,7 +60,7 @@ function main() {
   const files = readdirSync(migrationsDir)
     .filter((name) => name.endsWith('.sql'))
     .sort();
-  assert(files.length >= 7, 'Expected Phase 4 migration SQL files');
+  assert(files.length >= 8, 'Expected Phase 4+ migration SQL files (incl. Phase 5 privilege guards)');
 
   for (const file of files) {
     adminPsqlFile(path.join(migrationsDir, file));
@@ -324,6 +324,52 @@ ROLLBACK;
     `SELECT count(*)::text FROM public.clients;`,
   ).trim();
   assert(ownerCount === '1', `owner should see clients, got ${ownerCount}`);
+
+  // --- Phase 5: profile self-promotion / self-enrollment must fail ---
+  const staffAuth = adminPsql(`SELECT gen_random_uuid();`).trim();
+  adminPsql(`INSERT INTO auth.users (id, email) VALUES ('${staffAuth}', 'staff@chexustudio.com');`);
+  const staffProfile = adminPsql(`
+    INSERT INTO public.profiles (auth_user_id, email, role, status, display_name)
+    VALUES ('${staffAuth}', 'staff@chexustudio.com', 'staff', 'active', 'Staff')
+    RETURNING id;
+  `).trim();
+
+  let staffPromoted = 'ok';
+  try {
+    asRole(
+      'authenticated',
+      staffAuth,
+      `UPDATE public.profiles SET role = 'owner' WHERE id = '${staffProfile}';`,
+    );
+  } catch {
+    staffPromoted = 'denied';
+  }
+  assert(staffPromoted === 'denied', 'staff must not self-promote to owner');
+
+  const staffRole = adminPsql(`SELECT role::text FROM public.profiles WHERE id = '${staffProfile}';`).trim();
+  assert(staffRole === 'staff', `staff role must remain staff, got ${staffRole}`);
+
+  let outsiderInserted = 'ok';
+  try {
+    asRole(
+      'authenticated',
+      outsiderAuth,
+      `INSERT INTO public.profiles (auth_user_id, email, role, status)
+       VALUES ('${outsiderAuth}', 'outsider@example.com', 'owner', 'active');`,
+    );
+  } catch {
+    outsiderInserted = 'denied';
+  }
+  assert(outsiderInserted === 'denied', 'non-member must not self-insert an owner profile');
+
+  // Staff may still update their own display_name
+  asRole(
+    'authenticated',
+    staffAuth,
+    `UPDATE public.profiles SET display_name = 'Staff Updated' WHERE id = '${staffProfile}';`,
+  );
+  const staffName = adminPsql(`SELECT display_name FROM public.profiles WHERE id = '${staffProfile}';`).trim();
+  assert(staffName === 'Staff Updated', `staff should update display_name, got ${staffName}`);
 
   // Table inventory
   const tableCount = adminPsql(`

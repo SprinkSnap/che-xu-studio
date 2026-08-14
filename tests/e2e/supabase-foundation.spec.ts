@@ -26,9 +26,12 @@ test.describe('Supabase Phase 3 isolation', () => {
     expect(raw).not.toMatch(/eyJ/); // JWT-looking material
   });
 
-  test('admin shell still loads when Supabase is unconfigured', async ({ page }) => {
+  test('admin redirects to login when unauthenticated (even if Supabase is unconfigured)', async ({
+    page,
+  }) => {
     await page.goto('/admin');
-    await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/login/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       'content',
       'noindex, nofollow, noarchive',

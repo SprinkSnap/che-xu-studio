@@ -1,0 +1,155 @@
+---
+import StudioAuthLayout from '../../layouts/StudioAuthLayout.astro';
+import {
+  GENERIC_LOGIN_ERROR,
+  loginSchema,
+} from '../../lib/auth/validation';
+import { safeStudioRedirect } from '../../lib/auth/redirects';
+import { resolveStudioAccess } from '../../lib/auth/profile';
+import { recordAuthActivity, sanitizeAuthMetadata, emailDomain } from '../../lib/auth/activity';
+import { isSameOriginMutation, requestSiteOrigin } from '../../lib/auth/origin';
+import { enforceAuthRateLimit, readAuthRateLimiter } from '../../lib/auth/rate-limit';
+import { logStudioAuthEvent, signOut } from '../../lib/supabase/auth';
+
+export const prerender = false;
+
+let errorMessage = '';
+let emailValue = '';
+
+const nextParam = Astro.url.searchParams.get('next');
+const safeNext = safeStudioRedirect(nextParam);
+
+if (Astro.request.method === 'POST') {
+  const limiter = await readAuthRateLimiter();
+  const limited = await enforceAuthRateLimit({
+    request: Astro.request,
+    limiter,
+    bucket: 'login',
+  });
+  if (limited) return limited;
+
+  const origin = requestSiteOrigin(Astro.request, Astro.url);
+  if (!isSameOriginMutation(Astro.request, origin)) {
+    return new Response('Invalid request origin.', {
+      status: 403,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'private, no-store',
+      },
+    });
+  }
+
+  const form = await Astro.request.formData();
+  const parsed = loginSchema.safeParse({
+    email: String(form.get('email') ?? '').trim().toLowerCase(),
+    password: String(form.get('password') ?? ''),
+    next: String(form.get('next') ?? safeNext),
+  });
+
+  if (!parsed.success) {
+    errorMessage = GENERIC_LOGIN_ERROR;
+    emailValue = String(form.get('email') ?? '');
+  } else {
+    emailValue = parsed.data.email;
+    const supabase = Astro.locals.studioSupabase;
+    if (!supabase) {
+      errorMessage = GENERIC_LOGIN_ERROR;
+      logStudioAuthEvent('login_misconfigured');
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+
+      if (error || !data.user) {
+        errorMessage = GENERIC_LOGIN_ERROR;
+        logStudioAuthEvent('login_failed', { reason: 'credentials' });
+        await recordAuthActivity(supabase, {
+          action: 'auth.login_failed',
+          metadata: sanitizeAuthMetadata({
+            reason: 'credentials',
+            emailDomain: emailDomain(parsed.data.email),
+          }),
+        });
+      } else {
+        const access = await resolveStudioAccess(supabase);
+        if (access.kind !== 'authorized') {
+          errorMessage = GENERIC_LOGIN_ERROR;
+          const reason =
+            access.kind === 'suspended' ? 'suspended' : 'non_member';
+          logStudioAuthEvent('login_denied_membership', { reason });
+          await recordAuthActivity(supabase, {
+            actorProfileId: access.kind === 'suspended' ? access.profile.id : null,
+            action:
+              access.kind === 'suspended'
+                ? 'auth.suspended_access_attempt'
+                : 'auth.non_member_access_attempt',
+            metadata: sanitizeAuthMetadata({
+              reason,
+              emailDomain: emailDomain(parsed.data.email),
+            }),
+          });
+          try {
+            await signOut(supabase);
+          } catch {
+            /* ignore */
+          }
+        } else {
+          await recordAuthActivity(supabase, {
+            actorProfileId: access.context.profile.id,
+            action: 'auth.login_succeeded',
+            metadata: sanitizeAuthMetadata({
+              emailDomain: emailDomain(parsed.data.email),
+            }),
+          });
+          return Astro.redirect(safeStudioRedirect(parsed.data.next), 303);
+        }
+      }
+    }
+  }
+}
+---
+
+<StudioAuthLayout title="Sign in" description="Sign in to Che Xu Studio OS.">
+  <h1>Sign in</h1>
+  <p class="studio-auth-lede">Access the private Che Xu Studio operating system.</p>
+
+  {
+    errorMessage && (
+      <p class="studio-auth-error mt-6" role="alert">
+        {errorMessage}
+      </p>
+    )
+  }
+
+  <form class="studio-auth-form" method="post" action="/admin/login" novalidate>
+    <input type="hidden" name="next" value={safeNext} />
+    <div class="studio-auth-field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="email"
+        inputmode="email"
+        required
+        value={emailValue}
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      />
+    </div>
+    <button type="submit" class="studio-action studio-action-primary w-full">Sign In</button>
+  </form>
+
+  <div class="studio-auth-links">
+    <a href="/admin/forgot-password">Forgot password</a>
+  </div>
+</StudioAuthLayout>

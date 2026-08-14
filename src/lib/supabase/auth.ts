@@ -1,7 +1,11 @@
 import type { StudioActor } from '../auth/types';
+import { getStudioProfile } from '../auth/profile';
+import { assertActiveStudioMembership, toStudioAuthContext } from '../auth/studio-context';
+import { isStudioAdminRole } from '../auth/permissions';
 import { redactForLogs } from '../security';
 import type { StudioSupabaseClient } from './types';
 import { StudioAuthError, type StudioAuthState, type StudioAuthUser } from './types';
+import type { StudioAuthContext } from '../auth/studio-context';
 
 export { StudioAuthError } from './types';
 
@@ -21,10 +25,10 @@ function toStudioAuthUser(user: {
   };
 }
 
-function toStudioActor(user: StudioAuthUser): StudioActor {
+function toStudioActor(user: StudioAuthUser, emailFallback?: string): StudioActor {
   return {
     id: user.id,
-    email: user.email ?? '',
+    email: user.email || emailFallback || '',
   };
 }
 
@@ -60,7 +64,6 @@ export async function getCurrentSession(
 
 export async function getStudioAuthState(client: StudioSupabaseClient): Promise<StudioAuthState> {
   const user = await getCurrentUser(client);
-  // Session is informational; authorization uses getUser above.
   const session = user ? await getCurrentSession(client) : null;
   return { user, session };
 }
@@ -76,17 +79,29 @@ export async function requireAuthenticatedUser(
 }
 
 /**
- * Phase 5 will check profiles/membership after Phase 4 schema exists.
- * Scaffold only — does not hardcode admin emails or invent membership.
+ * Require an active Studio member with owner/admin role.
+ * Authentication alone is insufficient — matching profiles row required.
  */
 export async function requireStudioAdmin(client: StudioSupabaseClient): Promise<StudioActor> {
   const user = await requireAuthenticatedUser(client);
-  // Keep actor shape ready for Phase 5 membership checks.
-  void toStudioActor(user);
-  throw new StudioAuthError(
-    'forbidden',
-    'Studio admin authorization is not implemented until Phase 5 (after membership schema).',
-  );
+  const profile = await getStudioProfile(client, user.id);
+  const active = assertActiveStudioMembership(profile);
+  if (!isStudioAdminRole(active.role)) {
+    throw new StudioAuthError('forbidden', 'Studio admin authorization required.');
+  }
+  return toStudioActor(user, active.email);
+}
+
+/**
+ * Require any active Studio member (owner, admin, or staff).
+ */
+export async function requireStudioMember(
+  client: StudioSupabaseClient,
+): Promise<StudioAuthContext> {
+  const user = await requireAuthenticatedUser(client);
+  const profile = await getStudioProfile(client, user.id);
+  const active = assertActiveStudioMembership(profile);
+  return toStudioAuthContext(user, active);
 }
 
 export async function signOut(client: StudioSupabaseClient): Promise<void> {

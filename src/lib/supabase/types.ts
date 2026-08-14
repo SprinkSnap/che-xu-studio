@@ -15,11 +15,15 @@ export type StudioAuthState = {
 };
 
 export class StudioAuthError extends Error {
-  readonly code: 'unauthenticated' | 'forbidden' | 'misconfigured';
+  readonly code: 'unauthenticated' | 'forbidden' | 'misconfigured' | 'suspended';
+  readonly status: number;
 
-  constructor(code: StudioAuthError['code'], message: string) {
+  constructor(code: StudioAuthError['code'], message: string, status?: number) {
     super(message);
     this.name = 'StudioAuthError';
     this.code = code;
+    this.status =
+      status ??
+      (code === 'unauthenticated' ? 401 : code === 'misconfigured' ? 500 : 403);
   }
 }

@@ -6,6 +6,8 @@ import {
   STUDIO_CACHE_CONTROL,
   STUDIO_ROBOTS_HEADER,
 } from './lib/studio/private-paths';
+import { isSupabasePublicConfigured, resolveSupabaseEnv } from './lib/supabase/config';
+import { tryCreateSupabaseUserClient } from './lib/supabase/server';
 
 /**
  * Resolve Studio enablement without touching Astro.locals.runtime.env
@@ -28,14 +30,39 @@ async function readStudioOsEnabledFlag(): Promise<string | boolean | null | unde
   }
 }
 
+async function readSupabaseEnvFromRuntime(): Promise<ReturnType<typeof resolveSupabaseEnv>> {
+  let fromWorker: {
+    PUBLIC_SUPABASE_URL?: string;
+    PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
+    SUPABASE_SECRET_KEY?: string;
+  } = {};
+  try {
+    const worker = await import('cloudflare:workers');
+    fromWorker = {
+      PUBLIC_SUPABASE_URL: worker.env.PUBLIC_SUPABASE_URL,
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: worker.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_SECRET_KEY: worker.env.SUPABASE_SECRET_KEY,
+    };
+  } catch {
+    // Node prerender / non-worker tooling
+  }
+  return resolveSupabaseEnv(fromWorker);
+}
+
 /**
- * Phase 5 will insert RequireStudioAdmin after private-path detection.
- * Phase 2 only enforces robots/cache isolation and an enablement gate
- * (no fake passwords or query-string bypasses).
+ * Studio route lifecycle (Phase 3 groundwork; Phase 5 adds authorization):
+ * 1. Identify Studio private path
+ * 2. Enforce STUDIO_OS_ENABLED gate
+ * 3. Attach request-scoped Supabase user client when configured (no fake users)
+ * 4. Phase 5: requireStudioAdmin / redirect to login
+ * 5. Continue to route + security/cache headers
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const path = context.url.pathname;
   const privateStudio = isStudioPrivatePath(path);
+
+  context.locals.studioSupabase = null;
+  context.locals.studioUser = null;
 
   if (privateStudio) {
     const enabled = isStudioOsEnabled({
@@ -53,6 +80,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
         },
       });
     }
+
+    const supabaseEnv = await readSupabaseEnvFromRuntime();
+    if (isSupabasePublicConfigured(supabaseEnv)) {
+      context.locals.studioSupabase = tryCreateSupabaseUserClient({
+        request: context.request,
+        cookies: context.cookies,
+        env: supabaseEnv,
+        isProduction: import.meta.env.PROD,
+      });
+    }
+
+    // Phase 5 insertion point:
+    // const user = await requireStudioAdmin(context.locals.studioSupabase);
+    // context.locals.studioUser = user;
   }
 
   const response = await next();
@@ -67,7 +108,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Other marketing pages may cache briefly at the edge (short SWR — not multi-hour).
   // Studio private HTML must never be shared-cached.
   const isWork = path === '/work' || path.startsWith('/work/');
-  if (privateStudio) {
+  const isStudioApi = path.startsWith('/api/studio/');
+  if (privateStudio || isStudioApi) {
     response.headers.set('Cache-Control', STUDIO_CACHE_CONTROL);
     response.headers.set('X-Robots-Tag', STUDIO_ROBOTS_HEADER);
   } else if (path.startsWith('/api/') || isWork) {

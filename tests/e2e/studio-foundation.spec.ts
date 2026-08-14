@@ -64,6 +64,7 @@ test.describe('Studio OS foundation', () => {
     expect(body).toContain('Disallow: /admin/');
     expect(body).toContain('Disallow: /proposal/');
     expect(body).toContain('Disallow: /invoice/');
+    expect(body).toContain('Disallow: /api/studio/');
     expect(body).toContain('Sitemap:');
   });
 

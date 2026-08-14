@@ -15,6 +15,7 @@ export const GET: APIRoute = () => {
     'Disallow: /admin/',
     'Disallow: /proposal/',
     'Disallow: /invoice/',
+    'Disallow: /api/studio/',
   ].join('\n');
 
   const body = allow

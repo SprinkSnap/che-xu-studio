@@ -6,7 +6,11 @@
  * Secrets should persist, but re-uploading from Builds is the reliable path.
  */
 
-export const RUNTIME_SECRET_KEYS = ['TURNSTILE_SECRET_KEY', 'RESEND_API_KEY'];
+export const RUNTIME_SECRET_KEYS = [
+  'TURNSTILE_SECRET_KEY',
+  'RESEND_API_KEY',
+  'SUPABASE_SECRET_KEY',
+];
 
 /**
  * @param {NodeJS.ProcessEnv} [env]

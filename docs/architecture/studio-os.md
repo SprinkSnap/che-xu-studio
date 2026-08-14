@@ -4,7 +4,7 @@
 **Date:** 2026-08-14  
 **Related:** [Phase 1 audit](../studio-os/PHASE-1-AUDIT.md)
 
-This document locks architectural boundaries for the private Che Xu Studio operating system. It does not authorize implementing Supabase, Stripe, CRUD, or authentication in Phase 2.
+This document locks architectural boundaries for the private Che Xu Studio operating system. Phase 3 adds Supabase client/auth infrastructure; business schema remains Phase 4; login UI and route enforcement remain Phase 5. See also [supabase.md](./supabase.md).
 
 ---
 
@@ -93,14 +93,15 @@ Phase 2 does not implement host-based redirects; path-based routes are the sourc
 | Data | Store | Phase |
 | --- | --- | --- |
 | Marketing leads / contact | Cloudflare D1 (existing) | Keep intact |
-| Studio business entities | Supabase Postgres + RLS | Phase 3–4+ |
-| Administrator identity | Supabase Auth | Phase 5 |
+| Studio client libraries / Auth scaffolding | Supabase JS + SSR cookies | Phase 3 (done) |
+| Studio business entities + RLS | Supabase Postgres | Phase 4 |
+| Administrator identity + route enforcement | Supabase Auth + membership | Phase 5 |
 | Private PDFs / documents | Supabase Storage (non-enumerable) | Phase 13 |
 | Payments | Stripe Checkout + webhooks (no card data in our DB) | Phase 11 |
 | Transactional email | Resend + `email_logs` | Phase 12 |
 | PDF HTML → file | Cloudflare Browser Rendering + shared print CSS | Phase 13 |
 
-**Supabase integration begins in Phase 3 and must not be introduced in Phase 2.**
+**Dual-database note:** `/migrations` = Cloudflare D1 leads; `/supabase/migrations` = Studio Postgres. Do not cross tools.
 
 ---
 

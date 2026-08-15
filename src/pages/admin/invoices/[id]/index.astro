@@ -1,0 +1,444 @@
+---
+import StudioLayout from '../../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../../components/studio/StudioPanel.astro';
+import StudioEmptyState from '../../../../components/studio/StudioEmptyState.astro';
+import StudioStatusBadge from '../../../../components/studio/StudioStatusBadge.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../../lib/auth/origin';
+import { roleHasPermission } from '../../../../lib/auth/permissions';
+import { getInvoiceDetail } from '../../../../lib/invoices/queries';
+import {
+  issueInvoice,
+  voidInvoice,
+  InvoiceMutationError,
+} from '../../../../lib/invoices/mutations';
+import {
+  formDataToObject,
+  GENERIC_ISSUE_ERROR,
+  GENERIC_VOID_ERROR,
+  issueInvoiceSchema,
+  voidInvoiceSchema,
+  uuidParamSchema,
+} from '../../../../lib/invoices/validation';
+import {
+  canEditInvoiceFinancials,
+  canIssueInvoice,
+  canVoidInvoice,
+  INVOICE_TYPE_LABELS,
+  invoiceStatusTone,
+  type InvoiceType,
+} from '../../../../lib/invoices/workflow';
+import {
+  formatDateOnly,
+  formatMoney,
+  formatStudioDateTime,
+} from '../../../../lib/clients/format';
+import { humanizeStudioActivity } from '../../../../lib/studio/activity';
+import { bpsToPercentInput } from '../../../../lib/money/parse';
+import type { CurrencyCode } from '../../../../lib/supabase/domain';
+import { formatScaledQuantity } from '../../../../lib/finance/calculations';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.invoices.read');
+const canWrite = roleHasPermission(auth.profile.role, 'studio.invoices.write');
+const canReadPayments = roleHasPermission(auth.profile.role, 'studio.payments.read');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const idParsed = uuidParamSchema.safeParse(Astro.params.id);
+if (!idParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+const invoiceId = idParsed.data;
+
+let flashError = '';
+let flashSuccess = '';
+
+if (Astro.request.method === 'POST') {
+  if (!canWrite) {
+    flashError = 'You do not have permission to perform this action.';
+  } else {
+    const origin = requestSiteOrigin(Astro.request, Astro.url);
+    if (!isSameOriginMutation(Astro.request, origin)) {
+      return new Response('Invalid request origin.', { status: 403 });
+    }
+
+    const form = await Astro.request.formData();
+    const intent = String(form.get('intent') ?? '');
+    const raw = formDataToObject(form);
+
+    try {
+      if (intent === 'issue') {
+        const parsed = issueInvoiceSchema.safeParse(raw);
+        if (!parsed.success) {
+          flashError = parsed.error.issues[0]?.message || GENERIC_ISSUE_ERROR;
+        } else {
+          await issueInvoice(
+            supabase,
+            invoiceId,
+            parsed.data.expectedUpdatedAt,
+            auth.profile.id,
+          );
+          return Astro.redirect(`/admin/invoices/${invoiceId}?notice=issued`, 303);
+        }
+      } else if (intent === 'void') {
+        const parsed = voidInvoiceSchema.safeParse(raw);
+        if (!parsed.success) {
+          flashError = parsed.error.issues[0]?.message || GENERIC_VOID_ERROR;
+        } else {
+          await voidInvoice(
+            supabase,
+            invoiceId,
+            parsed.data.expectedUpdatedAt,
+            auth.profile.id,
+          );
+          return Astro.redirect(`/admin/invoices/${invoiceId}?notice=voided`, 303);
+        }
+      }
+    } catch (error) {
+      if (error instanceof InvoiceMutationError) {
+        flashError = error.message;
+      } else {
+        flashError = intent === 'void' ? GENERIC_VOID_ERROR : GENERIC_ISSUE_ERROR;
+      }
+    }
+  }
+}
+
+const notice = Astro.url.searchParams.get('notice');
+if (notice === 'issued') flashSuccess = 'Invoice issued. Financial content is now locked.';
+if (notice === 'voided') flashSuccess = 'Invoice voided. The invoice number is preserved.';
+if (notice === 'saved') flashSuccess = 'Draft saved.';
+if (notice === 'generated') flashSuccess = 'Invoice generated from proposal snapshot.';
+if (notice === 'existing') flashSuccess = 'Existing invoice returned (idempotent generation).';
+
+const detail = await getInvoiceDetail(supabase, invoiceId);
+if (!detail) {
+  return new Response('Not found', { status: 404 });
+}
+
+const { invoice, items, client, project, proposal, payments, activity, displayStatus, isOverdue } =
+  detail;
+const currency = invoice.currency as CurrencyCode;
+const isDraft = canEditInvoiceFinancials(invoice.status);
+const showIssue = canWrite && canIssueInvoice(invoice.status);
+const showVoid = canWrite && canVoidInvoice(invoice);
+
+function qtyLabel(quantity: number): string {
+  return formatScaledQuantity(Math.round(Number(quantity) * 10_000));
+}
+---
+
+<StudioLayout
+  title={`Invoice ${invoice.invoice_number}`}
+  description="Invoice detail and lifecycle actions."
+>
+  <StudioPageHeader
+    slot="header"
+    title={invoice.invoice_number}
+    description={`${INVOICE_TYPE_LABELS[invoice.invoice_type as InvoiceType]} · ${client.display_name || client.company_name}`}
+  />
+
+  <div slot="actions" class="flex flex-wrap gap-2">
+    <a class="studio-action" href={`/admin/invoices/${invoice.id}/preview`}>Preview</a>
+    {
+      canWrite && isDraft && (
+        <a class="studio-action" href={`/admin/invoices/${invoice.id}/edit`}>
+          Edit
+        </a>
+      )
+    }
+  </div>
+
+  <div class="mb-6">
+    <StudioStatusBadge
+      label={displayStatus}
+      tone={invoiceStatusTone(invoice.status, isOverdue)}
+    />
+  </div>
+
+  {
+    flashError && (
+      <p class="studio-auth-error mb-6" role="alert">
+        {flashError}
+      </p>
+    )
+  }
+  {
+    flashSuccess && (
+      <p class="mb-6 text-sm text-navy-900" role="status">
+        {flashSuccess}
+      </p>
+    )
+  }
+
+  <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+    <StudioPanel title="Financial summary">
+      <dl class="grid gap-3 sm:grid-cols-2">
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-ink-muted">Subtotal</dt>
+          <dd class="mt-1 tabular-nums text-navy-900">
+            {formatMoney(invoice.subtotal_minor, currency)}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-ink-muted">Discount</dt>
+          <dd class="mt-1 tabular-nums text-navy-900">
+            {formatMoney(invoice.discount_minor, currency)}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-ink-muted">
+            Tax ({bpsToPercentInput(invoice.tax_bps)}%)
+          </dt>
+          <dd class="mt-1 tabular-nums text-navy-900">
+            {formatMoney(invoice.tax_minor, currency)}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-ink-muted">Total</dt>
+          <dd class="mt-1 font-display text-xl font-semibold tabular-nums text-navy-900">
+            {formatMoney(invoice.total_minor, currency)}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-ink-muted">Paid</dt>
+          <dd class="mt-1 tabular-nums text-navy-900">
+            {formatMoney(invoice.amount_paid_minor, currency)}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-ink-muted">Balance</dt>
+          <dd class="mt-1 font-medium tabular-nums text-navy-900">
+            {formatMoney(invoice.balance_due_minor, currency)}
+          </dd>
+        </div>
+      </dl>
+    </StudioPanel>
+
+    <StudioPanel title="Details">
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Client</dt>
+          <dd>
+            <a class="text-brand hover:underline" href={`/admin/clients/${client.id}`}>
+              {invoice.client_display_name || client.display_name || client.company_name}
+            </a>
+          </dd>
+        </div>
+        {
+          project && (
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-muted">Project</dt>
+              <dd>
+                <a class="text-brand hover:underline" href={`/admin/projects/${project.id}`}>
+                  {invoice.project_name || project.name}
+                </a>
+              </dd>
+            </div>
+          )
+        }
+        {
+          proposal && (
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-muted">Proposal</dt>
+              <dd>
+                <a class="text-brand hover:underline" href={`/admin/proposals/${proposal.id}`}>
+                  {proposal.proposal_number}
+                </a>
+              </dd>
+            </div>
+          )
+        }
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Type</dt>
+          <dd>{INVOICE_TYPE_LABELS[invoice.invoice_type as InvoiceType]}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Status</dt>
+          <dd>
+            {displayStatus}
+            {invoice.status !== 'overdue' && isOverdue ? ' (derived overdue)' : ''}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Issue date</dt>
+          <dd class="tabular-nums">{formatDateOnly(invoice.issue_date)}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Due date</dt>
+          <dd class="tabular-nums">{formatDateOnly(invoice.due_date)}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Sent</dt>
+          <dd>{invoice.sent_at ? formatStudioDateTime(invoice.sent_at) : 'Not sent'}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Paid</dt>
+          <dd>{invoice.paid_at ? formatStudioDateTime(invoice.paid_at) : '—'}</dd>
+        </div>
+        {
+          invoice.voided_at && (
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-muted">Voided</dt>
+              <dd>{formatStudioDateTime(invoice.voided_at)}</dd>
+            </div>
+          )
+        }
+      </dl>
+    </StudioPanel>
+  </div>
+
+  <div class="mt-6">
+  <StudioPanel title="Line items">
+    {
+      items.length === 0 ? (
+        <StudioEmptyState
+          title="No line items"
+          description="Add at least one line item before issuing this invoice."
+        />
+      ) : (
+        <div class="studio-table-wrap">
+          <table class="studio-table">
+            <thead>
+              <tr>
+                <th scope="col">Description</th>
+                <th scope="col" class="text-right">
+                  Qty
+                </th>
+                <th scope="col" class="text-right">
+                  Rate
+                </th>
+                <th scope="col" class="text-right">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr>
+                  <td>{item.description}</td>
+                  <td class="tabular-nums text-right">{qtyLabel(item.quantity)}</td>
+                  <td class="tabular-nums text-right">
+                    {formatMoney(item.rate_minor, currency)}
+                  </td>
+                  <td class="tabular-nums text-right">
+                    {formatMoney(item.amount_minor, currency)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </StudioPanel>
+  </div>
+
+  {
+    canReadPayments && (
+      <div class="mt-6">
+      <StudioPanel title="Payment history">
+        {payments.length === 0 ? (
+          <p class="text-sm text-ink-muted">No payments recorded yet.</p>
+        ) : (
+          <ul class="space-y-3" role="list">
+            {payments.map((payment) => (
+              <li class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span class="tabular-nums text-navy-900">
+                  {formatMoney(payment.amount_minor, payment.currency as CurrencyCode)}
+                </span>
+                <span class="text-ink-muted">
+                  {payment.status}
+                  {payment.paid_at ? ` · ${formatStudioDateTime(payment.paid_at)}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </StudioPanel>
+      </div>
+    )
+  }
+
+  {
+    (showIssue || showVoid) && (
+      <div class="mt-6">
+      <StudioPanel title="Actions">
+        <div class="flex flex-col gap-4 sm:flex-row">
+          {showIssue && (
+            <form method="post" class="flex flex-wrap items-end gap-3" data-confirm-issue>
+              <input type="hidden" name="intent" value="issue" />
+              <input type="hidden" name="expectedUpdatedAt" value={invoice.updated_at} />
+              <button type="submit" class="studio-action studio-action-primary">
+                Issue invoice
+              </button>
+            </form>
+          )}
+          {showVoid && (
+            <form method="post" class="flex flex-wrap items-end gap-3" data-confirm-void>
+              <input type="hidden" name="intent" value="void" />
+              <input type="hidden" name="expectedUpdatedAt" value={invoice.updated_at} />
+              <button type="submit" class="studio-action">
+                Void invoice
+              </button>
+            </form>
+          )}
+        </div>
+        {isDraft && (
+          <p class="mt-3 text-sm text-ink-muted">
+            Issuing locks line items, totals, and client identity snapshot. Do not set Sent until
+            email delivery (Phase 12).
+          </p>
+        )}
+      </StudioPanel>
+      </div>
+    )
+  }
+
+  <div class="mt-6">
+  <StudioPanel title="Activity">
+    {
+      activity.length === 0 ? (
+        <p class="text-sm text-ink-muted">No activity yet.</p>
+      ) : (
+        <ul class="space-y-3" role="list">
+          {activity.map((row) => (
+            <li class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+              <span class="text-navy-900">{humanizeStudioActivity(row.action)}</span>
+              <time class="text-ink-muted" datetime={row.created_at}>
+                {formatStudioDateTime(row.created_at)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </StudioPanel>
+  </div>
+</StudioLayout>
+
+<script is:inline>
+  (() => {
+    document.querySelectorAll('[data-confirm-issue]').forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        if (!confirm('Issue this invoice? Financial content will become immutable.')) {
+          event.preventDefault();
+        }
+      });
+    });
+    document.querySelectorAll('[data-confirm-void]').forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        if (
+          !confirm('Void this invoice? The number is preserved and cannot be reused.')
+        ) {
+          event.preventDefault();
+        }
+      });
+    });
+  })();
+</script>

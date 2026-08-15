@@ -608,6 +608,69 @@ COMMIT;
     'source version must remain immutable after revision',
   );
 
+  // --- Phase 9: generation_key idempotency + snapshot immutability ---
+  const genKey = `${versionId}:deposit`;
+  const draftInvNumber = adminPsql(`SELECT public.next_document_number('invoice', 'CXS', 2026);`).trim();
+  const draftInvId = adminPsql(`
+    INSERT INTO public.invoices (
+      client_id, project_id, proposal_id, proposal_version_id, generation_key,
+      invoice_number, invoice_type, status, currency, issue_date, due_date,
+      subtotal_minor, tax_minor, tax_bps, total_minor, amount_paid_minor, balance_due_minor,
+      client_display_name, project_name
+    ) VALUES (
+      '${clientId}', '${projectId}', '${proposalId}', '${versionId}', '${genKey}',
+      '${draftInvNumber}', 'deposit', 'draft', 'CAD', CURRENT_DATE, CURRENT_DATE,
+      400000, 52000, 1300, 452000, 0, 452000,
+      'Northline Demo Co', 'Brand Site'
+    ) RETURNING id;
+  `).trim();
+
+  adminPsql(`
+    INSERT INTO public.invoice_items (invoice_id, description, quantity, rate_minor, amount_minor)
+    VALUES ('${draftInvId}', 'Deposit allocation', 1, 400000, 400000);
+  `);
+
+  try {
+    adminPsql(`
+      INSERT INTO public.invoices (
+        client_id, project_id, proposal_id, proposal_version_id, generation_key,
+        invoice_number, invoice_type, status, currency,
+        subtotal_minor, tax_minor, total_minor, amount_paid_minor, balance_due_minor
+      ) VALUES (
+        '${clientId}', '${projectId}', '${proposalId}', '${versionId}', '${genKey}',
+        'CXS-DUP-001', 'deposit', 'draft', 'CAD',
+        400000, 52000, 452000, 0, 452000
+      );
+    `);
+    throw new Error('duplicate active generation_key should fail');
+  } catch (err) {
+    assert(/unique|generation_key/i.test(String(err)), String(err));
+  }
+
+  adminPsql(`
+    UPDATE public.invoices
+    SET status = 'issued', client_display_name = 'Frozen Client Name'
+    WHERE id = '${draftInvId}';
+  `);
+
+  try {
+    adminPsql(`
+      UPDATE public.invoices SET client_display_name = 'Tampered' WHERE id = '${draftInvId}';
+    `);
+    throw new Error('issued client snapshot update should fail');
+  } catch (err) {
+    assert(/financial snapshot/i.test(String(err)), String(err));
+  }
+
+  try {
+    adminPsql(`
+      UPDATE public.invoice_items SET amount_minor = 1 WHERE invoice_id = '${draftInvId}';
+    `);
+    throw new Error('issued invoice item update should fail');
+  } catch (err) {
+    assert(/invoice items on non-draft/i.test(String(err)), String(err));
+  }
+
   // Table inventory
   const tableCount = adminPsql(`
     SELECT count(*) FROM information_schema.tables

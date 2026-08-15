@@ -28,7 +28,13 @@ export type StudioActivityAction =
   | 'proposal_template.created'
   | 'proposal_template.updated'
   | 'proposal_template.archived'
-  | 'proposal_template.default_changed';
+  | 'proposal_template.default_changed'
+  | 'invoice.created'
+  | 'invoice.updated'
+  | 'invoice.issued'
+  | 'invoice.voided'
+  | 'invoice.deposit_generated'
+  | 'invoice.final_generated';
 
 type ActivityClient = SupabaseClient<Database>;
 
@@ -91,6 +97,12 @@ export function humanizeStudioActivity(action: string): string {
     'proposal_template.updated': 'Proposal template updated',
     'proposal_template.archived': 'Proposal template archived',
     'proposal_template.default_changed': 'Default proposal template changed',
+    'invoice.created': 'Invoice created',
+    'invoice.updated': 'Invoice updated',
+    'invoice.issued': 'Invoice issued',
+    'invoice.voided': 'Invoice voided',
+    'invoice.deposit_generated': 'Deposit invoice generated',
+    'invoice.final_generated': 'Final invoice generated',
   };
   return map[action] ?? action.replace(/\./g, ' ');
 }

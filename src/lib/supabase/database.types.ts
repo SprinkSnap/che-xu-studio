@@ -367,6 +367,8 @@ export type Database = {
           client_id: string
           project_id: string | null
           proposal_id: string | null
+          proposal_version_id: string | null
+          generation_key: string | null
           invoice_number: string
           invoice_type: 'deposit' | 'final' | 'manual' | 'adjustment'
           status: 'draft' | 'issued' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'void' | 'refunded'
@@ -376,10 +378,19 @@ export type Database = {
           subtotal_minor: number
           discount_minor: number
           tax_minor: number
+          tax_bps: number
           total_minor: number
           amount_paid_minor: number
           balance_due_minor: number
           payment_instructions: string | null
+          client_display_name: string | null
+          client_contact_name: string | null
+          client_contact_email: string | null
+          client_billing_address: string | null
+          project_name: string | null
+          studio_business_name: string | null
+          studio_billing_email: string | null
+          studio_business_address: string | null
           sent_at: string | null
           paid_at: string | null
           voided_at: string | null
@@ -392,6 +403,8 @@ export type Database = {
           client_id: string
           project_id?: string | null
           proposal_id?: string | null
+          proposal_version_id?: string | null
+          generation_key?: string | null
           invoice_number: string
           invoice_type?: 'deposit' | 'final' | 'manual' | 'adjustment'
           status?: 'draft' | 'issued' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'void' | 'refunded'
@@ -401,10 +414,19 @@ export type Database = {
           subtotal_minor?: number
           discount_minor?: number
           tax_minor?: number
+          tax_bps?: number
           total_minor?: number
           amount_paid_minor?: number
           balance_due_minor?: number
           payment_instructions?: string | null
+          client_display_name?: string | null
+          client_contact_name?: string | null
+          client_contact_email?: string | null
+          client_billing_address?: string | null
+          project_name?: string | null
+          studio_business_name?: string | null
+          studio_billing_email?: string | null
+          studio_business_address?: string | null
           sent_at?: string | null
           paid_at?: string | null
           voided_at?: string | null
@@ -417,6 +439,8 @@ export type Database = {
           client_id?: string
           project_id?: string | null
           proposal_id?: string | null
+          proposal_version_id?: string | null
+          generation_key?: string | null
           invoice_number?: string
           invoice_type?: 'deposit' | 'final' | 'manual' | 'adjustment'
           status?: 'draft' | 'issued' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'void' | 'refunded'
@@ -426,10 +450,19 @@ export type Database = {
           subtotal_minor?: number
           discount_minor?: number
           tax_minor?: number
+          tax_bps?: number
           total_minor?: number
           amount_paid_minor?: number
           balance_due_minor?: number
           payment_instructions?: string | null
+          client_display_name?: string | null
+          client_contact_name?: string | null
+          client_contact_email?: string | null
+          client_billing_address?: string | null
+          project_name?: string | null
+          studio_business_name?: string | null
+          studio_billing_email?: string | null
+          studio_business_address?: string | null
           sent_at?: string | null
           paid_at?: string | null
           voided_at?: string | null

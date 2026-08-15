@@ -36,6 +36,14 @@ import {
   type ProposalStatus,
 } from '../../../../lib/proposals/workflow';
 import {
+  INVOICE_TYPE_LABELS,
+  displayInvoiceStatus,
+  todayIsoDateUtc,
+  invoiceStatusTone,
+  type InvoiceStatus,
+  type InvoiceType,
+} from '../../../../lib/invoices/workflow';
+import {
   clientDisplayName,
   formatDateOnly,
   formatMoney,
@@ -49,6 +57,7 @@ export const prerender = false;
 const auth = await requireStudioPermission(Astro, 'studio.projects.read');
 const canWrite = roleHasPermission(auth.profile.role, 'studio.projects.write');
 const canWriteProposals = roleHasPermission(auth.profile.role, 'studio.proposals.write');
+const canWriteInvoices = roleHasPermission(auth.profile.role, 'studio.invoices.write');
 const supabase = Astro.locals.studioSupabase;
 if (!supabase) {
   return Astro.redirect('/admin/login');
@@ -154,6 +163,9 @@ const status = project.status as ProjectStatus;
 const isArchived = status === 'archived';
 const preview = depositPreview(project.project_price_minor, project.deposit_bps);
 const clientName = clientDisplayName(client);
+const invoiceToday = todayIsoDateUtc();
+const canCreateManualInvoice =
+  canWriteInvoices && !isArchived && status !== 'inquiry';
 ---
 
 <StudioLayout title={project.name} description={`Project ${project.name}.`}>
@@ -167,6 +179,16 @@ const clientName = clientDisplayName(client);
       canWrite && !isArchived && (
         <a class="studio-action" href={`/admin/projects/${project.id}/edit`}>
           Edit
+        </a>
+      )
+    }
+    {
+      canCreateManualInvoice && (
+        <a
+          class="studio-action"
+          href={`/admin/invoices/new?project=${project.id}`}
+        >
+          Create Invoice
         </a>
       )
     }
@@ -281,8 +303,9 @@ const clientName = clientDisplayName(client);
         </div>
       </dl>
       <p class="mt-4 text-xs text-ink-muted">
-        Tax is calculated when invoiced. Deposit split uses integer truncation toward zero; Phase 9
-        defines authoritative invoice allocation. Project value is not revenue.
+        Tax is calculated when invoiced. Deposit split uses integer truncation; Phase 9 invoice
+        generation allocates deposit/final so their sum matches the proposal snapshot exactly.
+        Project value is not revenue.
       </p>
     </StudioPanel>
   </div>
@@ -379,19 +402,59 @@ const clientName = clientDisplayName(client);
         invoices.length === 0 ? (
           <StudioEmptyState
             title="No invoices yet"
-            description="Invoice workflows arrive in Phase 9. Existing rows would appear here read-only."
-          />
+            description="Create a manual invoice or generate deposit/final invoices from a proposal."
+          >
+            {canCreateManualInvoice ? (
+              <a
+                class="studio-action studio-action-primary mt-4 inline-flex"
+                href={`/admin/invoices/new?project=${project.id}`}
+              >
+                Create Invoice
+              </a>
+            ) : null}
+          </StudioEmptyState>
         ) : (
           <ul class="divide-y divide-border" role="list">
-            {invoices.map((invoice) => (
-              <li class="flex items-center justify-between gap-3 py-3 text-sm">
-                <span class="font-medium text-navy-900">{invoice.invoice_number}</span>
-                <span class="text-ink-muted">
-                  {formatMoney(invoice.total_minor, invoice.currency as 'CAD' | 'USD')} ·{' '}
-                  {invoice.status.replaceAll('_', ' ')}
-                </span>
-              </li>
-            ))}
+            {invoices.map((invoice) => {
+              const display = displayInvoiceStatus(
+                {
+                  status: invoice.status as InvoiceStatus,
+                  due_date: invoice.due_date,
+                  balance_due_minor: invoice.balance_due_minor,
+                },
+                invoiceToday,
+              );
+              return (
+                <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                  <div>
+                    <a class="studio-client-link" href={`/admin/invoices/${invoice.id}`}>
+                      {invoice.invoice_number}
+                    </a>
+                    <p class="mt-1 text-ink-muted">
+                      {INVOICE_TYPE_LABELS[(invoice.invoice_type as InvoiceType) || 'manual'] ||
+                        invoice.invoice_type}
+                      <span class="mx-2" aria-hidden="true">
+                        ·
+                      </span>
+                      Due {formatDateOnly(invoice.due_date)}
+                    </p>
+                  </div>
+                  <div class="flex flex-col items-end gap-2">
+                    <StudioStatusBadge
+                      label={display.label}
+                      tone={invoiceStatusTone(invoice.status as InvoiceStatus, display.isOverdue)}
+                    />
+                    <span class="tabular-nums text-ink-muted">
+                      {formatMoney(invoice.total_minor, invoice.currency as 'CAD' | 'USD')}
+                      <span class="mx-2" aria-hidden="true">
+                        ·
+                      </span>
+                      Bal {formatMoney(invoice.balance_due_minor, invoice.currency as 'CAD' | 'USD')}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )
       }

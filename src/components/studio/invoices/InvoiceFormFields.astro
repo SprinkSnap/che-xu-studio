@@ -1,0 +1,354 @@
+---
+import type { CurrencyCode } from '../../../lib/supabase/domain';
+
+export type InvoiceFormValues = {
+  clientId: string;
+  projectId: string;
+  issueDate: string;
+  dueDate: string;
+  currency: CurrencyCode;
+  discount: string;
+  taxPercent: string;
+  paymentInstructions: string;
+  expectedUpdatedAt?: string;
+  items: Array<{
+    description: string;
+    quantity: string;
+    rate: string;
+    sortOrder?: number;
+  }>;
+  lockClientProject?: boolean;
+  lockFinancialLines?: boolean;
+  clientLabel?: string;
+  projectLabel?: string;
+};
+
+interface Props {
+  values: InvoiceFormValues;
+  clients: Array<{ id: string; label: string }>;
+  projects: Array<{ id: string; clientId: string; label: string }>;
+  errorMessage?: string;
+  mode?: 'create' | 'edit';
+}
+
+const {
+  values,
+  clients,
+  projects,
+  errorMessage = '',
+  mode = 'create',
+} = Astro.props;
+
+const itemsJson = JSON.stringify(
+  values.items.map((item, index) => ({
+    description: item.description,
+    quantity: item.quantity,
+    rate: item.rate,
+    sortOrder: item.sortOrder ?? index,
+  })),
+);
+
+const lockLines = Boolean(values.lockFinancialLines);
+---
+
+{
+  errorMessage && (
+    <p class="studio-auth-error mb-6" role="alert" id="invoice-form-error">
+      {errorMessage}
+    </p>
+  )
+}
+
+{
+  mode === 'edit' && values.expectedUpdatedAt && (
+    <input type="hidden" name="expectedUpdatedAt" value={values.expectedUpdatedAt} />
+  )
+}
+<input type="hidden" name="itemsJson" id="itemsJson" value={itemsJson} data-items-json />
+{lockLines && <span hidden data-lock-lines></span>}
+
+<div class="studio-project-form-grid">
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Client &amp; project</legend>
+    {
+      values.lockClientProject ? (
+        <>
+          <input type="hidden" name="clientId" value={values.clientId} />
+          <input type="hidden" name="projectId" value={values.projectId} />
+          <p class="text-sm text-navy-900">
+            <span class="text-ink-muted">Client</span>
+            <br />
+            {values.clientLabel || 'Client'}
+          </p>
+          <p class="mt-3 text-sm text-navy-900">
+            <span class="text-ink-muted">Project</span>
+            <br />
+            {values.projectLabel || '—'}
+          </p>
+        </>
+      ) : (
+        <>
+          <div class="studio-auth-field">
+            <label for="clientId">Client</label>
+            <select
+              id="clientId"
+              name="clientId"
+              required
+              data-client-select
+              aria-describedby={errorMessage ? 'invoice-form-error' : undefined}
+            >
+              <option value="">Select client</option>
+              {clients.map((client) => (
+                <option value={client.id} selected={client.id === values.clientId}>
+                  {client.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div class="studio-auth-field">
+            <label for="projectId">Project (optional)</label>
+            <select id="projectId" name="projectId" data-project-select>
+              <option value="">No project</option>
+              {projects.map((project) => (
+                <option
+                  value={project.id}
+                  data-client-id={project.clientId}
+                  selected={project.id === values.projectId}
+                >
+                  {project.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )
+    }
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Invoice basics</legend>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label for="issueDate">Issue date</label>
+        <input id="issueDate" name="issueDate" type="date" required value={values.issueDate} />
+      </div>
+      <div class="studio-auth-field">
+        <label for="dueDate">Due date</label>
+        <input id="dueDate" name="dueDate" type="date" required value={values.dueDate} />
+      </div>
+    </div>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label for="currency">Currency</label>
+        <select id="currency" name="currency" required disabled={lockLines}>
+          <option value="CAD" selected={values.currency === 'CAD'}>CAD</option>
+          <option value="USD" selected={values.currency === 'USD'}>USD</option>
+        </select>
+        {lockLines && <input type="hidden" name="currency" value={values.currency} />}
+      </div>
+      <div class="studio-auth-field">
+        <label for="taxPercent">Tax %</label>
+        <input
+          id="taxPercent"
+          name="taxPercent"
+          type="text"
+          inputmode="decimal"
+          required
+          value={values.taxPercent}
+          readonly={lockLines}
+        />
+      </div>
+    </div>
+    <div class="studio-auth-field">
+      <label for="discount">Discount amount</label>
+      <input
+        id="discount"
+        name="discount"
+        type="text"
+        inputmode="decimal"
+        value={values.discount}
+        readonly={lockLines}
+      />
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Line items</legend>
+    {
+      lockLines ? (
+        <p class="mb-4 text-sm text-ink-muted">
+          Deposit and final line amounts are allocated from the proposal snapshot and cannot be
+          rewritten here.
+        </p>
+      ) : (
+        <p class="mb-4 text-sm text-ink-muted">
+          Line totals are calculated on the server. Browser amounts are for editing only.
+        </p>
+      )
+    }
+    <div class="flex flex-col gap-4" data-line-items-root>
+      <div class="flex flex-col gap-4" data-line-items-list role="list"></div>
+      {
+        !lockLines && (
+          <button type="button" class="studio-action self-start" data-add-line>
+            Add line item
+          </button>
+        )
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Payment instructions</legend>
+    <div class="studio-auth-field">
+      <label for="paymentInstructions">Payment instructions</label>
+      <textarea
+        id="paymentInstructions"
+        name="paymentInstructions"
+        rows="4"
+        class="studio-textarea"
+      >{values.paymentInstructions}</textarea>
+    </div>
+  </fieldset>
+</div>
+
+<div id="invoice-line-template" hidden>
+  <div
+    class="rounded-[var(--radius-md)] border border-border bg-white p-4"
+    data-line-item
+    role="listitem"
+  >
+    <div class="studio-auth-field">
+      <label>Description</label>
+      <input type="text" data-field="description" maxlength="2000" />
+    </div>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label>Quantity</label>
+        <input type="text" data-field="quantity" inputmode="decimal" value="1" />
+      </div>
+      <div class="studio-auth-field">
+        <label>Rate</label>
+        <input type="text" data-field="rate" inputmode="decimal" />
+      </div>
+    </div>
+    <div class="mt-2 flex justify-end">
+      <button type="button" class="studio-action" data-remove-line>Remove</button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (() => {
+    const hidden = document.querySelector('[data-items-json]');
+    const list = document.querySelector('[data-line-items-list]');
+    const addBtn = document.querySelector('[data-add-line]');
+    const templateRoot = document.getElementById('invoice-line-template');
+    const form = hidden && hidden.closest('form');
+    const clientSelect = document.querySelector('[data-client-select]');
+    const projectSelect = document.querySelector('[data-project-select]');
+    const lockLines = Boolean(document.querySelector('[data-lock-lines]'));
+    if (
+      !(hidden instanceof HTMLInputElement) ||
+      !(list instanceof HTMLElement) ||
+      !(templateRoot instanceof HTMLElement) ||
+      !(form instanceof HTMLFormElement)
+    ) {
+      return;
+    }
+
+    const sourceRow = templateRoot.querySelector('[data-line-item]');
+    if (!(sourceRow instanceof HTMLElement)) return;
+
+    function emptyLine() {
+      return { description: '', quantity: '1', rate: '0.00', sortOrder: 0 };
+    }
+
+    let items = [];
+    try {
+      const parsed = JSON.parse(hidden.value || '[]');
+      items = Array.isArray(parsed) && parsed.length ? parsed : [emptyLine()];
+    } catch {
+      items = [emptyLine()];
+    }
+
+    function syncHidden() {
+      const next = [];
+      list.querySelectorAll('[data-line-item]').forEach((row, index) => {
+        if (!(row instanceof HTMLElement)) return;
+        const description = row.querySelector('[data-field="description"]');
+        const quantity = row.querySelector('[data-field="quantity"]');
+        const rate = row.querySelector('[data-field="rate"]');
+        next.push({
+          description: description instanceof HTMLInputElement ? description.value : '',
+          quantity: quantity instanceof HTMLInputElement ? quantity.value : '1',
+          rate: rate instanceof HTMLInputElement ? rate.value : '0',
+          sortOrder: index,
+        });
+      });
+      hidden.value = JSON.stringify(next);
+    }
+
+    function bindRow(row) {
+      row.querySelectorAll('input').forEach((el) => {
+        el.addEventListener('change', syncHidden);
+        el.addEventListener('input', syncHidden);
+        if (lockLines) {
+          el.setAttribute('readonly', 'readonly');
+        }
+      });
+      const remove = row.querySelector('[data-remove-line]');
+      if (remove instanceof HTMLElement) {
+        if (lockLines) {
+          remove.hidden = true;
+        } else {
+          remove.addEventListener('click', () => {
+            if (list.querySelectorAll('[data-line-item]').length <= 1) return;
+            row.remove();
+            syncHidden();
+          });
+        }
+      }
+    }
+
+    function addRow(data) {
+      const row = sourceRow.cloneNode(true);
+      if (!(row instanceof HTMLElement)) return;
+      const description = row.querySelector('[data-field="description"]');
+      const quantity = row.querySelector('[data-field="quantity"]');
+      const rate = row.querySelector('[data-field="rate"]');
+      if (description instanceof HTMLInputElement) description.value = data.description || '';
+      if (quantity instanceof HTMLInputElement) quantity.value = data.quantity || '1';
+      if (rate instanceof HTMLInputElement) rate.value = data.rate || '0.00';
+      bindRow(row);
+      list.appendChild(row);
+    }
+
+    items.forEach(addRow);
+    syncHidden();
+
+    if (addBtn instanceof HTMLElement && !lockLines) {
+      addBtn.addEventListener('click', () => {
+        addRow(emptyLine());
+        syncHidden();
+      });
+    }
+
+    form.addEventListener('submit', syncHidden);
+
+    if (clientSelect instanceof HTMLSelectElement && projectSelect instanceof HTMLSelectElement) {
+      const allProjects = Array.from(projectSelect.querySelectorAll('option[data-client-id]'));
+      function filterProjects() {
+        const clientId = clientSelect.value;
+        allProjects.forEach((opt) => {
+          if (!(opt instanceof HTMLOptionElement)) return;
+          const match = !clientId || opt.dataset.clientId === clientId;
+          opt.hidden = !match;
+          if (!match && opt.selected) projectSelect.value = '';
+        });
+      }
+      clientSelect.addEventListener('change', filterProjects);
+      filterProjects();
+    }
+  })();
+</script>

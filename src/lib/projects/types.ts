@@ -46,8 +46,11 @@ export type ProjectDetail = {
   invoices: Array<{
     id: string;
     invoice_number: string;
+    invoice_type: string;
     status: string;
     total_minor: number;
+    balance_due_minor: number;
+    due_date: string | null;
     currency: string;
     updated_at: string;
   }>;

@@ -15,11 +15,26 @@ import {
   ProposalMutationError,
 } from '../../../../lib/proposals/mutations';
 import {
+  getOrCreateDepositInvoice,
+  getOrCreateFinalInvoice,
+} from '../../../../lib/invoices/generation';
+import { listInvoicesForProposal } from '../../../../lib/invoices/queries';
+import { InvoiceMutationError } from '../../../../lib/invoices/mutations';
+import {
+  INVOICE_TYPE_LABELS,
+  displayInvoiceStatus,
+  todayIsoDateUtc,
+  invoiceStatusTone,
+  type InvoiceStatus,
+  type InvoiceType,
+} from '../../../../lib/invoices/workflow';
+import {
   GENERIC_ARCHIVE_ERROR,
   GENERIC_FINALIZE_ERROR,
   GENERIC_REVISION_ERROR,
   uuidParamSchema,
 } from '../../../../lib/proposals/validation';
+import { GENERIC_GENERATE_ERROR } from '../../../../lib/invoices/validation';
 import {
   canArchiveProposal,
   canCreateProposalRevision,
@@ -43,6 +58,7 @@ export const prerender = false;
 
 const auth = await requireStudioPermission(Astro, 'studio.proposals.read');
 const canWrite = roleHasPermission(auth.profile.role, 'studio.proposals.write');
+const canWriteInvoices = roleHasPermission(auth.profile.role, 'studio.invoices.write');
 const supabase = Astro.locals.studioSupabase;
 if (!supabase) {
   return Astro.redirect('/admin/login');
@@ -58,7 +74,13 @@ let flashError = '';
 let flashSuccess = '';
 
 if (Astro.request.method === 'POST') {
-  if (!canWrite) {
+  const form = await Astro.request.formData();
+  const intent = String(form.get('intent') ?? '');
+  const isInvoiceGenerate = intent === 'generate_deposit' || intent === 'generate_final';
+  const allowed =
+    (isInvoiceGenerate && canWriteInvoices) || (!isInvoiceGenerate && canWrite);
+
+  if (!allowed) {
     flashError = 'You do not have permission to perform this action.';
   } else {
     const origin = requestSiteOrigin(Astro.request, Astro.url);
@@ -66,8 +88,6 @@ if (Astro.request.method === 'POST') {
       return new Response('Invalid request origin.', { status: 403 });
     }
 
-    const form = await Astro.request.formData();
-    const intent = String(form.get('intent') ?? '');
     const actorId = auth.profile.id;
     const versionId = String(form.get('versionId') ?? '');
 
@@ -91,9 +111,31 @@ if (Astro.request.method === 'POST') {
       } else if (intent === 'archive') {
         await archiveProposal(supabase, proposalId, actorId);
         return Astro.redirect(`/admin/proposals/${proposalId}?notice=archived`, 303);
+      } else if (isInvoiceGenerate) {
+        const versionParsed = uuidParamSchema.safeParse(versionId);
+        if (!versionParsed.success) {
+          flashError = GENERIC_GENERATE_ERROR;
+        } else {
+          const result =
+            intent === 'generate_deposit'
+              ? await getOrCreateDepositInvoice(supabase, {
+                  proposalId,
+                  proposalVersionId: versionParsed.data,
+                  actorProfileId: actorId,
+                })
+              : await getOrCreateFinalInvoice(supabase, {
+                  proposalId,
+                  proposalVersionId: versionParsed.data,
+                  actorProfileId: actorId,
+                });
+          return Astro.redirect(
+            `/admin/invoices/${result.invoiceId}?notice=${result.created ? 'generated' : 'existing'}`,
+            303,
+          );
+        }
       }
     } catch (error) {
-      if (error instanceof ProposalMutationError) {
+      if (error instanceof ProposalMutationError || error instanceof InvoiceMutationError) {
         flashError = error.message;
       } else if (intent === 'finalize') {
         flashError = GENERIC_FINALIZE_ERROR;
@@ -101,6 +143,8 @@ if (Astro.request.method === 'POST') {
         flashError = GENERIC_REVISION_ERROR;
       } else if (intent === 'archive') {
         flashError = GENERIC_ARCHIVE_ERROR;
+      } else if (isInvoiceGenerate) {
+        flashError = GENERIC_GENERATE_ERROR;
       } else {
         flashError = 'Unable to update proposal.';
       }
@@ -156,6 +200,9 @@ const canRevision =
   });
 const canArchive = canWrite && canArchiveProposal(status);
 const clientName = clientDisplayName(client);
+const relatedInvoices = await listInvoicesForProposal(supabase, proposal.id);
+const invoiceToday = todayIsoDateUtc();
+const canGenerateInvoices = canWriteInvoices && status !== 'archived';
 ---
 
 <StudioLayout
@@ -379,6 +426,84 @@ const clientName = clientDisplayName(client);
                 </time>
               </li>
             ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="mb-8">
+    <StudioPanel title="Related invoices">
+      {
+        !version.is_immutable && canGenerateInvoices && (
+          <p class="mb-4 text-sm text-ink-muted">
+            Prefer generating from a finalized proposal version. Current version is still editable.
+          </p>
+        )
+      }
+      {
+        canGenerateInvoices && (
+          <div class="mb-4 flex flex-wrap gap-3">
+            <form method="post">
+              <input type="hidden" name="intent" value="generate_deposit" />
+              <input type="hidden" name="versionId" value={version.id} />
+              <button type="submit" class="studio-action studio-action-primary">
+                Generate deposit invoice
+              </button>
+            </form>
+            <form method="post">
+              <input type="hidden" name="intent" value="generate_final" />
+              <input type="hidden" name="versionId" value={version.id} />
+              <button type="submit" class="studio-action">
+                Generate final invoice
+              </button>
+            </form>
+          </div>
+        )
+      }
+      {
+        relatedInvoices.length === 0 ? (
+          <StudioEmptyState
+            title="No invoices yet"
+            description="Generate deposit or final invoices from this proposal version. Generation is idempotent."
+          />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {relatedInvoices.map((invoice) => {
+              const display = displayInvoiceStatus(
+                {
+                  status: invoice.status as InvoiceStatus,
+                  due_date: null,
+                  balance_due_minor: invoice.balance_due_minor,
+                },
+                invoiceToday,
+              );
+              return (
+                <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                  <div>
+                    <a class="studio-client-link" href={`/admin/invoices/${invoice.id}`}>
+                      {invoice.invoice_number}
+                    </a>
+                    <p class="mt-1 text-ink-muted">
+                      {INVOICE_TYPE_LABELS[(invoice.invoice_type as InvoiceType) || 'manual']}
+                    </p>
+                  </div>
+                  <div class="flex flex-col items-end gap-2">
+                    <StudioStatusBadge
+                      label={display.label}
+                      tone={invoiceStatusTone(invoice.status as InvoiceStatus, display.isOverdue)}
+                    />
+                    <span class="tabular-nums text-ink-muted">
+                      {formatMoney(invoice.total_minor, invoice.currency as CurrencyCode)}
+                      <span class="mx-2" aria-hidden="true">
+                        ·
+                      </span>
+                      Bal {formatMoney(invoice.balance_due_minor, invoice.currency as CurrencyCode)}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )
       }

@@ -45,10 +45,17 @@ export type StudioActivityAction =
   | 'proposal.viewed'
   | 'proposal.accepted'
   | 'proposal.changes_requested'
+  | 'proposal.sent'
+  | 'proposal.email_failed'
   | 'payment.checkout_created'
   | 'payment.succeeded'
   | 'payment.failed'
-  | 'payment.refunded';
+  | 'payment.refunded'
+  | 'payment.confirmation_sent'
+  | 'invoice.sent'
+  | 'invoice.email_failed'
+  | 'invoice.reminder_sent'
+  | 'invoice.reminder_failed';
 
 export type StudioActivityActorType = 'user' | 'system' | 'stripe' | 'client';
 
@@ -128,15 +135,22 @@ export function humanizeStudioActivity(action: string): string {
     'proposal.viewed': 'Proposal viewed by client',
     'proposal.accepted': 'Proposal accepted',
     'proposal.changes_requested': 'Proposal changes requested',
+    'proposal.sent': 'Proposal email sent',
+    'proposal.email_failed': 'Proposal email failed',
     'invoice.public_link_created': 'Client invoice link created',
     'invoice.public_link_revoked': 'Client invoice link revoked',
     'invoice.viewed': 'Invoice viewed by client',
     'invoice.partially_paid': 'Invoice partially paid',
     'invoice.paid': 'Invoice paid',
+    'invoice.sent': 'Invoice email sent',
+    'invoice.email_failed': 'Invoice email failed',
+    'invoice.reminder_sent': 'Invoice reminder sent',
+    'invoice.reminder_failed': 'Invoice reminder failed',
     'payment.checkout_created': 'Checkout session created',
     'payment.succeeded': 'Payment succeeded',
     'payment.failed': 'Payment failed',
     'payment.refunded': 'Payment refunded',
+    'payment.confirmation_sent': 'Payment confirmation email sent',
   };
   return map[action] ?? action.replace(/\./g, ' ');
 }

@@ -1,0 +1,123 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import {
+  renderProposalDeliveryEmail,
+  renderInvoiceDeliveryEmail,
+  renderPaymentConfirmationEmail,
+  renderReminderEmail,
+  renderInternalNotificationEmail,
+} from '../../../lib/email/templates';
+
+export const prerender = false;
+
+await requireStudioPermission(Astro, 'studio.settings.manage');
+
+const template = Astro.url.searchParams.get('template') || 'proposal';
+
+const samples = {
+  proposal: renderProposalDeliveryEmail({
+    contactName: 'Alex Client',
+    projectName: 'Brand Website Refresh',
+    proposalNumber: 'P-1001',
+    proposalTitle: 'Brand Website Refresh',
+    expiresAt: '2026-09-01',
+    totalLabel: 'CAD $4,800.00',
+    reviewUrl: 'https://chexustudio.com/proposal/example-token',
+  }),
+  invoice: renderInvoiceDeliveryEmail({
+    contactName: 'Alex Client',
+    invoiceNumber: 'INV-1001',
+    projectName: 'Brand Website Refresh',
+    totalMinor: 240000,
+    balanceDueMinor: 240000,
+    currency: 'CAD',
+    dueDate: '2026-09-15',
+    viewUrl: 'https://chexustudio.com/invoice/example-token',
+  }),
+  payment: renderPaymentConfirmationEmail({
+    contactName: 'Alex Client',
+    invoiceNumber: 'INV-1001',
+    amountMinor: 240000,
+    balanceDueMinor: 0,
+    currency: 'CAD',
+    paidAtLabel: 'Aug 15, 2026',
+    paymentMethod: 'Visa ending in 4242',
+    projectName: 'Brand Website Refresh',
+    invoiceUrl: 'https://chexustudio.com/invoice/example-token',
+    depositActivated: true,
+    finalCompleted: false,
+  }),
+  reminder: renderReminderEmail({
+    kind: 'before_due',
+    contactName: 'Alex Client',
+    invoiceNumber: 'INV-1001',
+    balanceDueMinor: 240000,
+    currency: 'CAD',
+    dueDate: '2026-09-15',
+    projectName: 'Brand Website Refresh',
+    days: 3,
+    viewUrl: 'https://chexustudio.com/invoice/example-token',
+  }),
+  overdue: renderReminderEmail({
+    kind: 'overdue',
+    contactName: 'Alex Client',
+    invoiceNumber: 'INV-1001',
+    balanceDueMinor: 240000,
+    currency: 'CAD',
+    dueDate: '2026-09-01',
+    projectName: 'Brand Website Refresh',
+    days: 3,
+    viewUrl: 'https://chexustudio.com/invoice/example-token',
+  }),
+  accepted: renderInternalNotificationEmail({
+    title: 'Proposal accepted — Alex Client / Brand Website Refresh',
+    intro: 'A client accepted a proposal.',
+    lines: [
+      { label: 'Client', value: 'Alex Client' },
+      { label: 'Project', value: 'Brand Website Refresh' },
+      { label: 'Proposal', value: 'P-1001' },
+      { label: 'Deposit invoice', value: 'INV-1001 (CAD $2,400.00)' },
+    ],
+    adminUrl: 'https://studio.chexustudio.com/admin/proposals/example',
+  }),
+} as const;
+
+type TemplateKey = keyof typeof samples;
+const key = (Object.keys(samples) as TemplateKey[]).includes(template as TemplateKey)
+  ? (template as TemplateKey)
+  : 'proposal';
+const rendered = samples[key];
+---
+
+<StudioLayout title="Email preview" description="Transactional email template previews.">
+  <StudioPageHeader
+    slot="header"
+    title="Email preview"
+    description="Sample renders only — no messages are sent from this page."
+  />
+
+  <div class="mb-6 flex flex-wrap gap-2">
+    {
+      (Object.keys(samples) as TemplateKey[]).map((name) => (
+        <a
+          class={`studio-action${name === key ? ' studio-action-primary' : ''}`}
+          href={`/admin/settings/email-preview?template=${name}`}
+        >
+          {name}
+        </a>
+      ))
+    }
+    <a class="studio-action" href="/admin/settings">Back to settings</a>
+  </div>
+
+  <StudioPanel title={`Subject: ${rendered.subject}`}>
+    <div class="mb-6 overflow-x-auto rounded border border-border bg-white p-4">
+      <Fragment set:html={rendered.html} />
+    </div>
+    <h2 class="mb-2 text-sm font-semibold text-navy-900">Plain text</h2>
+    <pre class="whitespace-pre-wrap rounded border border-border bg-surface-muted p-4 text-sm">{rendered.text}</pre>
+  </StudioPanel>
+</StudioLayout>

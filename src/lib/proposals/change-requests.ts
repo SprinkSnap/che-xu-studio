@@ -113,6 +113,23 @@ export async function requestProposalChangesViaPublicLink(
     },
   });
 
+  try {
+    const { enqueueProposalChangesNotification } = await import('../email/notifications');
+    await enqueueProposalChangesNotification(service, {
+      proposalId: document.proposal.id,
+      proposalVersionId: document.version.id,
+      changeRequestId: row.id,
+      clientId: document.proposal.client_id,
+      projectId: document.proposal.project_id,
+      proposalNumber: document.proposal.proposal_number,
+      projectName: document.version.project_name || document.proposal.title,
+      clientName: document.version.client_display_name || '',
+      message,
+    });
+  } catch {
+    // Notification failure must not lose the change request.
+  }
+
   return {
     changeRequestId: row.id,
     proposalId: document.proposal.id,

@@ -681,10 +681,10 @@ COMMIT;
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
         'activity_logs','settings','number_counters','webhook_events','proposal_change_requests',
-        'invoice_checkout_sessions'
+        'invoice_checkout_sessions','email_outbox'
       );
   `).trim();
-  assert(tableCount === '23', `Expected 23 Studio tables, got ${tableCount}`);
+  assert(tableCount === '24', `Expected 24 Studio tables, got ${tableCount}`);
 
   // RLS enabled on all
   const rlsOff = adminPsql(`
@@ -697,13 +697,13 @@ COMMIT;
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
         'activity_logs','settings','number_counters','webhook_events','proposal_change_requests',
-        'invoice_checkout_sessions'
+        'invoice_checkout_sessions','email_outbox'
       )
       AND NOT c.relrowsecurity;
   `).trim();
   assert(rlsOff === '', `RLS disabled on: ${rlsOff || '(none)'}`);
 
-  // Phase 10: public link exact-version uniqueness
+  // Phase 12: multiple active proposal/invoice links are allowed (capped in app).
   const linkHash = adminPsql(`SELECT encode(sha256('phase10-token-a'::bytea), 'hex');`).trim();
   adminPsql(`
     INSERT INTO public.public_links (
@@ -712,20 +712,19 @@ COMMIT;
       'proposal', '${proposalId}', '${versionId}', '${linkHash}'
     );
   `);
-  try {
-    adminPsql(`
-      INSERT INTO public.public_links (
-        resource_type, resource_id, proposal_version_id, token_hash
-      ) VALUES (
-        'proposal', '${proposalId}', '${versionId}', encode(sha256('phase10-token-b'::bytea), 'hex')
-      );
-    `);
-    throw new Error('duplicate active proposal_version link should fail');
-  } catch (err) {
-    assert(/unique|public_links_active/i.test(String(err)), String(err));
-  }
+  adminPsql(`
+    INSERT INTO public.public_links (
+      resource_type, resource_id, proposal_version_id, token_hash
+    ) VALUES (
+      'proposal', '${proposalId}', '${versionId}', encode(sha256('phase12-token-b'::bytea), 'hex')
+    );
+  `);
+  const proposalLinkCount = adminPsql(`
+    SELECT count(*)::text FROM public.public_links
+    WHERE resource_type = 'proposal' AND proposal_version_id = '${versionId}' AND revoked_at IS NULL;
+  `).trim();
+  assert(proposalLinkCount === '2', `expected 2 active proposal links, got ${proposalLinkCount}`);
 
-  // Phase 11: one active invoice public link
   const invLinkHash = adminPsql(`SELECT encode(sha256('phase11-inv-token-a'::bytea), 'hex');`).trim();
   adminPsql(`
     INSERT INTO public.public_links (
@@ -734,18 +733,39 @@ COMMIT;
       'invoice', '${draftInvId}', '${invLinkHash}'
     );
   `);
-  try {
-    adminPsql(`
-      INSERT INTO public.public_links (
-        resource_type, resource_id, token_hash
-      ) VALUES (
-        'invoice', '${draftInvId}', encode(sha256('phase11-inv-token-b'::bytea), 'hex')
+  adminPsql(`
+    INSERT INTO public.public_links (
+      resource_type, resource_id, token_hash
+    ) VALUES (
+      'invoice', '${draftInvId}', encode(sha256('phase12-inv-token-b'::bytea), 'hex')
+    );
+  `);
+  const invoiceLinkCount = adminPsql(`
+    SELECT count(*)::text FROM public.public_links
+    WHERE resource_type = 'invoice' AND resource_id = '${draftInvId}' AND revoked_at IS NULL;
+  `).trim();
+  assert(invoiceLinkCount === '2', `expected 2 active invoice links, got ${invoiceLinkCount}`);
+
+  // Phase 12: email_outbox uniqueness + reminder settings defaults
+  const outboxExists = adminPsql(`
+    SELECT to_regclass('public.email_outbox') IS NOT NULL;
+  `).trim();
+  assert(outboxExists === 't', 'email_outbox missing');
+  const reminderCols = adminPsql(`
+    SELECT count(*)::text FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'settings'
+      AND column_name IN (
+        'business_timezone', 'reminder_before_due_days',
+        'reminder_due_day_enabled', 'reminder_overdue_days'
       );
-    `);
-    throw new Error('duplicate active invoice link should fail');
-  } catch (err) {
-    assert(/unique|public_links_active_invoice/i.test(String(err)), String(err));
-  }
+  `).trim();
+  assert(reminderCols === '4', `reminder settings columns missing (got ${reminderCols})`);
+  const invReminderCol = adminPsql(`
+    SELECT count(*)::text FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'invoices'
+      AND column_name = 'payment_reminders_enabled';
+  `).trim();
+  assert(invReminderCol === '1', 'payment_reminders_enabled missing');
 
   // Phase 11: reconcile payment RPC + idempotency
   const payCreated1 = adminPsql(`

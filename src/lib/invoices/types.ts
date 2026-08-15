@@ -37,6 +37,7 @@ export type InvoiceRow = {
   sent_at: string | null;
   paid_at: string | null;
   voided_at: string | null;
+  payment_reminders_enabled: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;

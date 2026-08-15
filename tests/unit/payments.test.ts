@@ -162,6 +162,14 @@ describe('phase 11 migration + privacy', () => {
     expect(sql).toContain('REVOKE ALL');
   });
 
+  it('phase 12 drops single-active invoice link uniqueness for multi-link emails', () => {
+    const sql = readFileSync(
+      path.join(process.cwd(), 'supabase/migrations/202608140015_email_outbox_reminders.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('DROP INDEX IF EXISTS public.public_links_active_invoice_unique_idx');
+  });
+
   it('keeps invoice paths out of public sitemap helpers', () => {
     expect(assertPublicSitemapPath('/invoice/abc')).toBe(false);
     expect(assertPublicSitemapPath('/pricing')).toBe(true);

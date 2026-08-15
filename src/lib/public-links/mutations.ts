@@ -20,14 +20,20 @@ export class PublicLinkError extends Error {
 type AnyClient = StudioSupabaseClient | StudioSupabaseServiceClient;
 
 export async function createProposalPublicLink(
-  supabase: StudioSupabaseClient,
+  supabase: StudioSupabaseClient | StudioSupabaseServiceClient,
   input: {
     proposalId: string;
     proposalVersionId: string;
     actorProfileId: string | null;
     siteOrigin: string;
+    /**
+     * replace — revoke prior active links for this version (admin Replace).
+     * mint — add another active link to the same exact version (email send).
+     */
+    mode?: 'replace' | 'mint';
   },
 ): Promise<{ linkId: string; rawUrl: string; expiresAt: string | null }> {
+  const mode = input.mode ?? 'replace';
   const { data: proposal, error: proposalError } = await supabase
     .from('proposals')
     .select('id, status, expires_at, current_version_id')
@@ -56,7 +62,6 @@ export async function createProposalPublicLink(
     );
   }
 
-  // Revoke any existing active link for this version (replacement semantics).
   const { data: existingActive } = await supabase
     .from('public_links')
     .select('id')
@@ -64,7 +69,18 @@ export async function createProposalPublicLink(
     .eq('proposal_version_id', version.id)
     .is('revoked_at', null);
 
-  if (existingActive?.length) {
+  if (mode === 'mint' && (existingActive?.length ?? 0) >= 8) {
+    const toRevoke = (existingActive ?? []).slice(0, Math.max(0, (existingActive?.length ?? 0) - 7));
+    for (const row of toRevoke) {
+      await supabase
+        .from('public_links')
+        .update({ revoked_at: new Date().toISOString() })
+        .eq('id', row.id)
+        .is('revoked_at', null);
+    }
+  }
+
+  if (mode === 'replace' && existingActive?.length) {
     await supabase
       .from('public_links')
       .update({ revoked_at: new Date().toISOString() })
@@ -116,10 +132,10 @@ export async function createProposalPublicLink(
       public_link_id: link.id,
       proposal_version_id: version.id,
       version_number: version.version_number,
+      mode,
     },
   });
 
-  // Raw token returned once for URL construction — never persisted.
   const rawUrl = `${input.siteOrigin.replace(/\/$/, '')}/proposal/${rawToken}`;
   return { linkId: link.id, rawUrl, expiresAt: link.expires_at };
 }
@@ -180,13 +196,21 @@ export async function listProposalPublicLinks(
 }
 
 export async function createInvoicePublicLink(
-  supabase: StudioSupabaseClient,
+  supabase: StudioSupabaseClient | StudioSupabaseServiceClient,
   input: {
     invoiceId: string;
     actorProfileId: string | null;
     siteOrigin: string;
+    /**
+     * replace — revoke all active links then create one (admin Replace).
+     * mint — add a new active link without revoking prior emails (Phase 12).
+     */
+    mode?: 'replace' | 'mint';
+    /** Allow minting a receipt/status link when balance is zero (paid). */
+    allowZeroBalance?: boolean;
   },
 ): Promise<{ linkId: string; rawUrl: string; expiresAt: string | null }> {
+  const mode = input.mode ?? 'replace';
   const { data: invoice, error: invoiceError } = await supabase
     .from('invoices')
     .select('id, status, balance_due_minor, voided_at')
@@ -201,11 +225,7 @@ export async function createInvoicePublicLink(
   if (invoice.status === 'void' || invoice.voided_at) {
     throw new PublicLinkError('invalid', 'Void invoices cannot receive payment links.');
   }
-  if (invoice.balance_due_minor <= 0 && invoice.status === 'paid') {
-    throw new PublicLinkError('invalid', 'Paid invoices with zero balance do not need payment links.');
-  }
-  // Allow creating a view/receipt link for paid invoices? Spec: must have positive balance for Create Payment Link.
-  if (invoice.balance_due_minor <= 0) {
+  if (!input.allowZeroBalance && invoice.balance_due_minor <= 0) {
     throw new PublicLinkError('invalid', 'Invoice must have a positive balance to create a payment link.');
   }
 
@@ -216,7 +236,19 @@ export async function createInvoicePublicLink(
     .eq('resource_id', input.invoiceId)
     .is('revoked_at', null);
 
-  if (existingActive?.length) {
+  if (mode === 'mint' && (existingActive?.length ?? 0) >= 12) {
+    // Cap: revoke oldest active links beyond cap-1 before minting.
+    const toRevoke = (existingActive ?? []).slice(0, Math.max(0, (existingActive?.length ?? 0) - 11));
+    for (const row of toRevoke) {
+      await supabase
+        .from('public_links')
+        .update({ revoked_at: new Date().toISOString() })
+        .eq('id', row.id)
+        .is('revoked_at', null);
+    }
+  }
+
+  if (mode === 'replace' && existingActive?.length) {
     await supabase
       .from('public_links')
       .update({ revoked_at: new Date().toISOString() })
@@ -263,6 +295,7 @@ export async function createInvoicePublicLink(
     subjectId: input.invoiceId,
     metadata: {
       public_link_id: link.id,
+      mode,
     },
   });
 

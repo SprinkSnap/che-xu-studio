@@ -26,12 +26,20 @@ interface CloudflareEnv {
 
   TURNSTILE_SECRET_KEY?: string;
 
-  /** Resend API key for contact-form inbox notifications. */
+  /** Resend API key for contact-form inbox notifications + Studio mail. */
   RESEND_API_KEY?: string;
   /** Verified From address, e.g. "Che Xu Studio <info@chexustudio.com>". */
   CONTACT_FROM_EMAIL?: string;
   /** Override notify inbox (defaults to siteConfig.contact.email). */
   CONTACT_NOTIFY_EMAIL?: string;
+  /** Studio transactional From (falls back to CONTACT_FROM_EMAIL). */
+  STUDIO_FROM_EMAIL?: string;
+  /** Client-facing Reply-To for Studio mail. */
+  STUDIO_REPLY_TO_EMAIL?: string;
+  /** Internal Studio notification inbox (falls back to CONTACT_NOTIFY_EMAIL). */
+  STUDIO_NOTIFY_EMAIL?: string;
+  /** Shared secret for scheduled job HTTP endpoint (server-only). */
+  CRON_SECRET?: string;
 
   PUBLIC_TURNSTILE_SITE_KEY?: string;
   PUBLIC_SITE_URL?: string;
@@ -86,6 +94,14 @@ interface ImportMetaEnv {
   readonly STRIPE_SECRET_KEY?: string;
   /** Server-only — never PUBLIC_. */
   readonly STRIPE_WEBHOOK_SECRET?: string;
+  readonly STUDIO_FROM_EMAIL?: string;
+  readonly STUDIO_REPLY_TO_EMAIL?: string;
+  readonly STUDIO_NOTIFY_EMAIL?: string;
+  /** Server-only — never PUBLIC_. */
+  readonly CRON_SECRET?: string;
+  readonly RESEND_API_KEY?: string;
+  readonly CONTACT_FROM_EMAIL?: string;
+  readonly CONTACT_NOTIFY_EMAIL?: string;
 }
 
 interface ImportMeta {

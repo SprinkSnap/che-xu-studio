@@ -20,6 +20,7 @@ test.describe('Supabase Phase 3 isolation', () => {
     expect(response.headers()['cache-control']).toMatch(/private|no-store/i);
     const body = await response.json();
     expect(body.services?.supabase).toMatch(/configured|unconfigured/);
+    expect(body.services?.supabaseSecret).toBeUndefined();
     const raw = JSON.stringify(body);
     expect(raw).not.toMatch(/sb_secret/i);
     expect(raw).not.toContain('SUPABASE_SECRET_KEY');

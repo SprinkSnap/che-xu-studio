@@ -83,6 +83,14 @@
         "limit": 12,
         "period": 60
       }
+    },
+    {
+      "name": "CAPABILITY_RATE_LIMITER",
+      "namespace_id": "1005",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
     }
   ]
 }

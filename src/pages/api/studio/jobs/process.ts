@@ -12,6 +12,7 @@ import {
   resolveStudioEmailEnv,
 } from '../../../../lib/email/config';
 import { processStudioJobs } from '../../../../lib/email/process';
+import { timingSafeEqualString } from '../../../../lib/public-links/tokens';
 
 export const prerender = false;
 
@@ -30,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const provided = extractCronSecret(request);
-  if (!provided || provided !== expected) {
+  if (!provided || !timingSafeEqualString(provided, expected)) {
     return jsonError('Unauthorized', 401);
   }
 

@@ -21,7 +21,10 @@ describe('studio private paths', () => {
     expect(isClientDocumentPath('/proposal/abc')).toBe(true);
     expect(isClientDocumentPath('/invoice/xyz')).toBe(true);
     expect(isStudioPrivatePath('/admin/invoices')).toBe(true);
+    expect(isStudioPrivatePath('/api/studio/health')).toBe(true);
+    expect(isStudioPrivatePath('/api/studio/jobs/process')).toBe(true);
     expect(isStudioPrivatePath('/pricing')).toBe(false);
+    expect(isStudioPrivatePath('/api/contact')).toBe(false);
   });
 
   it('exposes stable robots and cache constants', () => {

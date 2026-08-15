@@ -44,12 +44,20 @@ export type StageAllocation = {
  *   deposit_base + final_base = net_base
  *   deposit_tax + final_tax = tax_minor
  *   deposit_total + final_total = proposal total_minor (when totals are consistent)
+ *
+ * Fails closed when snapshot.totalMinor disagrees with net+tax (corrupt snapshot).
  */
 export function allocateDepositFinal(snapshot: ProposalFinancialSnapshot): StageAllocation {
   const discountMinor = Math.min(Math.max(0, snapshot.discountMinor), Math.max(0, snapshot.subtotalMinor));
   const netBaseMinor = Math.max(0, snapshot.subtotalMinor) - discountMinor;
   const taxMinor = Math.max(0, snapshot.taxMinor);
   const depositBps = Math.max(0, Math.min(10_000, snapshot.depositBps));
+  const expectedTotal = netBaseMinor + taxMinor;
+  if (snapshot.totalMinor !== expectedTotal) {
+    throw new Error(
+      `Proposal financial snapshot inconsistent: total_minor ${snapshot.totalMinor} !== net+tax ${expectedTotal}`,
+    );
+  }
 
   const depositBase = allocateByBps(netBaseMinor, depositBps);
   const finalBase = netBaseMinor - depositBase;

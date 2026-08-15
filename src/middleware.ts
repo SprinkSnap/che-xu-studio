@@ -66,8 +66,8 @@ function privateStudioHeaders(init?: HeadersInit): Headers {
 }
 
 /**
- * Studio route lifecycle (Phase 5):
- * 1. Identify Studio private path
+ * Studio route lifecycle (Phase 5 + Phase 15):
+ * 1. Identify Studio private path (/admin, /proposal, /invoice, /api/studio)
  * 2. Enforce STUDIO_OS_ENABLED gate
  * 3. Attach request-scoped Supabase user client when configured
  * 4. Resolve membership for /admin (skip expensive work for marketing)

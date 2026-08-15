@@ -93,3 +93,52 @@ export function getStripePublishableKey(env?: StripeEnvSource): string {
   const resolved = env ?? resolveStripeEnv();
   return trimOrEmpty(resolved.PUBLIC_STRIPE_PUBLISHABLE_KEY);
 }
+
+export type StripeKeyMode = 'test' | 'live' | 'unknown';
+
+export function stripeKeyMode(key: string): StripeKeyMode {
+  const value = trimOrEmpty(key);
+  if (value.startsWith('sk_test_') || value.startsWith('pk_test_') || value.startsWith('rk_test_')) {
+    return 'test';
+  }
+  if (value.startsWith('sk_live_') || value.startsWith('pk_live_') || value.startsWith('rk_live_')) {
+    return 'live';
+  }
+  return 'unknown';
+}
+
+/**
+ * Reject mixed test/live Stripe key pairs. Unknown prefixes are allowed only when
+ * the counterpart is also unknown (custom/proxy keys) — production should use
+ * standard Stripe prefixes.
+ */
+export function assertStripeKeyModeConsistency(env?: StripeEnvSource): void {
+  const resolved = env ?? resolveStripeEnv();
+  const secret = trimOrEmpty(resolved.STRIPE_SECRET_KEY);
+  const publishable = trimOrEmpty(resolved.PUBLIC_STRIPE_PUBLISHABLE_KEY);
+  if (!secret || !publishable) return;
+
+  const secretMode = stripeKeyMode(secret);
+  const publishableMode = stripeKeyMode(publishable);
+  if (secretMode === 'unknown' || publishableMode === 'unknown') return;
+  if (secretMode !== publishableMode) {
+    throw new Error(
+      `Stripe key mode mismatch: secret is ${secretMode} but publishable is ${publishableMode}`,
+    );
+  }
+}
+
+/** True when a live secret is paired with a non-production site URL (misconfig). */
+export function isDangerousStripeLiveLocalhostCombo(options: {
+  secretKey?: string;
+  siteUrl?: string;
+}): boolean {
+  const secret = trimOrEmpty(options.secretKey);
+  const site = trimOrEmpty(options.siteUrl).toLowerCase();
+  if (stripeKeyMode(secret) !== 'live') return false;
+  return (
+    site.includes('localhost') ||
+    site.includes('127.0.0.1') ||
+    site.startsWith('http://')
+  );
+}

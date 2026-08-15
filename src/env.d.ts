@@ -23,6 +23,8 @@ interface CloudflareEnv {
   AUTH_RATE_LIMITER?: RateLimitBinding;
   /** Public Invoice Checkout Session creation rate limiter. */
   CHECKOUT_RATE_LIMITER?: RateLimitBinding;
+  /** Public Proposal accept / request-changes rate limiter. */
+  CAPABILITY_RATE_LIMITER?: RateLimitBinding;
 
   /** Cloudflare Browser Rendering binding for PDF generation. */
   BROWSER?: unknown;

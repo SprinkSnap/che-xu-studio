@@ -3,7 +3,8 @@
  * Used by middleware (cache + robots) and tests. Not a security boundary by itself.
  */
 
-const PRIVATE_PREFIXES = ['/admin', '/proposal', '/invoice'] as const;
+/** Admin UI, client capability docs, and authenticated Studio APIs. */
+const PRIVATE_PREFIXES = ['/admin', '/proposal', '/invoice', '/api/studio'] as const;
 
 export function normalizePathname(pathname: string): string {
   if (!pathname) return '/';

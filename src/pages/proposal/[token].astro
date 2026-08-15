@@ -12,6 +12,8 @@ import { ACCEPTANCE_TEXT_VERSION, acceptProposalViaPublicLink, AcceptanceError }
 import { requestProposalChangesViaPublicLink, ChangeRequestError } from '../../lib/proposals/change-requests';
 import { isSameOriginMutation, requestSiteOrigin } from '../../lib/auth/origin';
 import { formatMoney, formatStudioDateTime } from '../../lib/clients/format';
+import { enforceRateLimit } from '../../lib/rate-limit';
+import { clientIp } from '../../lib/security';
 import type { CurrencyCode } from '../../lib/supabase/domain';
 import type { ProposalItemRow } from '../../lib/proposals/types';
 
@@ -41,6 +43,26 @@ if (service) {
       return new Response('Invalid request origin.', {
         status: 403,
         headers: privateHeaders,
+      });
+    }
+
+    let capabilityLimiter: { limit: (o: { key: string }) => Promise<{ success: boolean }> } | undefined;
+    try {
+      const worker = await import('cloudflare:workers');
+      capabilityLimiter = (worker.env as { CAPABILITY_RATE_LIMITER?: typeof capabilityLimiter })
+        .CAPABILITY_RATE_LIMITER;
+    } catch {
+      capabilityLimiter = undefined;
+    }
+    const allowed = await enforceRateLimit(capabilityLimiter, `capability:${clientIp(Astro.request)}`);
+    if (!allowed) {
+      return new Response('Too many attempts. Please try again shortly.', {
+        status: 429,
+        headers: {
+          ...privateHeaders,
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Retry-After': '60',
+        },
       });
     }
 

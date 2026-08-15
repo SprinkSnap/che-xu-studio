@@ -20,6 +20,13 @@ import {
   PublicLinkError,
 } from '../../../../lib/public-links/mutations';
 import {
+  sendInvoiceEmail,
+  resendInvoiceEmail,
+  InvoiceSendError,
+} from '../../../../lib/email/invoice-send';
+import { listEmailLogsForInvoice } from '../../../../lib/email/logging';
+import { listReminderEventsForInvoice } from '../../../../lib/reminders/queries';
+import {
   formDataToObject,
   GENERIC_ISSUE_ERROR,
   GENERIC_VOID_ERROR,
@@ -121,10 +128,45 @@ if (Astro.request.method === 'POST') {
           actorProfileId: auth.profile.id,
         });
         return Astro.redirect(`/admin/invoices/${invoiceId}?notice=link_revoked`, 303);
+      } else if (intent === 'send_invoice' || intent === 'resend_invoice') {
+        const recipientOverride = String(form.get('recipientEmail') ?? '').trim() || null;
+        const result =
+          intent === 'resend_invoice'
+            ? await resendInvoiceEmail(supabase, {
+                invoiceId,
+                actorProfileId: auth.profile.id,
+                recipientEmail: recipientOverride,
+              })
+            : await sendInvoiceEmail(supabase, {
+                invoiceId,
+                actorProfileId: auth.profile.id,
+                recipientEmail: recipientOverride,
+              });
+        return Astro.redirect(
+          `/admin/invoices/${invoiceId}?notice=${result.alreadySent ? 'already_sent' : 'email_sent'}`,
+          303,
+        );
+      } else if (intent === 'toggle_reminders') {
+        const enabled = String(form.get('paymentRemindersEnabled') ?? '') === 'true';
+        const { error } = await supabase
+          .from('invoices')
+          .update({ payment_reminders_enabled: enabled })
+          .eq('id', invoiceId);
+        if (error) throw error;
+        return Astro.redirect(
+          `/admin/invoices/${invoiceId}?notice=${enabled ? 'reminders_on' : 'reminders_off'}`,
+          303,
+        );
       }
     } catch (error) {
-      if (error instanceof InvoiceMutationError || error instanceof PublicLinkError) {
+      if (
+        error instanceof InvoiceMutationError ||
+        error instanceof PublicLinkError ||
+        error instanceof InvoiceSendError
+      ) {
         flashError = error.message;
+      } else if (intent === 'send_invoice' || intent === 'resend_invoice') {
+        flashError = 'Unable to send invoice email.';
       } else {
         flashError = intent === 'void' ? GENERIC_VOID_ERROR : GENERIC_ISSUE_ERROR;
       }
@@ -139,6 +181,12 @@ if (notice === 'saved') flashSuccess = 'Draft saved.';
 if (notice === 'generated') flashSuccess = 'Invoice generated from proposal snapshot.';
 if (notice === 'existing') flashSuccess = 'Existing invoice returned (idempotent generation).';
 if (notice === 'link_revoked') flashSuccess = 'Client payment link revoked.';
+if (notice === 'email_sent') {
+  flashSuccess = 'Invoice email accepted by the provider. Invoice marked Sent when applicable.';
+}
+if (notice === 'already_sent') flashSuccess = 'Invoice delivery was already recorded.';
+if (notice === 'reminders_on') flashSuccess = 'Payment reminders enabled for this invoice.';
+if (notice === 'reminders_off') flashSuccess = 'Payment reminders disabled for this invoice.';
 
 const detail = await getInvoiceDetail(supabase, invoiceId);
 if (!detail) {
@@ -166,6 +214,17 @@ const paymentLinkUnavailableReason =
     : invoice.balance_due_minor <= 0
       ? 'No payment link needed while balance due is zero. Existing links remain viewable for status/receipt until revoked.'
       : 'Payment links are unavailable for this invoice state.';
+
+const canSendInvoice =
+  canWrite &&
+  invoice.status !== 'draft' &&
+  invoice.status !== 'void' &&
+  !invoice.voided_at &&
+  (invoice.balance_due_minor > 0 || invoice.status === 'paid' || invoice.status === 'sent');
+const emailLogs = await listEmailLogsForInvoice(supabase, invoiceId);
+const reminderEvents = await listReminderEventsForInvoice(supabase, invoiceId);
+const defaultInvoiceRecipient = invoice.client_contact_email?.trim() || '';
+const remindersEnabled = invoice.payment_reminders_enabled !== false;
 
 function qtyLabel(quantity: number): string {
   return formatScaledQuantity(Math.round(Number(quantity) * 10_000));
@@ -430,6 +489,35 @@ function qtyLabel(quantity: number): string {
   <div class="mt-6">
     <StudioPanel title="Client payment link">
       {
+        canSendInvoice && (
+          <form method="post" class="mb-6 space-y-3">
+            <input
+              type="hidden"
+              name="intent"
+              value={invoice.sent_at ? 'resend_invoice' : 'send_invoice'}
+            />
+            <label class="studio-auth-field">
+              <span class="text-ink-muted">Recipient email</span>
+              <input
+                type="email"
+                name="recipientEmail"
+                value={defaultInvoiceRecipient}
+                required
+                autocomplete="email"
+              />
+            </label>
+            <button type="submit" class="studio-action studio-action-primary">
+              {invoice.sent_at ? 'Resend Invoice' : 'Send Invoice'}
+            </button>
+            <p class="text-sm text-ink-muted">
+              Marks the invoice Sent only after the email provider accepts delivery. A fresh
+              secure payment link is minted for this send (prior links stay valid until paid/void
+              or revoked).
+            </p>
+          </form>
+        )
+      }
+      {
         canCreatePaymentLink ? (
           <form method="post" class="mb-4">
             <input type="hidden" name="intent" value="create_payment_link" />
@@ -502,14 +590,79 @@ function qtyLabel(quantity: number): string {
         </div>
         {isDraft && (
           <p class="mt-3 text-sm text-ink-muted">
-            Issuing locks line items, totals, and client identity snapshot. Do not set Sent until
-            email delivery (Phase 12).
+            Issuing locks line items, totals, and client identity snapshot. Sent status is set only
+            after successful invoice email delivery.
           </p>
         )}
       </StudioPanel>
       </div>
     )
   }
+
+  <div class="mt-6">
+    <StudioPanel title="Email history">
+      {
+        emailLogs.length === 0 ? (
+          <p class="text-sm text-ink-muted">No outbound emails yet.</p>
+        ) : (
+          <ul class="space-y-3" role="list">
+            {emailLogs.map((entry) => (
+              <li class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                <div>
+                  <p class="text-navy-900">{entry.subject}</p>
+                  <p class="text-ink-muted">
+                    {entry.email_type} · {entry.recipient_email} · {entry.status}
+                    {entry.failure_reason ? ` · ${entry.failure_reason}` : ''}
+                  </p>
+                </div>
+                <time class="text-ink-muted" datetime={entry.sent_at ?? entry.created_at}>
+                  {formatStudioDateTime(entry.sent_at ?? entry.created_at)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="mt-6">
+    <StudioPanel title="Reminder history">
+      {
+        canWrite && (
+          <form method="post" class="mb-4">
+            <input type="hidden" name="intent" value="toggle_reminders" />
+            <input
+              type="hidden"
+              name="paymentRemindersEnabled"
+              value={remindersEnabled ? 'false' : 'true'}
+            />
+            <button type="submit" class="studio-action">
+              {remindersEnabled ? 'Disable reminders' : 'Enable reminders'}
+            </button>
+          </form>
+        )
+      }
+      {
+        reminderEvents.length === 0 ? (
+          <p class="text-sm text-ink-muted">No reminder events scheduled yet.</p>
+        ) : (
+          <ul class="space-y-3" role="list">
+            {reminderEvents.map((entry) => (
+              <li class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                <span class="text-navy-900">
+                  {entry.reminder_type.replace(/_/g, ' ')} · {entry.status}
+                </span>
+                <time class="text-ink-muted" datetime={entry.scheduled_for}>
+                  {formatStudioDateTime(entry.sent_at ?? entry.scheduled_for)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
 
   <div class="mt-6">
   <StudioPanel title="Activity">

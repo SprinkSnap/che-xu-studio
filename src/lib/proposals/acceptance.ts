@@ -224,6 +224,25 @@ export async function acceptProposalViaPublicLink(
     const issued = await ensureDepositIssued(service, deposit.invoiceId);
     await ensureProjectDepositDue(service, document.proposal.project_id, document.proposal.client_id);
 
+    try {
+      const { enqueueProposalAcceptedNotification } = await import('../email/notifications');
+      await enqueueProposalAcceptedNotification(service, {
+        proposalId: document.proposal.id,
+        proposalVersionId: document.version.id,
+        clientId: document.proposal.client_id,
+        projectId: document.proposal.project_id,
+        proposalNumber: document.proposal.proposal_number,
+        projectName: document.version.project_name || document.proposal.title,
+        clientName: document.version.client_display_name || '',
+        invoiceId: deposit.invoiceId,
+        invoiceNumber: issued.invoiceNumber,
+        invoiceTotalMinor: issued.totalMinor,
+        currency: issued.currency,
+      });
+    } catch {
+      // Notification failure must not lose acceptance truth.
+    }
+
     return {
       proposalId: document.proposal.id,
       proposalVersionId: document.version.id,
@@ -321,6 +340,25 @@ export async function acceptProposalViaPublicLink(
   });
   const issued = await ensureDepositIssued(service, deposit.invoiceId);
   await ensureProjectDepositDue(service, document.proposal.project_id, document.proposal.client_id);
+
+  try {
+    const { enqueueProposalAcceptedNotification } = await import('../email/notifications');
+    await enqueueProposalAcceptedNotification(service, {
+      proposalId: document.proposal.id,
+      proposalVersionId: document.version.id,
+      clientId: document.proposal.client_id,
+      projectId: document.proposal.project_id,
+      proposalNumber: document.proposal.proposal_number,
+      projectName: document.version.project_name || document.proposal.title,
+      clientName: document.version.client_display_name || '',
+      invoiceId: deposit.invoiceId,
+      invoiceNumber: issued.invoiceNumber,
+      invoiceTotalMinor: issued.totalMinor,
+      currency: issued.currency,
+    });
+  } catch {
+    // Notification failure must not lose acceptance truth.
+  }
 
   return {
     proposalId: document.proposal.id,

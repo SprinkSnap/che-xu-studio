@@ -254,7 +254,7 @@ export type Database = {
           project_id: string | null
           proposal_id: string | null
           invoice_id: string | null
-          email_type: 'proposal_sent' | 'proposal_accepted' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
+          email_type: 'proposal_sent' | 'proposal_accepted' | 'proposal_changes_requested' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
           recipient_email: string
           provider: string
           provider_message_id: string | null
@@ -265,6 +265,8 @@ export type Database = {
           bounced_at: string | null
           failure_reason: string | null
           metadata: Json
+          idempotency_key: string | null
+          attempt_count: number
           created_at: string
           updated_at: string
         }
@@ -274,7 +276,7 @@ export type Database = {
           project_id?: string | null
           proposal_id?: string | null
           invoice_id?: string | null
-          email_type: 'proposal_sent' | 'proposal_accepted' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
+          email_type: 'proposal_sent' | 'proposal_accepted' | 'proposal_changes_requested' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
           recipient_email: string
           provider?: string
           provider_message_id?: string | null
@@ -285,6 +287,8 @@ export type Database = {
           bounced_at?: string | null
           failure_reason?: string | null
           metadata?: Json
+          idempotency_key?: string | null
+          attempt_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -294,7 +298,7 @@ export type Database = {
           project_id?: string | null
           proposal_id?: string | null
           invoice_id?: string | null
-          email_type?: 'proposal_sent' | 'proposal_accepted' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
+          email_type?: 'proposal_sent' | 'proposal_accepted' | 'proposal_changes_requested' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
           recipient_email?: string
           provider?: string
           provider_message_id?: string | null
@@ -305,7 +309,82 @@ export type Database = {
           bounced_at?: string | null
           failure_reason?: string | null
           metadata?: Json
+          idempotency_key?: string | null
+          attempt_count?: number
           created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+
+      email_outbox: {
+        Row: {
+          id: string
+          email_type: 'proposal_sent' | 'proposal_accepted' | 'proposal_changes_requested' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
+          recipient_email: string
+          resource_type: string
+          resource_id: string
+          client_id: string | null
+          project_id: string | null
+          proposal_id: string | null
+          invoice_id: string | null
+          payment_id: string | null
+          idempotency_key: string
+          payload: Json
+          status: string
+          attempt_count: number
+          max_attempts: number
+          next_attempt_at: string
+          last_error: string | null
+          email_log_id: string | null
+          created_at: string
+          processed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email_type: 'proposal_sent' | 'proposal_accepted' | 'proposal_changes_requested' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
+          recipient_email: string
+          resource_type: string
+          resource_id: string
+          client_id?: string | null
+          project_id?: string | null
+          proposal_id?: string | null
+          invoice_id?: string | null
+          payment_id?: string | null
+          idempotency_key: string
+          payload?: Json
+          status?: string
+          attempt_count?: number
+          max_attempts?: number
+          next_attempt_at?: string
+          last_error?: string | null
+          email_log_id?: string | null
+          created_at?: string
+          processed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email_type?: 'proposal_sent' | 'proposal_accepted' | 'proposal_changes_requested' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
+          recipient_email?: string
+          resource_type?: string
+          resource_id?: string
+          client_id?: string | null
+          project_id?: string | null
+          proposal_id?: string | null
+          invoice_id?: string | null
+          payment_id?: string | null
+          idempotency_key?: string
+          payload?: Json
+          status?: string
+          attempt_count?: number
+          max_attempts?: number
+          next_attempt_at?: string
+          last_error?: string | null
+          email_log_id?: string | null
+          created_at?: string
+          processed_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -394,6 +473,7 @@ export type Database = {
           sent_at: string | null
           paid_at: string | null
           voided_at: string | null
+          payment_reminders_enabled: boolean
           created_by: string | null
           created_at: string
           updated_at: string
@@ -430,6 +510,7 @@ export type Database = {
           sent_at?: string | null
           paid_at?: string | null
           voided_at?: string | null
+          payment_reminders_enabled?: boolean
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -466,6 +547,7 @@ export type Database = {
           sent_at?: string | null
           paid_at?: string | null
           voided_at?: string | null
+          payment_reminders_enabled?: boolean
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -1118,7 +1200,7 @@ export type Database = {
           reminder_type: 'before_due' | 'due_today' | 'overdue_3_days' | 'overdue_7_days' | 'custom'
           scheduled_for: string
           sent_at: string | null
-          status: 'scheduled' | 'sent' | 'canceled' | 'failed'
+          status: 'scheduled' | 'sent' | 'canceled' | 'failed' | 'skipped'
           email_log_id: string | null
           created_at: string
         }
@@ -1128,7 +1210,7 @@ export type Database = {
           reminder_type: 'before_due' | 'due_today' | 'overdue_3_days' | 'overdue_7_days' | 'custom'
           scheduled_for: string
           sent_at?: string | null
-          status?: 'scheduled' | 'sent' | 'canceled' | 'failed'
+          status?: 'scheduled' | 'sent' | 'canceled' | 'failed' | 'skipped'
           email_log_id?: string | null
           created_at?: string
         }
@@ -1138,7 +1220,7 @@ export type Database = {
           reminder_type?: 'before_due' | 'due_today' | 'overdue_3_days' | 'overdue_7_days' | 'custom'
           scheduled_for?: string
           sent_at?: string | null
-          status?: 'scheduled' | 'sent' | 'canceled' | 'failed'
+          status?: 'scheduled' | 'sent' | 'canceled' | 'failed' | 'skipped'
           email_log_id?: string | null
           created_at?: string
         }
@@ -1165,6 +1247,10 @@ export type Database = {
           proposal_prefix: string
           payment_terms_days: number
           reminders_enabled: boolean
+          business_timezone: string
+          reminder_before_due_days: number
+          reminder_due_day_enabled: boolean
+          reminder_overdue_days: number[]
           attach_pdf_by_default: boolean
           created_at: string
           updated_at: string
@@ -1189,6 +1275,10 @@ export type Database = {
           proposal_prefix?: string
           payment_terms_days?: number
           reminders_enabled?: boolean
+          business_timezone?: string
+          reminder_before_due_days?: number
+          reminder_due_day_enabled?: boolean
+          reminder_overdue_days?: number[]
           attach_pdf_by_default?: boolean
           created_at?: string
           updated_at?: string
@@ -1213,6 +1303,10 @@ export type Database = {
           proposal_prefix?: string
           payment_terms_days?: number
           reminders_enabled?: boolean
+          business_timezone?: string
+          reminder_before_due_days?: number
+          reminder_due_day_enabled?: boolean
+          reminder_overdue_days?: number[]
           attach_pdf_by_default?: boolean
           created_at?: string
           updated_at?: string
@@ -1367,7 +1461,7 @@ export type Database = {
       document_resource_type: 'proposal' | 'invoice' | 'receipt'
       document_type: 'proposal_pdf' | 'invoice_pdf' | 'receipt_pdf'
       email_delivery_status: 'queued' | 'sent' | 'delivered' | 'bounced' | 'failed' | 'complained'
-      email_type: 'proposal_sent' | 'proposal_accepted' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
+      email_type: 'proposal_sent' | 'proposal_accepted' | 'proposal_changes_requested' | 'deposit_invoice' | 'final_invoice' | 'payment_received' | 'payment_reminder'
       invoice_status: 'draft' | 'issued' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'void' | 'refunded'
       invoice_type: 'deposit' | 'final' | 'manual' | 'adjustment'
       number_counter_type: 'invoice' | 'proposal'
@@ -1377,7 +1471,7 @@ export type Database = {
       proposal_status: 'draft' | 'sent' | 'viewed' | 'accepted' | 'changes_requested' | 'expired' | 'declined' | 'archived'
       public_link_resource_type: 'proposal' | 'invoice' | 'receipt'
       refund_status: 'pending' | 'succeeded' | 'failed' | 'canceled'
-      reminder_status: 'scheduled' | 'sent' | 'canceled' | 'failed'
+      reminder_status: 'scheduled' | 'sent' | 'canceled' | 'failed' | 'skipped'
       reminder_type: 'before_due' | 'due_today' | 'overdue_3_days' | 'overdue_7_days' | 'custom'
       studio_role: 'owner' | 'admin' | 'staff'
       studio_user_status: 'active' | 'suspended'

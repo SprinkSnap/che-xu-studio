@@ -2,24 +2,157 @@
 import StudioLayout from '../../../layouts/StudioLayout.astro';
 import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
 import StudioPanel from '../../../components/studio/StudioPanel.astro';
-import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
-import StudioStatusBadge from '../../../components/studio/StudioStatusBadge.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../lib/auth/origin';
+import { roleHasPermission } from '../../../lib/auth/permissions';
+import {
+  getStudioSettings,
+  updateReminderSettings,
+} from '../../../lib/studio/settings';
 
 export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.settings.manage');
+const canManage = roleHasPermission(auth.profile.role, 'studio.settings.manage');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+let flashError = '';
+let flashSuccess = '';
+
+if (Astro.request.method === 'POST') {
+  if (!canManage) {
+    flashError = 'You do not have permission to update settings.';
+  } else {
+    const origin = requestSiteOrigin(Astro.request, Astro.url);
+    if (!isSameOriginMutation(Astro.request, origin)) {
+      return new Response('Invalid request origin.', { status: 403 });
+    }
+    const form = await Astro.request.formData();
+    const intent = String(form.get('intent') ?? '');
+    try {
+      if (intent === 'save_reminders') {
+        const overdueRaw = String(form.get('overdueDays') ?? '3,7');
+        const overdueDays = overdueRaw
+          .split(/[,\s]+/)
+          .map((part) => Number.parseInt(part.trim(), 10))
+          .filter((n) => Number.isFinite(n));
+        await updateReminderSettings(supabase, {
+          remindersEnabled: String(form.get('remindersEnabled') ?? '') === 'on',
+          businessTimezone: String(form.get('businessTimezone') ?? 'America/Toronto'),
+          beforeDueDays: Number.parseInt(String(form.get('beforeDueDays') ?? '3'), 10) || 0,
+          dueDayEnabled: String(form.get('dueDayEnabled') ?? '') === 'on',
+          overdueDays,
+        });
+        return Astro.redirect('/admin/settings?notice=saved', 303);
+      }
+    } catch (error) {
+      flashError = error instanceof Error ? error.message : 'Unable to save settings.';
+    }
+  }
+}
+
+if (Astro.url.searchParams.get('notice') === 'saved') {
+  flashSuccess = 'Reminder settings saved.';
+}
+
+const settings = await getStudioSettings(supabase);
 ---
 
 <StudioLayout title="Settings" description="Studio OS configuration.">
   <StudioPageHeader
     slot="header"
     title="Settings"
-    description="Studio preferences, invoice numbering, and integration status. Configuration screens arrive after auth."
+    description="Reminder schedule, business timezone, and communication defaults."
   />
-  <StudioPanel title="Workspace">
-    <StudioEmptyState
-      title="Settings unavailable"
-      description="Administrator authentication (Phase 5) is required before settings can be changed. No temporary password bypass exists."
-    >
-      <StudioStatusBadge label="Auth deferred" tone="warning" />
-    </StudioEmptyState>
-  </StudioPanel>
+
+  {
+    flashError && (
+      <p class="studio-auth-error mb-6" role="alert">
+        {flashError}
+      </p>
+    )
+  }
+  {
+    flashSuccess && (
+      <p class="studio-auth-success mb-6" role="status">
+        {flashSuccess}
+      </p>
+    )
+  }
+
+  <div class="mb-6">
+    <StudioPanel title="Payment reminders">
+      {
+        !settings ? (
+          <p class="text-sm text-ink-muted">Settings row unavailable.</p>
+        ) : (
+          <form method="post" class="space-y-4 max-w-xl">
+            <input type="hidden" name="intent" value="save_reminders" />
+            <label class="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="remindersEnabled"
+                checked={settings.reminders_enabled}
+              />
+              Enable payment reminders
+            </label>
+            <label class="studio-auth-field">
+              <span class="text-ink-muted">Business timezone (IANA)</span>
+              <input
+                type="text"
+                name="businessTimezone"
+                value={settings.business_timezone}
+                required
+              />
+            </label>
+            <label class="studio-auth-field">
+              <span class="text-ink-muted">Days before due</span>
+              <input
+                type="number"
+                min="0"
+                max="30"
+                name="beforeDueDays"
+                value={settings.reminder_before_due_days}
+                required
+              />
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="dueDayEnabled"
+                checked={settings.reminder_due_day_enabled}
+              />
+              Send due-today reminder
+            </label>
+            <label class="studio-auth-field">
+              <span class="text-ink-muted">Overdue day offsets (comma-separated)</span>
+              <input
+                type="text"
+                name="overdueDays"
+                value={settings.reminder_overdue_days.join(',')}
+                required
+              />
+            </label>
+            <button type="submit" class="studio-action studio-action-primary">Save reminders</button>
+            <p class="text-sm text-ink-muted">
+              Cron runs hourly (UTC). Eligibility uses the business timezone calendar day. Paid and
+              void invoices are never reminded.
+            </p>
+          </form>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="mb-6">
+    <StudioPanel title="Email tools">
+      <p class="mb-3 text-sm text-ink-muted">
+        Preview branded transactional templates without sending.
+      </p>
+      <a class="studio-action" href="/admin/settings/email-preview">Email previews</a>
+    </StudioPanel>
+  </div>
 </StudioLayout>

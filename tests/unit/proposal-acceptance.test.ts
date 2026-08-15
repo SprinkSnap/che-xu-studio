@@ -173,3 +173,17 @@ describe('phase 10 migration', () => {
     expect(sql).toContain('deposit_due');
   });
 });
+
+describe('phase 12 email migration', () => {
+  it('adds outbox and drops one-active link uniqueness', () => {
+    const sql = readFileSync(
+      path.join(process.cwd(), 'supabase/migrations/202608140015_email_outbox_reminders.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('email_outbox');
+    expect(sql).toContain('DROP INDEX IF EXISTS public.public_links_active_proposal_version_unique_idx');
+    expect(sql).toContain('DROP INDEX IF EXISTS public.public_links_active_invoice_unique_idx');
+    expect(sql).toContain('payment_reminders_enabled');
+    expect(sql).toContain('business_timezone');
+  });
+});

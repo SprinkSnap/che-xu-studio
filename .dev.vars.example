@@ -13,10 +13,16 @@ AI_MODEL=@cf/meta/llama-3.1-8b-instruct-fast
 # Optional Cloudflare Web Analytics token
 PUBLIC_CF_WEB_ANALYTICS_TOKEN=
 
-# Resend (https://resend.com) — emails new leads to info@chexustudio.com
+# Resend (https://resend.com) — contact leads + Studio transactional email
 # RESEND_API_KEY=re_xxxxxxxxx
 # CONTACT_FROM_EMAIL=Che Xu Studio <info@chexustudio.com>
 # CONTACT_NOTIFY_EMAIL=info@chexustudio.com
+# Studio transactional (optional; fall back to CONTACT_* when unset):
+# STUDIO_FROM_EMAIL=Che Xu Studio <hello@chexustudio.com>
+# STUDIO_REPLY_TO_EMAIL=hello@chexustudio.com
+# STUDIO_NOTIFY_EMAIL=info@chexustudio.com
+# Scheduled outbox/reminder job (POST /api/studio/jobs/process):
+# CRON_SECRET=generate-a-long-random-string
 
 # Studio OS foundation (Phase 2+)
 # Local `astro dev` always allows /admin. For `astro preview` / production Workers,

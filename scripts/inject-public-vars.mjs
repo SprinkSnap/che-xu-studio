@@ -13,6 +13,10 @@ const WORKER_VAR_KEYS = [
   // Plain (non-secret) contact notify config — survives deploys via wrangler vars.
   'CONTACT_FROM_EMAIL',
   'CONTACT_NOTIFY_EMAIL',
+  // Studio transactional From/Reply/Notify (plain vars; API key stays a secret).
+  'STUDIO_FROM_EMAIL',
+  'STUDIO_REPLY_TO_EMAIL',
+  'STUDIO_NOTIFY_EMAIL',
   // Studio OS — browser-safe Supabase public config (never SUPABASE_SECRET_KEY).
   'PUBLIC_SUPABASE_URL',
   'PUBLIC_SUPABASE_PUBLISHABLE_KEY',
@@ -57,7 +61,7 @@ export function injectPublicWorkerVars(config, env = process.env, { log = true }
         '  STUDIO_OS_ENABLED=true',
         '  STUDIO_BASE_URL=https://chexustudio.com',
         '  PUBLIC_STRIPE_PUBLISHABLE_KEY',
-        'And Encrypt secrets: TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET.',
+        'And Encrypt secrets: TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CRON_SECRET.',
       ].join('\n'),
     );
   }

@@ -151,6 +151,9 @@ export async function reconcileSucceededStripePayment(
     });
   }
 
+  let depositActivated = false;
+  let finalCompleted = false;
+
   if (result.invoiceStatus === 'paid') {
     await recordStudioActivity(service, {
       actorProfileId: null,
@@ -175,6 +178,7 @@ export async function reconcileSucceededStripePayment(
           clientId: result.clientId,
           invoiceId: result.invoiceId,
         });
+        depositActivated = transition.changed && transition.to === 'active';
         if (transition.anomaly) {
           result.anomaly = result.anomaly ?? transition.anomaly;
         }
@@ -184,6 +188,7 @@ export async function reconcileSucceededStripePayment(
           clientId: result.clientId,
           invoiceId: result.invoiceId,
         });
+        finalCompleted = transition.changed && transition.to === 'completed';
         if (transition.anomaly) {
           result.anomaly = result.anomaly ?? transition.anomaly;
         }
@@ -208,6 +213,41 @@ export async function reconcileSucceededStripePayment(
         provider: 'stripe',
       },
     });
+  }
+
+  // Email is a side effect — financial truth already committed. Never throw.
+  if (result.paymentCreated) {
+    try {
+      const { data: inv } = await service
+        .from('invoices')
+        .select(
+          'invoice_number, client_contact_email, client_contact_name, project_name, invoice_type',
+        )
+        .eq('id', result.invoiceId)
+        .maybeSingle();
+
+      const { enqueuePaymentReceivedEmails } = await import('../email/notifications');
+      await enqueuePaymentReceivedEmails(service, {
+        paymentId: result.paymentId,
+        invoiceId: result.invoiceId,
+        clientId: result.clientId,
+        projectId: result.projectId,
+        invoiceNumber: inv?.invoice_number ?? result.invoiceId,
+        amountMinor: input.amountMinor,
+        balanceDueMinor: result.balanceDueMinor,
+        currency: input.currency,
+        paymentMethod: input.paymentMethod ?? null,
+        paidAt: result.paidAt,
+        projectName: inv?.project_name ?? null,
+        contactEmail: inv?.client_contact_email ?? null,
+        contactName: inv?.client_contact_name ?? null,
+        invoiceType: inv?.invoice_type ?? result.invoiceType,
+        depositActivated,
+        finalCompleted,
+      });
+    } catch {
+      // Outbox enqueue failure must not fail Stripe webhook reconciliation.
+    }
   }
 
   return result;

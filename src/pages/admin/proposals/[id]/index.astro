@@ -42,6 +42,12 @@ import {
   PublicLinkError,
 } from '../../../../lib/public-links/mutations';
 import { listChangeRequestsForProposal } from '../../../../lib/proposals/change-requests';
+import {
+  sendProposalEmail,
+  resendProposalEmail,
+  ProposalSendError,
+} from '../../../../lib/email/proposal-send';
+import { listEmailLogsForProposal } from '../../../../lib/email/logging';
 import { isProposalCommerciallyExpired } from '../../../../lib/public-links/resolve';
 import type { PublicLinkRow } from '../../../../lib/public-links/types';
 import {
@@ -149,6 +155,24 @@ if (Astro.request.method === 'POST') {
           });
           return Astro.redirect(`/admin/proposals/${proposalId}?notice=link_revoked`, 303);
         }
+      } else if (intent === 'send_proposal' || intent === 'resend_proposal') {
+        const recipientOverride = String(form.get('recipientEmail') ?? '').trim() || null;
+        const result =
+          intent === 'resend_proposal'
+            ? await resendProposalEmail(supabase, {
+                proposalId,
+                actorProfileId: actorId,
+                recipientEmail: recipientOverride,
+              })
+            : await sendProposalEmail(supabase, {
+                proposalId,
+                actorProfileId: actorId,
+                recipientEmail: recipientOverride,
+              });
+        return Astro.redirect(
+          `/admin/proposals/${proposalId}?notice=${result.alreadySent ? 'already_sent' : 'email_sent'}`,
+          303,
+        );
       } else if (isInvoiceGenerate) {
         const versionParsed = uuidParamSchema.safeParse(versionId);
         if (!versionParsed.success) {
@@ -176,7 +200,8 @@ if (Astro.request.method === 'POST') {
       if (
         error instanceof ProposalMutationError ||
         error instanceof InvoiceMutationError ||
-        error instanceof PublicLinkError
+        error instanceof PublicLinkError ||
+        error instanceof ProposalSendError
       ) {
         flashError = error.message;
       } else if (intent === 'finalize') {
@@ -185,6 +210,8 @@ if (Astro.request.method === 'POST') {
         flashError = GENERIC_REVISION_ERROR;
       } else if (intent === 'archive') {
         flashError = GENERIC_ARCHIVE_ERROR;
+      } else if (intent === 'send_proposal' || intent === 'resend_proposal') {
+        flashError = 'Unable to send proposal email.';
       } else if (isInvoiceGenerate) {
         flashError = GENERIC_GENERATE_ERROR;
       } else {
@@ -214,11 +241,13 @@ if (!detail) {
 
 const notice = Astro.url.searchParams.get('notice');
 const noticeMap: Record<string, string> = {
-  finalized: 'Version finalized. Status remains draft until delivery (Phase 12).',
+  finalized: 'Version finalized. Status remains draft until the proposal email is accepted by the provider.',
   revision: 'New editable revision created.',
   archived: 'Proposal archived.',
   saved: 'Proposal draft saved.',
   link_revoked: 'Client link revoked.',
+  email_sent: 'Proposal email accepted by the provider. Proposal marked Sent.',
+  already_sent: 'Proposal delivery was already recorded for this version.',
 };
 if (notice && noticeMap[notice]) flashSuccess = noticeMap[notice];
 
@@ -267,6 +296,16 @@ function linkStatusLabel(link: PublicLinkRow): string {
 }
 
 const canCreateClientLink = canWrite && version.is_immutable && status !== 'archived';
+const canSendProposal =
+  canWrite &&
+  version.is_immutable &&
+  status !== 'archived' &&
+  status !== 'accepted' &&
+  !proposal.accepted_at;
+const emailLogs = await listEmailLogsForProposal(supabase, proposal.id);
+const defaultRecipient =
+  version.client_contact_email?.trim() ||
+  '';
 ---
 
 <StudioLayout
@@ -517,10 +556,69 @@ const canCreateClientLink = canWrite && version.is_immutable && status !== 'arch
         )
       }
     </StudioPanel>
+
+    <StudioPanel title="Email history">
+      {
+        emailLogs.length === 0 ? (
+          <StudioEmptyState
+            title="No emails yet"
+            description="Outbound proposal emails and notifications will appear here."
+          />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {emailLogs.map((entry) => (
+              <li class="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
+                <div>
+                  <p class="font-medium text-navy-900">{entry.subject}</p>
+                  <p class="mt-1 text-ink-muted">
+                    {entry.email_type} · {entry.recipient_email} · {entry.status}
+                    {entry.failure_reason ? ` · ${entry.failure_reason}` : ''}
+                  </p>
+                </div>
+                <time class="text-ink-muted" datetime={entry.sent_at ?? entry.created_at}>
+                  {formatStudioDateTime(entry.sent_at ?? entry.created_at)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
   </div>
 
   <div class="mb-8">
     <StudioPanel title="Client link & acceptance">
+      {
+        canSendProposal && (
+          <form method="post" class="mb-6 space-y-3">
+            <input
+              type="hidden"
+              name="intent"
+              value={status === 'sent' || status === 'viewed' || status === 'changes_requested' ? 'resend_proposal' : 'send_proposal'}
+            />
+              <label class="studio-auth-field">
+                <span class="text-ink-muted">Recipient email</span>
+                <input
+                  type="email"
+                  name="recipientEmail"
+                  value={defaultRecipient}
+                  required
+                  autocomplete="email"
+                />
+              </label>
+            <button type="submit" class="studio-action studio-action-primary">
+              {status === 'draft' || status === 'expired' || status === 'declined'
+                ? 'Send Proposal'
+                : 'Resend Proposal'}
+            </button>
+            <p class="text-sm text-ink-muted">
+              Marks the proposal Sent only after the email provider accepts delivery. A fresh
+              exact-version secure link is minted for this send.
+            </p>
+          </form>
+        )
+      }
+
       <dl class="mb-6 grid gap-3 text-sm sm:grid-cols-2">
         <div>
           <dt class="text-ink-muted">Acceptance</dt>

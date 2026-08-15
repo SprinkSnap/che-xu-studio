@@ -39,6 +39,12 @@
     "remote": true
   },
 
+  // Hourly: process email outbox retries + due-date reminder scan (business TZ in settings).
+  // Cron is UTC; reminder eligibility uses settings.business_timezone (default America/Toronto).
+  "triggers": {
+    "crons": ["15 * * * *"]
+  },
+
   // Rate limiting bindings for sensitive API endpoints.
   "ratelimits": [
     {

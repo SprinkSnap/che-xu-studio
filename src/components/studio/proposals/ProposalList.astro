@@ -1,0 +1,114 @@
+---
+import StudioStatusBadge from '../StudioStatusBadge.astro';
+import { formatMoney, formatStudioDate, formatDateOnly } from '../../../lib/clients/format';
+import {
+  PROPOSAL_STATUS_LABELS,
+  proposalStatusTone,
+} from '../../../lib/proposals/workflow';
+import type { ProposalListItem } from '../../../lib/proposals/types';
+
+interface Props {
+  items: ProposalListItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{
+  items.length > 0 && (
+    <>
+      <div class="studio-table-wrap hidden lg:block">
+        <table class="studio-table">
+          <thead>
+            <tr>
+              <th scope="col">Proposal</th>
+              <th scope="col">Client</th>
+              <th scope="col">Project</th>
+              <th scope="col">Status</th>
+              <th scope="col">Total</th>
+              <th scope="col">Expires</th>
+              <th scope="col">Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr class="studio-table-row">
+                <td>
+                  <a class="studio-client-link" href={`/admin/proposals/${item.id}`}>
+                    {item.proposalNumber}
+                  </a>
+                  <p class="mt-0.5 text-xs text-ink-muted">{item.title}</p>
+                  {item.versionNumber != null && (
+                    <p class="mt-0.5 text-xs text-ink-muted">v{item.versionNumber}</p>
+                  )}
+                </td>
+                <td>
+                  <a
+                    class="text-sm text-ink-muted hover:text-brand"
+                    href={`/admin/clients/${item.clientId}`}
+                  >
+                    {item.clientName}
+                  </a>
+                </td>
+                <td>
+                  <a
+                    class="text-sm text-ink-muted hover:text-brand"
+                    href={`/admin/projects/${item.projectId}`}
+                  >
+                    {item.projectName}
+                  </a>
+                </td>
+                <td>
+                  <StudioStatusBadge
+                    label={PROPOSAL_STATUS_LABELS[item.status]}
+                    tone={proposalStatusTone(item.status)}
+                  />
+                </td>
+                <td class="tabular-nums text-right">
+                  {formatMoney(item.totalMinor, item.currency)}
+                </td>
+                <td>{formatDateOnly(item.expiresAt)}</td>
+                <td>{formatStudioDate(item.updatedAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="studio-client-mobile-list lg:hidden" role="list">
+        {items.map((item) => (
+          <li>
+            <a class="studio-client-mobile-card" href={`/admin/proposals/${item.id}`}>
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="studio-client-mobile-name">{item.proposalNumber}</p>
+                  <p class="mt-1 text-sm text-ink-muted">{item.title}</p>
+                  <p class="mt-1 text-sm text-ink-muted">
+                    {item.clientName}
+                    <span class="mx-2" aria-hidden="true">
+                      ·
+                    </span>
+                    {item.projectName}
+                  </p>
+                </div>
+                <StudioStatusBadge
+                  label={PROPOSAL_STATUS_LABELS[item.status]}
+                  tone={proposalStatusTone(item.status)}
+                />
+              </div>
+              <p class="mt-3 text-sm text-ink-muted">
+                <span class="tabular-nums text-navy-900">
+                  {formatMoney(item.totalMinor, item.currency)}
+                </span>
+                <span class="mx-2" aria-hidden="true">
+                  ·
+                </span>
+                Expires {formatDateOnly(item.expiresAt)}
+              </p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}

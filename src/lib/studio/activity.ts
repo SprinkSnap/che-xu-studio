@@ -19,7 +19,16 @@ export type StudioActivityAction =
   | 'project.updated'
   | 'project.status_changed'
   | 'project.archived'
-  | 'project.restored';
+  | 'project.restored'
+  | 'proposal.created'
+  | 'proposal.updated'
+  | 'proposal.version_created'
+  | 'proposal.finalized'
+  | 'proposal.archived'
+  | 'proposal_template.created'
+  | 'proposal_template.updated'
+  | 'proposal_template.archived'
+  | 'proposal_template.default_changed';
 
 type ActivityClient = SupabaseClient<Database>;
 
@@ -73,6 +82,15 @@ export function humanizeStudioActivity(action: string): string {
     'project.status_changed': 'Project status changed',
     'project.archived': 'Project archived',
     'project.restored': 'Project restored',
+    'proposal.created': 'Proposal created',
+    'proposal.updated': 'Proposal updated',
+    'proposal.version_created': 'Proposal revision created',
+    'proposal.finalized': 'Proposal version finalized',
+    'proposal.archived': 'Proposal archived',
+    'proposal_template.created': 'Proposal template created',
+    'proposal_template.updated': 'Proposal template updated',
+    'proposal_template.archived': 'Proposal template archived',
+    'proposal_template.default_changed': 'Default proposal template changed',
   };
   return map[action] ?? action.replace(/\./g, ' ');
 }

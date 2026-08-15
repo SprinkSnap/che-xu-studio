@@ -1,0 +1,106 @@
+---
+import type { TemplateFormValues } from '../../../lib/proposals/types';
+
+interface Props {
+  values: TemplateFormValues;
+  errorMessage?: string;
+  mode?: 'create' | 'edit';
+}
+
+const { values, errorMessage = '', mode = 'create' } = Astro.props;
+---
+
+{
+  errorMessage && (
+    <p class="studio-auth-error mb-6" role="alert" id="template-form-error">
+      {errorMessage}
+    </p>
+  )
+}
+
+<div class="studio-project-form-grid">
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Template identity</legend>
+    <div class="studio-auth-field">
+      <label for="name">Name</label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        required
+        maxlength="200"
+        value={values.name}
+        aria-describedby={errorMessage ? 'template-form-error' : undefined}
+      />
+    </div>
+    <div class="studio-auth-field">
+      <label for="description">
+        Description <span class="font-normal text-ink-muted">(optional)</span>
+      </label>
+      <textarea id="description" name="description" rows="3" class="studio-textarea"
+        >{values.description}</textarea
+      >
+    </div>
+    <label class="studio-checkbox">
+      <input type="checkbox" name="makeDefault" value="on" checked={values.makeDefault} />
+      <span>{mode === 'edit' ? 'Set as default template' : 'Make default template'}</span>
+    </label>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Default content</legend>
+    <div class="studio-auth-field">
+      <label for="introduction">Introduction</label>
+      <textarea id="introduction" name="introduction" rows="4" class="studio-textarea"
+        >{values.introduction}</textarea
+      >
+    </div>
+    <div class="studio-auth-field">
+      <label for="projectOverview">Project overview</label>
+      <textarea id="projectOverview" name="projectOverview" rows="4" class="studio-textarea"
+        >{values.projectOverview}</textarea
+      >
+    </div>
+    <div class="studio-auth-field">
+      <label for="objectives">Objectives</label>
+      <textarea id="objectives" name="objectives" rows="4" class="studio-textarea"
+        >{values.objectives}</textarea
+      >
+    </div>
+    <div class="studio-auth-field">
+      <label for="scope">Scope</label>
+      <textarea id="scope" name="scope" rows="4" class="studio-textarea">{values.scope}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="deliverables">Deliverables</label>
+      <textarea id="deliverables" name="deliverables" rows="4" class="studio-textarea"
+        >{values.deliverables}</textarea
+      >
+    </div>
+    <div class="studio-auth-field">
+      <label for="timeline">Timeline</label>
+      <textarea id="timeline" name="timeline" rows="4" class="studio-textarea"
+        >{values.timeline}</textarea
+      >
+    </div>
+    <div class="studio-auth-field">
+      <label for="paymentTerms">Payment terms</label>
+      <textarea id="paymentTerms" name="paymentTerms" rows="4" class="studio-textarea"
+        >{values.paymentTerms}</textarea
+      >
+    </div>
+    <div class="studio-auth-field">
+      <label for="termsAndConditions">Terms and conditions</label>
+      <textarea
+        id="termsAndConditions"
+        name="termsAndConditions"
+        rows="4"
+        class="studio-textarea">{values.termsAndConditions}</textarea
+      >
+    </div>
+    <div class="studio-auth-field">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3" class="studio-textarea">{values.notes}</textarea>
+    </div>
+  </fieldset>
+</div>

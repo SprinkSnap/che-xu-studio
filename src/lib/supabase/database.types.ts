@@ -800,6 +800,13 @@ export type Database = {
           is_immutable: boolean
           created_by: string | null
           created_at: string
+          client_display_name: string | null
+          client_contact_name: string | null
+          client_contact_email: string | null
+          project_name: string | null
+          tax_bps: number
+          deposit_bps: number
+          finalized_at: string | null
         }
         Insert: {
           id?: string
@@ -825,6 +832,13 @@ export type Database = {
           is_immutable?: boolean
           created_by?: string | null
           created_at?: string
+          client_display_name?: string | null
+          client_contact_name?: string | null
+          client_contact_email?: string | null
+          project_name?: string | null
+          tax_bps?: number
+          deposit_bps?: number
+          finalized_at?: string | null
         }
         Update: {
           id?: string
@@ -850,6 +864,13 @@ export type Database = {
           is_immutable?: boolean
           created_by?: string | null
           created_at?: string
+          client_display_name?: string | null
+          client_contact_name?: string | null
+          client_contact_email?: string | null
+          project_name?: string | null
+          tax_bps?: number
+          deposit_bps?: number
+          finalized_at?: string | null
         }
         Relationships: []
       }
@@ -1185,6 +1206,18 @@ export type Database = {
           p_target_status: Database['public']['Enums']['project_status']
         }
         Returns: Database['public']['Tables']['projects']['Row']
+      }
+      set_default_proposal_template: {
+        Args: { p_template_id: string }
+        Returns: Database['public']['Tables']['proposal_templates']['Row']
+      }
+      create_proposal_revision: {
+        Args: { p_proposal_id: string }
+        Returns: Database['public']['Tables']['proposal_versions']['Row']
+      }
+      finalize_proposal_version: {
+        Args: { p_proposal_id: string; p_version_id: string }
+        Returns: Database['public']['Tables']['proposal_versions']['Row']
       }
     }
     Enums: {

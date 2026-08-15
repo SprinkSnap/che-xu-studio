@@ -33,13 +33,20 @@ import {
   formatStudioDate,
   formatStudioDateTime,
 } from '../../../../lib/clients/format';
+import {
+  PROPOSAL_STATUS_LABELS,
+  proposalStatusTone,
+  type ProposalStatus,
+} from '../../../../lib/proposals/workflow';
 import { humanizeStudioActivity } from '../../../../lib/studio/activity';
+import type { CurrencyCode } from '../../../../lib/supabase/domain';
 
 export const prerender = false;
 
 const auth = await requireStudioPermission(Astro, 'studio.clients.read');
 const canWrite = roleHasPermission(auth.profile.role, 'studio.clients.write');
 const canWriteProjects = roleHasPermission(auth.profile.role, 'studio.projects.write');
+const canWriteProposals = roleHasPermission(auth.profile.role, 'studio.proposals.write');
 const canRemoveContacts = isStudioAdminRole(auth.profile.role);
 const supabase = Astro.locals.studioSupabase;
 if (!supabase) {
@@ -161,8 +168,17 @@ const noticeMap: Record<string, string> = {
 };
 if (notice && noticeMap[notice]) flashSuccess = noticeMap[notice];
 
-const { client, contacts, primaryContact, financial, projects, payments, activity, archiveWarnings } =
-  detail;
+const {
+  client,
+  contacts,
+  primaryContact,
+  financial,
+  projects,
+  payments,
+  proposals,
+  activity,
+  archiveWarnings,
+} = detail;
 const titleName = clientDisplayName(client);
 const isArchived = client.status === 'archived';
 
@@ -540,10 +556,61 @@ function formatAddress(parts: Array<string | null | undefined>): string {
 
   <div class="studio-detail-grid mb-8">
     <StudioPanel title="Proposals">
-      <StudioEmptyState
-        title="Proposal builder later"
-        description="Related proposals will appear here after Phase 8."
-      />
+      {
+        proposals.length === 0 ? (
+          <StudioEmptyState
+            title="No proposals yet"
+            description="Proposals created for this client’s projects will appear here."
+          >
+            {canWriteProposals && !isArchived && projects.length > 0 && (
+              <a
+                class="studio-action studio-action-primary mt-2"
+                href={`/admin/proposals/new?project=${projects[0].id}`}
+              >
+                Create Proposal
+              </a>
+            )}
+          </StudioEmptyState>
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {proposals.map((proposal) => (
+              <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                <div>
+                  <a class="studio-client-link" href={`/admin/proposals/${proposal.id}`}>
+                    {proposal.proposal_number}
+                  </a>
+                  <p class="mt-1 text-ink-muted">
+                    {proposal.title}
+                    <span class="mx-2" aria-hidden="true">
+                      ·
+                    </span>
+                    {proposal.project_name}
+                    <span class="mx-2" aria-hidden="true">
+                      ·
+                    </span>
+                    {formatMoney(
+                      proposal.total_minor,
+                      proposal.currency as CurrencyCode,
+                    )}
+                  </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <StudioStatusBadge
+                    label={
+                      PROPOSAL_STATUS_LABELS[proposal.status as ProposalStatus] ||
+                      proposal.status.replaceAll('_', ' ')
+                    }
+                    tone={proposalStatusTone(proposal.status as ProposalStatus)}
+                  />
+                  <a class="studio-action" href={`/admin/proposals/${proposal.id}`}>
+                    View
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )
+      }
     </StudioPanel>
     <StudioPanel title="Invoices">
       <StudioEmptyState

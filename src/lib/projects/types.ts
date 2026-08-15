@@ -34,7 +34,15 @@ export type ProjectDetail = {
     display_name: string | null;
     status: string;
   };
-  proposals: Array<{ id: string; title: string | null; status: string; updated_at: string }>;
+  proposals: Array<{
+    id: string;
+    proposal_number: string;
+    title: string;
+    status: string;
+    expires_at: string | null;
+    current_version_id: string | null;
+    updated_at: string;
+  }>;
   invoices: Array<{
     id: string;
     invoice_number: string;

@@ -58,6 +58,17 @@ export type ClientDetail = {
     paid_at: string | null;
     created_at: string;
   }>;
+  proposals: Array<{
+    id: string;
+    proposal_number: string;
+    title: string;
+    status: string;
+    project_id: string;
+    project_name: string;
+    total_minor: number;
+    currency: string;
+    updated_at: string;
+  }>;
   activity: Array<{
     id: string;
     action: string;

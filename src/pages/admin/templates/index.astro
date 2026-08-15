@@ -3,21 +3,108 @@ import StudioLayout from '../../../layouts/StudioLayout.astro';
 import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
 import StudioPanel from '../../../components/studio/StudioPanel.astro';
 import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+import StudioStatusBadge from '../../../components/studio/StudioStatusBadge.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { listProposalTemplates } from '../../../lib/proposals/queries';
+import { formatStudioDate } from '../../../lib/clients/format';
 
 export const prerender = false;
+
+await requireStudioPermission(Astro, 'studio.templates.manage');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+let listError = '';
+let templates = [] as Awaited<ReturnType<typeof listProposalTemplates>>;
+try {
+  templates = await listProposalTemplates(supabase, { includeArchived: true });
+} catch {
+  listError = 'Unable to load templates.';
+}
+
+const active = templates.filter((t) => !t.is_archived);
+const archived = templates.filter((t) => t.is_archived);
 ---
 
-<StudioLayout title="Templates" description="Reusable proposal and document templates.">
+<StudioLayout title="Templates" description="Reusable proposal templates.">
   <StudioPageHeader
     slot="header"
     title="Templates"
-    description="Reusable proposal and document structures. Template management arrives with the proposal system."
+    description="Reusable proposal structures for new engagements."
   />
-  <button slot="actions" type="button" class="studio-action" disabled>New Template</button>
-  <StudioPanel title="Templates">
-    <StudioEmptyState
-      title="No templates yet"
-      description="Saved proposal structures will live here so new engagements start from the studio’s editorial standards."
-    />
+  <a slot="actions" class="studio-action studio-action-primary" href="/admin/templates/new">
+    New Template
+  </a>
+
+  <StudioPanel title="Proposal templates">
+    {
+      listError ? (
+        <p class="studio-auth-error" role="alert">
+          {listError}
+        </p>
+      ) : active.length === 0 && archived.length === 0 ? (
+        <StudioEmptyState
+          title="No templates yet"
+          description="Save a reusable proposal structure so new drafts start from studio standards."
+        >
+          <a class="studio-action studio-action-primary mt-2" href="/admin/templates/new">
+            New Template
+          </a>
+        </StudioEmptyState>
+      ) : (
+        <>
+          {active.length === 0 ? (
+            <StudioEmptyState
+              title="No active templates"
+              description="Create a template or restore content from an archived one by creating a new copy."
+            />
+          ) : (
+            <ul class="divide-y divide-border" role="list">
+              {active.map((template) => (
+                <li class="flex flex-wrap items-center justify-between gap-3 py-4">
+                  <div>
+                    <a class="studio-client-link" href={`/admin/templates/${template.id}/edit`}>
+                      {template.name}
+                    </a>
+                    {template.description && (
+                      <p class="mt-1 text-sm text-ink-muted">{template.description}</p>
+                    )}
+                    <p class="mt-1 text-xs text-ink-muted">
+                      Updated {formatStudioDate(template.updated_at)}
+                    </p>
+                  </div>
+                  <div class="studio-actions">
+                    {template.is_default && (
+                      <StudioStatusBadge label="Default" tone="success" />
+                    )}
+                    <a class="studio-action" href={`/admin/templates/${template.id}/edit`}>
+                      Edit
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {archived.length > 0 && (
+            <div class="mt-8 border-t border-border pt-6">
+              <h3 class="mb-3 font-display text-base font-semibold text-navy-900">
+                Archived
+              </h3>
+              <ul class="divide-y divide-border" role="list">
+                {archived.map((template) => (
+                  <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                    <span class="text-ink-muted">{template.name}</span>
+                    <StudioStatusBadge label="Archived" tone="neutral" />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )
+    }
   </StudioPanel>
 </StudioLayout>

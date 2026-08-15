@@ -1,0 +1,219 @@
+---
+import StudioLayout from '../../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../../components/studio/StudioPanel.astro';
+import ProposalFormFields from '../../../../components/studio/proposals/ProposalFormFields.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../../lib/auth/origin';
+import { getProposalDetail, quantityDisplay } from '../../../../lib/proposals/queries';
+import {
+  ProposalMutationError,
+  saveProposalDraft,
+} from '../../../../lib/proposals/mutations';
+import {
+  formDataToObject,
+  GENERIC_PROPOSAL_SAVE_ERROR,
+  PROPOSAL_CONFLICT_ERROR,
+  uuidParamSchema,
+} from '../../../../lib/proposals/validation';
+import {
+  isProposalVersionEditable,
+  type ProposalStatus,
+} from '../../../../lib/proposals/workflow';
+import type { ProposalFormValues } from '../../../../lib/proposals/types';
+import { formatMinorAsMajorInput, bpsToPercentInput } from '../../../../lib/money/parse';
+import type { CurrencyCode } from '../../../../lib/supabase/domain';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.proposals.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const idParsed = uuidParamSchema.safeParse(Astro.params.id);
+if (!idParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+const proposalId = idParsed.data;
+
+let detail = null as Awaited<ReturnType<typeof getProposalDetail>>;
+try {
+  detail = await getProposalDetail(supabase, proposalId);
+} catch {
+  detail = null;
+}
+
+if (!detail) {
+  return new Response('Not found', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'private, no-store',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    },
+  });
+}
+
+function expiresDateInput(value: string | null | undefined): string {
+  if (!value) return '';
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(value);
+  return match?.[1] ?? '';
+}
+
+function buildFormValues(source: NonNullable<typeof detail>): ProposalFormValues {
+  const currency = source.version.currency as CurrencyCode;
+  return {
+    title: source.version.title || source.proposal.title,
+    introduction: source.version.introduction ?? '',
+    projectOverview: source.version.project_overview ?? '',
+    objectives: source.version.objectives ?? '',
+    scope: source.version.scope ?? '',
+    deliverables: source.version.deliverables ?? '',
+    timeline: source.version.timeline ?? '',
+    paymentSchedule: source.version.payment_schedule ?? '',
+    termsAndConditions: source.version.terms_and_conditions ?? '',
+    notes: source.version.notes ?? '',
+    discount: formatMinorAsMajorInput(source.version.discount_minor, currency),
+    taxPercent: bpsToPercentInput(source.version.tax_bps),
+    depositPercent: bpsToPercentInput(source.version.deposit_bps),
+    currency,
+    expiresAt: expiresDateInput(source.version.expires_at || source.proposal.expires_at),
+    expectedUpdatedAt: source.proposal.updated_at,
+    items: source.items.length
+      ? source.items.map((item, index) => ({
+          id: item.id,
+          itemType: item.item_type,
+          description: item.description,
+          quantity: quantityDisplay(item.quantity),
+          rate: formatMinorAsMajorInput(item.rate_minor, currency),
+          optional: item.optional,
+          selected: item.selected,
+          sortOrder: item.sort_order ?? index,
+        }))
+      : [
+          {
+            itemType: 'service' as const,
+            description: '',
+            quantity: '1',
+            rate: '0.00',
+            optional: false,
+            selected: true,
+            sortOrder: 0,
+          },
+        ],
+  };
+}
+
+const editable = isProposalVersionEditable({
+  proposalStatus: detail.proposal.status as ProposalStatus,
+  versionImmutable: detail.version.is_immutable,
+});
+
+if (!editable) {
+  return Astro.redirect(`/admin/proposals/${proposalId}`, 303);
+}
+
+let errorMessage = '';
+let values: ProposalFormValues = buildFormValues(detail);
+
+if (Astro.request.method === 'POST') {
+  const origin = requestSiteOrigin(Astro.request, Astro.url);
+  if (!isSameOriginMutation(Astro.request, origin)) {
+    return new Response('Invalid request origin.', { status: 403 });
+  }
+
+  const form = await Astro.request.formData();
+  const raw = formDataToObject(form);
+
+  values = {
+    title: raw.title ?? '',
+    introduction: raw.introduction ?? '',
+    projectOverview: raw.projectOverview ?? '',
+    objectives: raw.objectives ?? '',
+    scope: raw.scope ?? '',
+    deliverables: raw.deliverables ?? '',
+    timeline: raw.timeline ?? '',
+    paymentSchedule: raw.paymentSchedule ?? '',
+    termsAndConditions: raw.termsAndConditions ?? '',
+    notes: raw.notes ?? '',
+    discount: raw.discount ?? '0',
+    taxPercent: raw.taxPercent ?? '',
+    depositPercent: raw.depositPercent ?? '',
+    currency: raw.currency === 'USD' ? 'USD' : 'CAD',
+    expiresAt: raw.expiresAt ?? '',
+    expectedUpdatedAt: raw.expectedUpdatedAt ?? detail.proposal.updated_at,
+    items: (() => {
+      try {
+        const parsed = JSON.parse(raw.itemsJson || '[]');
+        if (!Array.isArray(parsed)) return values.items;
+        return parsed.map((entry: Record<string, unknown>, index: number) => ({
+          itemType:
+            entry.itemType === 'add_on' || entry.itemType === 'discount'
+              ? entry.itemType
+              : ('service' as const),
+          description: String(entry.description ?? ''),
+          quantity: String(entry.quantity ?? '1'),
+          rate: String(entry.rate ?? ''),
+          optional: Boolean(entry.optional),
+          selected: entry.selected !== false,
+          sortOrder: Number(entry.sortOrder ?? index),
+        }));
+      } catch {
+        return values.items;
+      }
+    })(),
+  };
+
+  try {
+    await saveProposalDraft(
+      supabase,
+      proposalId,
+      detail.version.id,
+      raw,
+      auth.profile.id,
+    );
+    return Astro.redirect(`/admin/proposals/${proposalId}?notice=saved`, 303);
+  } catch (error) {
+    if (error instanceof ProposalMutationError) {
+      if (error.code === 'immutable') {
+        return Astro.redirect(`/admin/proposals/${proposalId}`, 303);
+      }
+      errorMessage =
+        error.code === 'conflict' ? PROPOSAL_CONFLICT_ERROR : error.message;
+    } else {
+      errorMessage = GENERIC_PROPOSAL_SAVE_ERROR;
+    }
+  }
+}
+---
+
+<StudioLayout
+  title={`Edit ${detail.proposal.proposal_number}`}
+  description="Edit proposal draft."
+>
+  <StudioPageHeader
+    slot="header"
+    title={`Edit ${detail.proposal.proposal_number}`}
+    description={`Version ${detail.version.version_number} · ${detail.proposal.title}`}
+  />
+  <Fragment slot="actions">
+    <a class="studio-action" href={`/admin/proposals/${proposalId}/preview`}>
+      Preview
+    </a>
+    <a class="studio-action" href={`/admin/proposals/${proposalId}`}>
+      Back to proposal
+    </a>
+  </Fragment>
+
+  <StudioPanel title="Draft editor">
+    <form method="post" action={`/admin/proposals/${proposalId}/edit`} novalidate>
+      <ProposalFormFields values={values} errorMessage={errorMessage} />
+      <div class="studio-actions mt-2">
+        <button type="submit" class="studio-action studio-action-primary">Save draft</button>
+        <a class="studio-action" href={`/admin/proposals/${proposalId}`}>Cancel</a>
+      </div>
+    </form>
+  </StudioPanel>
+</StudioLayout>

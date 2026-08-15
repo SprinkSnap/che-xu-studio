@@ -20,7 +20,7 @@ draft → issued → void
 | `void` | Unpaid issued invoice cancelled; number preserved |
 | `overdue` | **Derived** display when due date passed, balance &gt; 0, and status is open (`issued`/`sent`/`partially_paid`) |
 | `sent` | **Not set** in Phase 9 — reserved for Phase 12 email delivery |
-| `paid` / `partially_paid` / `refunded` | **Not set** in Phase 9 — reserved for Phase 11 payments |
+| `paid` / `partially_paid` / `refunded` | Set by Phase 11 Stripe webhook reconciliation — never from browser success redirects |
 
 Do not mark invoices `sent` or `paid` for demos.
 
@@ -125,7 +125,7 @@ Studio identity snapshot strategy: columns on `invoices` now; Phase 13 PDFs must
 | Create / edit / issue / void / generate | `studio.invoices.write` |
 | Payment history | `studio.payments.read` |
 
-Ordinary CRUD uses request-scoped Supabase + RLS. No service-key convenience paths. No anonymous invoice access. No public `/invoice/[token]` in Phase 9.
+Ordinary CRUD uses request-scoped Supabase + RLS. No service-key convenience paths for admin pages. Public `/invoice/[token]` uses narrowly scoped capability resolution (Phase 11).
 
 Mass assignment: forms never accept invoice number, paid amounts, balance, sent/paid/void timestamps, or provider IDs.
 
@@ -142,7 +142,7 @@ Optimistic concurrency: draft saves and issue/void require matching `updated_at`
 | Phase | Scope |
 | --- | --- |
 | 10 | Public proposal acceptance → automatic deposit generation via `getOrCreateDepositInvoice` |
-| 11 | Stripe payments, paid/partial status, refunds |
+| 11 | Stripe payments, paid/partial status, refunds — see [payments.md](./payments.md) |
 | 12 | Invoice email / reminders (`sent`) |
 | 13 | PDF generation |
 | 14 | Dashboard reporting |

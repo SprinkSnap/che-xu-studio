@@ -1,11 +1,17 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+/**
+ * Legacy marketing checkout success route.
+ * Authoritative Invoice payment UX is /invoice/[token]?payment=processing.
+ * This page never marks an Invoice Paid.
+ */
 ---
 
 <BaseLayout
   title="Checkout confirmation"
-  description="Online card checkout is not enabled yet. Request a quote through the Che Xu Studio contact form."
+  description="If you completed a Studio invoice payment, return to your secure invoice link to confirm status."
   path="/checkout/success"
   noindex={true}
   showMobileCta={false}
@@ -19,16 +25,14 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
           { name: 'Confirmation' },
         ]}
       />
-      <h1 class="font-display text-4xl font-bold text-navy-900">
-        Online checkout isn’t available yet
-      </h1>
+      <h1 class="font-display text-4xl font-bold text-navy-900">Payment confirmation</h1>
       <p class="lead mt-4">
-        Package requests currently start with a quote through our contact form. No payment was
-        collected on this page.
+        If you paid a Che Xu Studio invoice, open the secure invoice link from your studio contact
+        to see verified payment status. This page alone does not mark an invoice as paid.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <a href="/contact?intent=quote" class="btn-primary">Request a quote</a>
-        <a href="/pricing" class="btn-secondary">View packages</a>
+        <a href="/contact" class="btn-primary">Contact the studio</a>
+        <a href="/" class="btn-secondary">Back to home</a>
       </div>
     </div>
   </section>

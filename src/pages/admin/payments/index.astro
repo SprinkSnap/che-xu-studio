@@ -3,20 +3,148 @@ import StudioLayout from '../../../layouts/StudioLayout.astro';
 import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
 import StudioPanel from '../../../components/studio/StudioPanel.astro';
 import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+import StudioStatusBadge from '../../../components/studio/StudioStatusBadge.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { listPayments } from '../../../lib/payments/queries';
+import { PAYMENT_STATUS_LABELS, type PaymentStatus } from '../../../lib/payments/types';
+import { formatMoney, formatStudioDateTime } from '../../../lib/clients/format';
+import type { CurrencyCode } from '../../../lib/supabase/domain';
 
 export const prerender = false;
+
+await requireStudioPermission(Astro, 'studio.payments.read');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const page = Math.max(1, Number.parseInt(Astro.url.searchParams.get('page') || '1', 10) || 1);
+const result = await listPayments(supabase, { page });
+
+function paymentTone(status: PaymentStatus): 'neutral' | 'info' | 'success' | 'warning' {
+  switch (status) {
+    case 'succeeded':
+      return 'success';
+    case 'partially_refunded':
+    case 'pending':
+      return 'warning';
+    case 'failed':
+    case 'canceled':
+    case 'refunded':
+      return 'neutral';
+    default:
+      return 'info';
+  }
+}
 ---
 
-<StudioLayout title="Payments" description="Payment history for Studio OS.">
+<StudioLayout title="Payments" description="Stripe-verified payment history.">
   <StudioPageHeader
     slot="header"
     title="Payments"
-    description="Stripe-verified payments only. Checkout and webhooks arrive in Phase 11."
+    description="Payments appear only after verified Stripe webhook reconciliation — never from a browser success redirect alone."
   />
-  <StudioPanel title="Payments">
-    <StudioEmptyState
-      title="No payments yet"
-      description="Successful payments are recorded only after verified Stripe webhook processing — never from a browser success page alone."
-    />
+
+  <StudioPanel title="Payment history">
+    {
+      result.items.length === 0 ? (
+        <StudioEmptyState
+          title="No payments yet"
+          description="Successful client payments are recorded when Stripe webhooks confirm settlement."
+        />
+      ) : (
+        <div class="studio-table-wrap">
+          <table class="studio-table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Client</th>
+                <th scope="col">Invoice</th>
+                <th scope="col">Project</th>
+                <th scope="col" class="text-right">
+                  Amount
+                </th>
+                <th scope="col">Method</th>
+                <th scope="col">Status</th>
+                <th scope="col">
+                  <span class="sr-only">Open</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.items.map((payment) => (
+                <tr>
+                  <td class="tabular-nums text-sm">
+                    {formatStudioDateTime(payment.paidAt || payment.createdAt)}
+                  </td>
+                  <td>
+                    <a class="text-brand hover:underline" href={`/admin/clients/${payment.clientId}`}>
+                      {payment.clientName}
+                    </a>
+                  </td>
+                  <td>
+                    <a
+                      class="text-brand hover:underline"
+                      href={`/admin/invoices/${payment.invoiceId}`}
+                    >
+                      {payment.invoiceNumber}
+                    </a>
+                  </td>
+                  <td>
+                    {payment.projectId ? (
+                      <a
+                        class="text-brand hover:underline"
+                        href={`/admin/projects/${payment.projectId}`}
+                      >
+                        {payment.projectName || 'Project'}
+                      </a>
+                    ) : (
+                      <span class="text-ink-muted">—</span>
+                    )}
+                  </td>
+                  <td class="tabular-nums text-right">
+                    {formatMoney(payment.amountMinor, payment.currency as CurrencyCode)}
+                    <span class="ml-1 text-xs text-ink-muted">{payment.currency}</span>
+                  </td>
+                  <td class="text-sm">{payment.paymentMethod || 'Card'}</td>
+                  <td>
+                    <StudioStatusBadge
+                      label={PAYMENT_STATUS_LABELS[payment.status] ?? payment.status}
+                      tone={paymentTone(payment.status)}
+                    />
+                  </td>
+                  <td>
+                    <a class="studio-action" href={`/admin/payments/${payment.id}`}>
+                      View
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+    {
+      result.pageCount > 1 && (
+        <nav class="mt-6 flex items-center justify-between gap-4 text-sm" aria-label="Pagination">
+          <span class="text-ink-muted">
+            Page {result.page} of {result.pageCount}
+          </span>
+          <div class="flex gap-2">
+            {result.page > 1 && (
+              <a class="studio-action" href={`/admin/payments?page=${result.page - 1}`}>
+                Previous
+              </a>
+            )}
+            {result.page < result.pageCount && (
+              <a class="studio-action" href={`/admin/payments?page=${result.page + 1}`}>
+                Next
+              </a>
+            )}
+          </div>
+        </nav>
+      )
+    }
   </StudioPanel>
 </StudioLayout>

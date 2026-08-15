@@ -18,6 +18,48 @@ export type PublicLinkRow = {
 
 export type ProposalLinkStatus = 'active' | 'viewed' | 'accepted' | 'revoked' | 'expired';
 
+export type InvoicePublicDocument = {
+  link: PublicLinkRow;
+  invoice: {
+    id: string;
+    invoice_number: string;
+    invoice_type: string;
+    status: string;
+    currency: 'CAD' | 'USD';
+    issue_date: string | null;
+    due_date: string | null;
+    subtotal_minor: number;
+    discount_minor: number;
+    tax_minor: number;
+    tax_bps: number;
+    total_minor: number;
+    amount_paid_minor: number;
+    balance_due_minor: number;
+    payment_instructions: string | null;
+    client_id: string;
+    project_id: string | null;
+    client_display_name: string | null;
+    client_contact_name: string | null;
+    client_contact_email: string | null;
+    client_billing_address: string | null;
+    project_name: string | null;
+    studio_business_name: string | null;
+    studio_billing_email: string | null;
+    studio_business_address: string | null;
+    paid_at: string | null;
+    voided_at: string | null;
+    updated_at: string;
+  };
+  items: Array<{
+    id: string;
+    description: string;
+    quantity: number;
+    rate_minor: number;
+    amount_minor: number;
+    sort_order: number;
+  }>;
+};
+
 export type ProposalPublicDocument = {
   link: PublicLinkRow;
   proposal: {

@@ -42,7 +42,9 @@ test.describe('Studio OS foundation', () => {
     expect(proposal.headers()['cache-control']).toMatch(/private/i);
 
     await page.goto('/invoice/phase2-placeholder-token');
-    await expect(page.getByRole('heading', { name: 'Invoice unavailable' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /invoice link is no longer available/i }),
+    ).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       'content',
       'noindex, nofollow, noarchive',

@@ -37,3 +37,13 @@ PUBLIC_CF_WEB_ANALYTICS_TOKEN=
 # Local CLI: npm run supabase:start && npm run supabase:status
 # First owner: see docs/architecture/studio-auth.md (dashboard SQL or bootstrap script)
 # See docs/architecture/supabase.md and docs/architecture/studio-auth.md
+
+# Studio OS — Stripe (Phase 11+)
+# Publishable key may be exposed to the browser if needed:
+# PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+# Server-only (Workers Builds → Encrypt secret). NEVER prefix with PUBLIC_:
+# STRIPE_SECRET_KEY=sk_test_xxx
+# STRIPE_WEBHOOK_SECRET=whsec_xxx
+# Webhook endpoint: POST /api/webhooks/stripe
+# Local Stripe CLI: stripe listen --forward-to localhost:4321/api/webhooks/stripe
+# See docs/architecture/payments.md

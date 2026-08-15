@@ -680,10 +680,11 @@ COMMIT;
         'profiles','clients','client_contacts','projects','proposal_templates','proposals',
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
-        'activity_logs','settings','number_counters','webhook_events','proposal_change_requests'
+        'activity_logs','settings','number_counters','webhook_events','proposal_change_requests',
+        'invoice_checkout_sessions'
       );
   `).trim();
-  assert(tableCount === '22', `Expected 22 Studio tables, got ${tableCount}`);
+  assert(tableCount === '23', `Expected 23 Studio tables, got ${tableCount}`);
 
   // RLS enabled on all
   const rlsOff = adminPsql(`
@@ -695,7 +696,8 @@ COMMIT;
         'profiles','clients','client_contacts','projects','proposal_templates','proposals',
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
-        'activity_logs','settings','number_counters','webhook_events','proposal_change_requests'
+        'activity_logs','settings','number_counters','webhook_events','proposal_change_requests',
+        'invoice_checkout_sessions'
       )
       AND NOT c.relrowsecurity;
   `).trim();
@@ -722,6 +724,86 @@ COMMIT;
   } catch (err) {
     assert(/unique|public_links_active/i.test(String(err)), String(err));
   }
+
+  // Phase 11: one active invoice public link
+  const invLinkHash = adminPsql(`SELECT encode(sha256('phase11-inv-token-a'::bytea), 'hex');`).trim();
+  adminPsql(`
+    INSERT INTO public.public_links (
+      resource_type, resource_id, token_hash
+    ) VALUES (
+      'invoice', '${draftInvId}', '${invLinkHash}'
+    );
+  `);
+  try {
+    adminPsql(`
+      INSERT INTO public.public_links (
+        resource_type, resource_id, token_hash
+      ) VALUES (
+        'invoice', '${draftInvId}', encode(sha256('phase11-inv-token-b'::bytea), 'hex')
+      );
+    `);
+    throw new Error('duplicate active invoice link should fail');
+  } catch (err) {
+    assert(/unique|public_links_active_invoice/i.test(String(err)), String(err));
+  }
+
+  // Phase 11: reconcile payment RPC + idempotency
+  const payCreated1 = adminPsql(`
+    SELECT public.apply_succeeded_stripe_payment(
+      '${draftInvId}',
+      '${clientId}',
+      (SELECT balance_due_minor FROM public.invoices WHERE id = '${draftInvId}'),
+      'CAD',
+      'pi_test_phase11_1',
+      'cs_test_phase11_1',
+      'Visa •••• 4242',
+      now(),
+      '{}'::jsonb
+    )->>'payment_created';
+  `).trim();
+  assert(payCreated1 === 'true', `expected payment_created true, got ${payCreated1}`);
+  const invoicePaidStatus = adminPsql(`
+    SELECT status || ':' || amount_paid_minor || ':' || balance_due_minor
+    FROM public.invoices WHERE id = '${draftInvId}';
+  `).trim();
+  assert(invoicePaidStatus === 'paid:452000:0', invoicePaidStatus);
+
+  const payCreated2 = adminPsql(`
+    SELECT public.apply_succeeded_stripe_payment(
+      '${draftInvId}',
+      '${clientId}',
+      452000,
+      'CAD',
+      'pi_test_phase11_1',
+      'cs_test_phase11_1',
+      'Visa •••• 4242',
+      now(),
+      '{}'::jsonb
+    )->>'payment_created';
+  `).trim();
+  assert(payCreated2 === 'false', `duplicate event must not create payment, got ${payCreated2}`);
+  const paymentCount = adminPsql(`
+    SELECT count(*) FROM public.payments WHERE provider_payment_id = 'pi_test_phase11_1';
+  `).trim();
+  assert(paymentCount === '1', `Expected 1 payment row, got ${paymentCount}`);
+
+  // Refund reopen balance without deleting payment
+  adminPsql(`
+    SELECT public.apply_succeeded_stripe_refund(
+      're_test_phase11_1',
+      'pi_test_phase11_1',
+      100,
+      'CAD',
+      now(),
+      'requested_by_customer',
+      '{}'::jsonb
+    );
+  `);
+  const afterRefund = adminPsql(`
+    SELECT status || ':' || amount_paid_minor || ':' || balance_due_minor
+    FROM public.invoices WHERE id = '${draftInvId}';
+  `).trim();
+  assert(afterRefund === 'partially_paid:451900:100', afterRefund);
 
   console.log('[studio-db-test] OK — migrations applied; numbering, immutability, constraints, and RLS checks passed.');
 }

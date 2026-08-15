@@ -64,6 +64,14 @@
         "limit": 30,
         "period": 60
       }
+    },
+    {
+      "name": "CHECKOUT_RATE_LIMITER",
+      "namespace_id": "1004",
+      "simple": {
+        "limit": 12,
+        "period": 60
+      }
     }
   ]
 }

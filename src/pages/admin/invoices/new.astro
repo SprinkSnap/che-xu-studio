@@ -1,0 +1,192 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import InvoiceFormFields from '../../../components/studio/invoices/InvoiceFormFields.astro';
+import type { InvoiceFormValues } from '../../../components/studio/invoices/InvoiceFormFields.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../lib/auth/origin';
+import { createManualInvoice, InvoiceMutationError } from '../../../lib/invoices/mutations';
+import {
+  formDataToObject,
+  GENERIC_CREATE_ERROR,
+  parseManualInvoiceCreatePayload,
+  uuidParamSchema,
+} from '../../../lib/invoices/validation';
+import {
+  addDaysIso,
+  todayIsoDateUtc,
+} from '../../../lib/invoices/workflow';
+import { getStudioPaymentDefaults } from '../../../lib/invoices/queries';
+import { clientDisplayName } from '../../../lib/clients/format';
+import { bpsToPercentInput } from '../../../lib/money/parse';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.invoices.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const defaults = await getStudioPaymentDefaults(supabase);
+const today = todayIsoDateUtc();
+
+const projectParam = Astro.url.searchParams.get('project') ?? '';
+const proposalParam = Astro.url.searchParams.get('proposal') ?? '';
+const projectParsed = uuidParamSchema.safeParse(projectParam);
+const proposalParsed = uuidParamSchema.safeParse(proposalParam);
+
+let prefillClientId = '';
+let prefillProjectId = '';
+let prefillTaxPercent = bpsToPercentInput(defaults.defaultTaxBps);
+let prefillCurrency: 'CAD' | 'USD' = 'CAD';
+
+if (proposalParsed.success) {
+  const { data: proposal } = await supabase
+    .from('proposals')
+    .select('id, client_id, project_id, current_version_id')
+    .eq('id', proposalParsed.data)
+    .maybeSingle();
+  if (proposal) {
+    prefillClientId = proposal.client_id;
+    prefillProjectId = proposal.project_id;
+    if (proposal.current_version_id) {
+      const { data: version } = await supabase
+        .from('proposal_versions')
+        .select('tax_bps, currency')
+        .eq('id', proposal.current_version_id)
+        .maybeSingle();
+      if (version) {
+        prefillTaxPercent = bpsToPercentInput(version.tax_bps);
+        prefillCurrency = (version.currency as 'CAD' | 'USD') || 'CAD';
+      }
+    }
+  }
+} else if (projectParsed.success) {
+  const { data: project } = await supabase
+    .from('projects')
+    .select('id, client_id, tax_bps, currency')
+    .eq('id', projectParsed.data)
+    .maybeSingle();
+  if (project) {
+    prefillClientId = project.client_id;
+    prefillProjectId = project.id;
+    prefillTaxPercent = bpsToPercentInput(project.tax_bps);
+    prefillCurrency = (project.currency as 'CAD' | 'USD') || 'CAD';
+  }
+}
+
+const [{ data: clientsRaw }, { data: projectsRaw }] = await Promise.all([
+  supabase
+    .from('clients')
+    .select('id, company_name, display_name')
+    .eq('status', 'active')
+    .order('company_name', { ascending: true })
+    .limit(300),
+  supabase
+    .from('projects')
+    .select('id, name, client_id, status')
+    .neq('status', 'archived')
+    .order('name', { ascending: true })
+    .limit(500),
+]);
+
+const clients = (clientsRaw ?? []).map((c) => ({
+  id: c.id,
+  label: clientDisplayName(c),
+}));
+const projects = (projectsRaw ?? []).map((p) => ({
+  id: p.id,
+  clientId: p.client_id,
+  label: p.name,
+}));
+
+let errorMessage = '';
+let values: InvoiceFormValues = {
+  clientId: prefillClientId,
+  projectId: prefillProjectId,
+  issueDate: today,
+  dueDate: addDaysIso(today, defaults.paymentTermsDays),
+  currency: prefillCurrency,
+  discount: '0',
+  taxPercent: prefillTaxPercent,
+  paymentInstructions: '',
+  items: [{ description: '', quantity: '1', rate: '0.00', sortOrder: 0 }],
+};
+
+if (Astro.request.method === 'POST') {
+  const origin = requestSiteOrigin(Astro.request, Astro.url);
+  if (!isSameOriginMutation(Astro.request, origin)) {
+    return new Response('Invalid request origin.', { status: 403 });
+  }
+
+  const form = await Astro.request.formData();
+  const raw = formDataToObject(form);
+  values = {
+    clientId: raw.clientId ?? '',
+    projectId: raw.projectId ?? '',
+    issueDate: raw.issueDate ?? today,
+    dueDate: raw.dueDate ?? today,
+    currency: (raw.currency as 'CAD' | 'USD') || 'CAD',
+    discount: raw.discount ?? '0',
+    taxPercent: raw.taxPercent ?? '0',
+    paymentInstructions: raw.paymentInstructions ?? '',
+    items: [{ description: '', quantity: '1', rate: '0.00' }],
+  };
+
+  try {
+    const parsedItems = JSON.parse(raw.itemsJson || '[]');
+    if (Array.isArray(parsedItems) && parsedItems.length) {
+      values.items = parsedItems.map((item: Record<string, string>, index: number) => ({
+        description: String(item.description ?? ''),
+        quantity: String(item.quantity ?? '1'),
+        rate: String(item.rate ?? '0'),
+        sortOrder: index,
+      }));
+    }
+  } catch {
+    // keep default items
+  }
+
+  const parsed = parseManualInvoiceCreatePayload(raw);
+  if (!parsed.success) {
+    errorMessage = parsed.error;
+  } else {
+      try {
+        return Astro.redirect(
+          `/admin/invoices/${await createManualInvoice(supabase, parsed.data, auth.profile.id)}`,
+          303,
+        );
+      } catch (error) {
+        errorMessage =
+          error instanceof InvoiceMutationError ? error.message : GENERIC_CREATE_ERROR;
+      }
+  }
+}
+---
+
+<StudioLayout title="New Invoice" description="Create a manual draft invoice.">
+  <StudioPageHeader
+    slot="header"
+    title="New Invoice"
+    description="Manual draft. Invoice number and totals are calculated by the server."
+  />
+  <a slot="actions" class="studio-action" href="/admin/invoices">Back to invoices</a>
+
+  <StudioPanel title="Manual invoice">
+    <form method="post" action="/admin/invoices/new" class="space-y-6" novalidate>
+      <InvoiceFormFields
+        values={values}
+        clients={clients}
+        projects={projects}
+        errorMessage={errorMessage}
+        mode="create"
+      />
+      <div class="flex flex-wrap gap-3">
+        <button type="submit" class="studio-action studio-action-primary">Save draft</button>
+        <a class="studio-action" href="/admin/invoices">Cancel</a>
+      </div>
+    </form>
+  </StudioPanel>
+</StudioLayout>

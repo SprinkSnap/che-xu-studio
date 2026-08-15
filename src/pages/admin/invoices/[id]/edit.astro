@@ -1,0 +1,163 @@
+---
+import StudioLayout from '../../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../../components/studio/StudioPanel.astro';
+import InvoiceFormFields from '../../../../components/studio/invoices/InvoiceFormFields.astro';
+import type { InvoiceFormValues } from '../../../../components/studio/invoices/InvoiceFormFields.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../../lib/auth/origin';
+import { getInvoiceDetail } from '../../../../lib/invoices/queries';
+import { saveInvoiceDraft, InvoiceMutationError } from '../../../../lib/invoices/mutations';
+import {
+  formDataToObject,
+  GENERIC_SAVE_ERROR,
+  parseDraftInvoiceUpdatePayload,
+  uuidParamSchema,
+} from '../../../../lib/invoices/validation';
+import { canEditInvoiceFinancials } from '../../../../lib/invoices/workflow';
+import { clientDisplayName } from '../../../../lib/clients/format';
+import { bpsToPercentInput } from '../../../../lib/money/parse';
+import { formatMinorAsMajorInput } from '../../../../lib/money/parse';
+import { formatScaledQuantity } from '../../../../lib/finance/calculations';
+import type { CurrencyCode } from '../../../../lib/supabase/domain';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.invoices.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const idParsed = uuidParamSchema.safeParse(Astro.params.id);
+if (!idParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+const invoiceId = idParsed.data;
+
+const detail = await getInvoiceDetail(supabase, invoiceId);
+if (!detail) {
+  return new Response('Not found', { status: 404 });
+}
+
+if (!canEditInvoiceFinancials(detail.invoice.status)) {
+  return Astro.redirect(`/admin/invoices/${invoiceId}`, 303);
+}
+
+const { invoice, items, client, project } = detail;
+const currency = invoice.currency as CurrencyCode;
+const lockFinancialLines =
+  invoice.invoice_type === 'deposit' || invoice.invoice_type === 'final';
+
+function toFormItems() {
+  return items.map((item, index) => ({
+    description: item.description,
+    quantity: formatScaledQuantity(Math.round(Number(item.quantity) * 10_000)),
+    rate: formatMinorAsMajorInput(item.rate_minor, currency),
+    sortOrder: index,
+  }));
+}
+
+let errorMessage = '';
+let values: InvoiceFormValues = {
+  clientId: invoice.client_id,
+  projectId: invoice.project_id ?? '',
+  issueDate: invoice.issue_date ?? '',
+  dueDate: invoice.due_date ?? '',
+  currency,
+  discount: formatMinorAsMajorInput(invoice.discount_minor, currency),
+  taxPercent: bpsToPercentInput(invoice.tax_bps),
+  paymentInstructions: invoice.payment_instructions ?? '',
+  expectedUpdatedAt: invoice.updated_at,
+  items: toFormItems().length
+    ? toFormItems()
+    : [{ description: '', quantity: '1', rate: '0.00' }],
+  lockClientProject: true,
+  lockFinancialLines,
+  clientLabel: invoice.client_display_name || clientDisplayName(client),
+  projectLabel: invoice.project_name || project?.name || '—',
+};
+
+if (Astro.request.method === 'POST') {
+  const origin = requestSiteOrigin(Astro.request, Astro.url);
+  if (!isSameOriginMutation(Astro.request, origin)) {
+    return new Response('Invalid request origin.', { status: 403 });
+  }
+
+  const form = await Astro.request.formData();
+  const raw = formDataToObject(form);
+
+  values = {
+    ...values,
+    issueDate: raw.issueDate ?? values.issueDate,
+    dueDate: raw.dueDate ?? values.dueDate,
+    currency: (raw.currency as CurrencyCode) || values.currency,
+    discount: raw.discount ?? values.discount,
+    taxPercent: raw.taxPercent ?? values.taxPercent,
+    paymentInstructions: raw.paymentInstructions ?? '',
+    expectedUpdatedAt: raw.expectedUpdatedAt ?? values.expectedUpdatedAt,
+  };
+
+  try {
+    const parsedItems = JSON.parse(raw.itemsJson || '[]');
+    if (Array.isArray(parsedItems) && parsedItems.length) {
+      values.items = parsedItems.map((item: Record<string, string>, index: number) => ({
+        description: String(item.description ?? ''),
+        quantity: String(item.quantity ?? '1'),
+        rate: String(item.rate ?? '0'),
+        sortOrder: index,
+      }));
+    }
+  } catch {
+    // keep existing
+  }
+
+  const parsed = parseDraftInvoiceUpdatePayload(raw);
+  if (!parsed.success) {
+    errorMessage = parsed.error;
+  } else {
+    try {
+      await saveInvoiceDraft(supabase, invoiceId, parsed.data, auth.profile.id);
+      return Astro.redirect(`/admin/invoices/${invoiceId}?notice=saved`, 303);
+    } catch (error) {
+      errorMessage =
+        error instanceof InvoiceMutationError ? error.message : GENERIC_SAVE_ERROR;
+      if (error instanceof InvoiceMutationError && error.code === 'conflict') {
+        const fresh = await getInvoiceDetail(supabase, invoiceId);
+        if (fresh) values.expectedUpdatedAt = fresh.invoice.updated_at;
+      }
+    }
+  }
+}
+---
+
+<StudioLayout title={`Edit ${invoice.invoice_number}`} description="Edit draft invoice.">
+  <StudioPageHeader
+    slot="header"
+    title={`Edit ${invoice.invoice_number}`}
+    description="Draft only. Issued invoices cannot change financial content."
+  />
+  <a slot="actions" class="studio-action" href={`/admin/invoices/${invoiceId}`}>Cancel</a>
+
+  <StudioPanel title="Draft invoice">
+    <form
+      method="post"
+      action={`/admin/invoices/${invoiceId}/edit`}
+      class="space-y-6"
+      novalidate
+    >
+      <InvoiceFormFields
+        values={values}
+        clients={[]}
+        projects={[]}
+        errorMessage={errorMessage}
+        mode="edit"
+      />
+      <div class="flex flex-wrap gap-3">
+        <button type="submit" class="studio-action studio-action-primary">Save draft</button>
+        <a class="studio-action" href={`/admin/invoices/${invoiceId}`}>Cancel</a>
+        <a class="studio-action" href={`/admin/invoices/${invoiceId}/preview`}>Preview</a>
+      </div>
+    </form>
+  </StudioPanel>
+</StudioLayout>

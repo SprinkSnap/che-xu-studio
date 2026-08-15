@@ -38,6 +38,14 @@ import {
   proposalStatusTone,
   type ProposalStatus,
 } from '../../../../lib/proposals/workflow';
+import {
+  INVOICE_TYPE_LABELS,
+  displayInvoiceStatus,
+  todayIsoDateUtc,
+  invoiceStatusTone,
+  type InvoiceStatus,
+  type InvoiceType,
+} from '../../../../lib/invoices/workflow';
 import { humanizeStudioActivity } from '../../../../lib/studio/activity';
 import type { CurrencyCode } from '../../../../lib/supabase/domain';
 
@@ -47,6 +55,7 @@ const auth = await requireStudioPermission(Astro, 'studio.clients.read');
 const canWrite = roleHasPermission(auth.profile.role, 'studio.clients.write');
 const canWriteProjects = roleHasPermission(auth.profile.role, 'studio.projects.write');
 const canWriteProposals = roleHasPermission(auth.profile.role, 'studio.proposals.write');
+const canWriteInvoices = roleHasPermission(auth.profile.role, 'studio.invoices.write');
 const canRemoveContacts = isStudioAdminRole(auth.profile.role);
 const supabase = Astro.locals.studioSupabase;
 if (!supabase) {
@@ -176,11 +185,13 @@ const {
   projects,
   payments,
   proposals,
+  invoices,
   activity,
   archiveWarnings,
 } = detail;
 const titleName = clientDisplayName(client);
 const isArchived = client.status === 'archived';
+const invoiceToday = todayIsoDateUtc();
 
 function formatAddress(parts: Array<string | null | undefined>): string {
   return parts.filter(Boolean).join(', ') || '—';
@@ -613,10 +624,63 @@ function formatAddress(parts: Array<string | null | undefined>): string {
       }
     </StudioPanel>
     <StudioPanel title="Invoices">
-      <StudioEmptyState
-        title="Invoice engine later"
-        description="Related invoices will appear here after Phase 9. Outstanding balance already uses invoice records when present."
-      />
+      {
+        invoices.length === 0 ? (
+          <StudioEmptyState
+            title="No invoices yet"
+            description="Manual and proposal-derived invoices for this client appear here."
+          >
+            {canWriteInvoices && !isArchived ? (
+              <a class="studio-action studio-action-primary mt-4 inline-flex" href="/admin/invoices/new">
+                New Invoice
+              </a>
+            ) : null}
+          </StudioEmptyState>
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {invoices.map((invoice) => {
+              const display = displayInvoiceStatus(
+                {
+                  status: invoice.status as InvoiceStatus,
+                  due_date: invoice.due_date,
+                  balance_due_minor: invoice.balance_due_minor,
+                },
+                invoiceToday,
+              );
+              return (
+                <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                  <div>
+                    <a class="studio-client-link" href={`/admin/invoices/${invoice.id}`}>
+                      {invoice.invoice_number}
+                    </a>
+                    <p class="mt-1 text-ink-muted">
+                      {INVOICE_TYPE_LABELS[(invoice.invoice_type as InvoiceType) || 'manual'] ||
+                        invoice.invoice_type}
+                      <span class="mx-2" aria-hidden="true">
+                        ·
+                      </span>
+                      Due {formatDateOnly(invoice.due_date)}
+                    </p>
+                  </div>
+                  <div class="flex flex-col items-end gap-2">
+                    <StudioStatusBadge
+                      label={display.label}
+                      tone={invoiceStatusTone(invoice.status as InvoiceStatus, display.isOverdue)}
+                    />
+                    <span class="tabular-nums text-ink-muted">
+                      {formatMoney(invoice.total_minor, invoice.currency as CurrencyCode)}
+                      <span class="mx-2" aria-hidden="true">
+                        ·
+                      </span>
+                      Bal {formatMoney(invoice.balance_due_minor, invoice.currency as CurrencyCode)}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
     </StudioPanel>
   </div>
 

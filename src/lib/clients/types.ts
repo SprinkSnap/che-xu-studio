@@ -69,6 +69,17 @@ export type ClientDetail = {
     currency: string;
     updated_at: string;
   }>;
+  invoices: Array<{
+    id: string;
+    invoice_number: string;
+    invoice_type: string;
+    status: string;
+    total_minor: number;
+    balance_due_minor: number;
+    due_date: string | null;
+    currency: string;
+    updated_at: string;
+  }>;
   activity: Array<{
     id: string;
     action: string;

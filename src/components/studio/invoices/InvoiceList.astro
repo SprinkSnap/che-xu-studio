@@ -1,0 +1,115 @@
+---
+import StudioStatusBadge from '../StudioStatusBadge.astro';
+import { formatMoney, formatDateOnly } from '../../../lib/clients/format';
+import {
+  INVOICE_TYPE_LABELS,
+  invoiceStatusTone,
+} from '../../../lib/invoices/workflow';
+import type { InvoiceListItem } from '../../../lib/invoices/types';
+
+interface Props {
+  items: InvoiceListItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{
+  items.length > 0 && (
+    <>
+      <div class="studio-table-wrap hidden lg:block">
+        <table class="studio-table">
+          <thead>
+            <tr>
+              <th scope="col">Invoice</th>
+              <th scope="col">Client</th>
+              <th scope="col">Project</th>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+              <th scope="col">Total</th>
+              <th scope="col">Balance</th>
+              <th scope="col">Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr class="studio-table-row">
+                <td>
+                  <a class="studio-client-link" href={`/admin/invoices/${item.id}`}>
+                    {item.invoiceNumber}
+                  </a>
+                </td>
+                <td>
+                  <a
+                    class="text-sm text-ink-muted hover:text-brand"
+                    href={`/admin/clients/${item.clientId}`}
+                  >
+                    {item.clientName}
+                  </a>
+                </td>
+                <td>
+                  {item.projectId ? (
+                    <a
+                      class="text-sm text-ink-muted hover:text-brand"
+                      href={`/admin/projects/${item.projectId}`}
+                    >
+                      {item.projectName || 'Project'}
+                    </a>
+                  ) : (
+                    <span class="text-sm text-ink-muted">—</span>
+                  )}
+                </td>
+                <td>{INVOICE_TYPE_LABELS[item.invoiceType]}</td>
+                <td>
+                  <StudioStatusBadge
+                    label={item.displayStatus}
+                    tone={invoiceStatusTone(item.status, item.isOverdue)}
+                  />
+                </td>
+                <td class="tabular-nums text-right">
+                  {formatMoney(item.totalMinor, item.currency)}
+                </td>
+                <td class="tabular-nums text-right">
+                  {formatMoney(item.balanceDueMinor, item.currency)}
+                </td>
+                <td>{formatDateOnly(item.dueDate)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="studio-client-mobile-list lg:hidden" role="list">
+        {items.map((item) => (
+          <li>
+            <a class="studio-client-mobile-card" href={`/admin/invoices/${item.id}`}>
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="studio-client-mobile-name">{item.invoiceNumber}</p>
+                  <p class="mt-1 text-sm text-ink-muted">{item.clientName}</p>
+                </div>
+                <StudioStatusBadge
+                  label={item.displayStatus}
+                  tone={invoiceStatusTone(item.status, item.isOverdue)}
+                />
+              </div>
+              <p class="mt-3 text-sm text-ink-muted">
+                <span class="tabular-nums text-navy-900">
+                  {formatMoney(item.totalMinor, item.currency)}
+                </span>
+                <span class="mx-2" aria-hidden="true">
+                  ·
+                </span>
+                Balance {formatMoney(item.balanceDueMinor, item.currency)}
+                <span class="mx-2" aria-hidden="true">
+                  ·
+                </span>
+                Due {formatDateOnly(item.dueDate)}
+              </p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}

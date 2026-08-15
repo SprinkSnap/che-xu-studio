@@ -213,6 +213,7 @@ export async function getClientDetail(
     projectsResult,
     paymentsResult,
     proposalsResult,
+    invoicesResult,
     activityResult,
   ] = await Promise.all([
     supabase
@@ -253,6 +254,14 @@ export async function getClientDetail(
       .order('updated_at', { ascending: false })
       .limit(20),
     supabase
+      .from('invoices')
+      .select(
+        'id, invoice_number, invoice_type, status, total_minor, balance_due_minor, due_date, currency, updated_at',
+      )
+      .eq('client_id', clientId)
+      .order('updated_at', { ascending: false })
+      .limit(20),
+    supabase
       .from('activity_logs')
       .select('id, action, created_at, metadata')
       .eq('client_id', clientId)
@@ -265,6 +274,7 @@ export async function getClientDetail(
   if (projectsResult.error) throw projectsResult.error;
   if (paymentsResult.error) throw paymentsResult.error;
   if (proposalsResult.error) throw proposalsResult.error;
+  if (invoicesResult.error) throw invoicesResult.error;
   if (activityResult.error) throw activityResult.error;
 
   const contacts = (contactsResult.data ?? []) as ClientContactRow[];
@@ -304,6 +314,7 @@ export async function getClientDetail(
     projects,
     payments: paymentsResult.data ?? [],
     proposals,
+    invoices: invoicesResult.data ?? [],
     activity: (activityResult.data ?? []).map((row) => ({
       id: row.id,
       action: row.action,

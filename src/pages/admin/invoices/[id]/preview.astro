@@ -1,0 +1,78 @@
+---
+import ClientDocumentLayout from '../../../../layouts/ClientDocumentLayout.astro';
+import InvoiceDocument from '../../../../components/studio/invoices/InvoiceDocument.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { getInvoiceDetail } from '../../../../lib/invoices/queries';
+import {
+  INVOICE_STATUS_LABELS,
+  INVOICE_TYPE_LABELS,
+  type InvoiceType,
+} from '../../../../lib/invoices/workflow';
+import { uuidParamSchema } from '../../../../lib/invoices/validation';
+import type { CurrencyCode } from '../../../../lib/supabase/domain';
+
+export const prerender = false;
+
+await requireStudioPermission(Astro, 'studio.invoices.read');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const idParsed = uuidParamSchema.safeParse(Astro.params.id);
+if (!idParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+
+const detail = await getInvoiceDetail(supabase, idParsed.data);
+if (!detail) {
+  return new Response('Not found', { status: 404 });
+}
+
+const { invoice, items, displayStatus } = detail;
+const currency = invoice.currency as CurrencyCode;
+---
+
+<ClientDocumentLayout
+  title={`Invoice ${invoice.invoice_number}`}
+  description="Authenticated Studio invoice preview."
+  documentKind="invoice"
+>
+  <div class="studio-doc-no-print mb-6 flex flex-wrap gap-3">
+    <a class="studio-action" href={`/admin/invoices/${invoice.id}`}>Back to invoice</a>
+    {
+      invoice.status === 'draft' && (
+        <a class="studio-action" href={`/admin/invoices/${invoice.id}/edit`}>
+          Edit draft
+        </a>
+      )
+    }
+  </div>
+
+  <InvoiceDocument
+    invoiceNumber={invoice.invoice_number}
+    invoiceTypeLabel={INVOICE_TYPE_LABELS[invoice.invoice_type as InvoiceType]}
+    statusLabel={displayStatus || INVOICE_STATUS_LABELS[invoice.status]}
+    clientDisplayName={invoice.client_display_name || detail.client.company_name}
+    clientContactName={invoice.client_contact_name}
+    clientContactEmail={invoice.client_contact_email}
+    clientBillingAddress={invoice.client_billing_address}
+    projectName={invoice.project_name || detail.project?.name || null}
+    studioBusinessName={invoice.studio_business_name || 'Che Xu Studio'}
+    studioBillingEmail={invoice.studio_billing_email}
+    studioBusinessAddress={invoice.studio_business_address}
+    issueDate={invoice.issue_date}
+    dueDate={invoice.due_date}
+    items={items}
+    subtotalMinor={invoice.subtotal_minor}
+    discountMinor={invoice.discount_minor}
+    taxMinor={invoice.tax_minor}
+    taxBps={invoice.tax_bps}
+    totalMinor={invoice.total_minor}
+    amountPaidMinor={invoice.amount_paid_minor}
+    balanceDueMinor={invoice.balance_due_minor}
+    currency={currency}
+    paymentInstructions={invoice.payment_instructions}
+    showPaymentPlaceholder={true}
+  />
+</ClientDocumentLayout>

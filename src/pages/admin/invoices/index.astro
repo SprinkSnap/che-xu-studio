@@ -3,41 +3,220 @@ import StudioLayout from '../../../layouts/StudioLayout.astro';
 import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
 import StudioPanel from '../../../components/studio/StudioPanel.astro';
 import StudioEmptyState from '../../../components/studio/StudioEmptyState.astro';
+import InvoiceList from '../../../components/studio/invoices/InvoiceList.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { roleHasPermission } from '../../../lib/auth/permissions';
+import { listInvoices } from '../../../lib/invoices/queries';
+import { invoiceListQuerySchema } from '../../../lib/invoices/validation';
 
 export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.invoices.read');
+const canWrite = roleHasPermission(auth.profile.role, 'studio.invoices.write');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const raw = Object.fromEntries(Astro.url.searchParams.entries());
+const parsed = invoiceListQuerySchema.safeParse(raw);
+const query = parsed.success
+  ? parsed.data
+  : invoiceListQuerySchema.parse({ status: 'all', sort: 'updated_desc', page: 1 });
+
+let listError = '';
+let result = {
+  items: [] as Awaited<ReturnType<typeof listInvoices>>['items'],
+  total: 0,
+  page: query.page,
+  pageSize: query.pageSize,
+  pageCount: 1,
+};
+
+try {
+  result = await listInvoices(supabase, query);
+} catch {
+  listError = 'Unable to load invoices.';
+}
+
+const clientsResult = await supabase
+  .from('clients')
+  .select('id, company_name, display_name')
+  .eq('status', 'active')
+  .order('company_name', { ascending: true })
+  .limit(200);
+
+const clients = clientsResult.data ?? [];
+
+const hasFilters =
+  Boolean(query.q) ||
+  query.status !== 'all' ||
+  query.type !== 'all' ||
+  Boolean(query.clientId) ||
+  Boolean(query.projectId);
+const emptyTitle = hasFilters ? 'No invoices match this search.' : 'No invoices yet';
+const emptyDescription = hasFilters
+  ? 'Try a different number, client, or clear filters.'
+  : 'Create an invoice manually or generate one from an approved project proposal.';
+
+function pageHref(page: number): string {
+  const params = new URLSearchParams();
+  if (query.q) params.set('q', query.q);
+  if (query.status !== 'all') params.set('status', query.status);
+  if (query.type !== 'all') params.set('type', query.type);
+  if (query.clientId) params.set('clientId', query.clientId);
+  if (query.projectId) params.set('projectId', query.projectId);
+  if (query.sort !== 'updated_desc') params.set('sort', query.sort);
+  if (page > 1) params.set('page', String(page));
+  const qs = params.toString();
+  return qs ? `/admin/invoices?${qs}` : '/admin/invoices';
+}
 ---
 
-<StudioLayout title="Invoices" description="Invoice status and issuance.">
+<StudioLayout title="Invoices" description="Invoice drafts, issuance, and balances.">
   <StudioPageHeader
     slot="header"
     title="Invoices"
-    description="Issue deposit and final invoices with atomic numbering. Invoice engine arrives in Phase 9."
+    description="Create manual invoices or generate deposit and final invoices from proposal snapshots."
   />
-  <button slot="actions" type="button" class="studio-action studio-action-primary" disabled>
-    New Invoice
-  </button>
+  {
+    canWrite ? (
+      <a slot="actions" class="studio-action studio-action-primary" href="/admin/invoices/new">
+        New Invoice
+      </a>
+    ) : (
+      <Fragment slot="actions" />
+    )
+  }
+
   <StudioPanel title="Invoices">
-    <div class="studio-table-wrap mb-4">
-      <table class="studio-table">
-        <thead>
-          <tr>
-            <th scope="col">Invoice</th>
-            <th scope="col">Client</th>
-            <th scope="col">Status</th>
-            <th scope="col">Balance</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="4">
-              <StudioEmptyState
-                title="No invoices yet"
-                description="Invoice rows will appear here without fabricated balances. Totals use integer minor units in later phases."
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <form
+      class="mb-6 grid gap-3 lg:grid-cols-[1fr_10rem_10rem_12rem_12rem_auto]"
+      method="get"
+      action="/admin/invoices"
+    >
+      <label class="block text-sm font-medium text-navy-900">
+        Search
+        <input
+          type="search"
+          name="q"
+          value={query.q}
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+          placeholder="Number, client, or project"
+        />
+      </label>
+      <label class="block text-sm font-medium text-navy-900">
+        Status
+        <select
+          name="status"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+        >
+          <option value="all" selected={query.status === 'all'}>All</option>
+          <option value="draft" selected={query.status === 'draft'}>Draft</option>
+          <option value="issued" selected={query.status === 'issued'}>Issued</option>
+          <option value="sent" selected={query.status === 'sent'}>Sent</option>
+          <option value="partially_paid" selected={query.status === 'partially_paid'}>
+            Partially paid
+          </option>
+          <option value="paid" selected={query.status === 'paid'}>Paid</option>
+          <option value="overdue" selected={query.status === 'overdue'}>Overdue</option>
+          <option value="void" selected={query.status === 'void'}>Void</option>
+          <option value="refunded" selected={query.status === 'refunded'}>Refunded</option>
+        </select>
+      </label>
+      <label class="block text-sm font-medium text-navy-900">
+        Type
+        <select
+          name="type"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+        >
+          <option value="all" selected={query.type === 'all'}>All types</option>
+          <option value="deposit" selected={query.type === 'deposit'}>Deposit</option>
+          <option value="final" selected={query.type === 'final'}>Final</option>
+          <option value="manual" selected={query.type === 'manual'}>Manual</option>
+        </select>
+      </label>
+      <label class="block text-sm font-medium text-navy-900">
+        Client
+        <select
+          name="clientId"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+        >
+          <option value="">All clients</option>
+          {
+            clients.map((client) => (
+              <option value={client.id} selected={query.clientId === client.id}>
+                {client.display_name || client.company_name}
+              </option>
+            ))
+          }
+        </select>
+      </label>
+      <label class="block text-sm font-medium text-navy-900">
+        Sort
+        <select
+          name="sort"
+          class="mt-2 w-full min-h-11 rounded-[var(--radius-md)] border border-border bg-white px-3 text-sm"
+        >
+          <option value="updated_desc" selected={query.sort === 'updated_desc'}>
+            Recently updated
+          </option>
+          <option value="created_desc" selected={query.sort === 'created_desc'}>Newest</option>
+          <option value="number_asc" selected={query.sort === 'number_asc'}>
+            Invoice number
+          </option>
+          <option value="due_asc" selected={query.sort === 'due_asc'}>Due date</option>
+          <option value="total_desc" selected={query.sort === 'total_desc'}>
+            Highest total
+          </option>
+          <option value="balance_desc" selected={query.sort === 'balance_desc'}>
+            Highest balance
+          </option>
+        </select>
+      </label>
+      <div class="flex items-end">
+        <button type="submit" class="studio-action w-full min-h-11">Apply</button>
+      </div>
+    </form>
+
+    {
+      listError ? (
+        <p class="studio-auth-error" role="alert">
+          {listError}
+        </p>
+      ) : result.items.length === 0 ? (
+        <StudioEmptyState title={emptyTitle} description={emptyDescription}>
+          {canWrite && !hasFilters ? (
+            <a class="studio-action studio-action-primary mt-4 inline-flex" href="/admin/invoices/new">
+              New Invoice
+            </a>
+          ) : null}
+        </StudioEmptyState>
+      ) : (
+        <>
+          <p class="mb-4 text-sm text-ink-muted">
+            {result.total} invoice{result.total === 1 ? '' : 's'}
+          </p>
+          <InvoiceList items={result.items} />
+          {result.pageCount > 1 && (
+            <nav class="mt-6 flex flex-wrap items-center gap-3" aria-label="Invoice pagination">
+              {result.page > 1 && (
+                <a class="studio-action" href={pageHref(result.page - 1)}>
+                  Previous
+                </a>
+              )}
+              <span class="text-sm text-ink-muted">
+                Page {result.page} of {result.pageCount}
+              </span>
+              {result.page < result.pageCount && (
+                <a class="studio-action" href={pageHref(result.page + 1)}>
+                  Next
+                </a>
+              )}
+            </nav>
+          )}
+        </>
+      )
+    }
   </StudioPanel>
 </StudioLayout>

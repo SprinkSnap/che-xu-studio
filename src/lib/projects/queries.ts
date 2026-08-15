@@ -214,7 +214,9 @@ export async function getProjectDetail(
       .limit(10),
     supabase
       .from('invoices')
-      .select('id, invoice_number, status, total_minor, currency, updated_at')
+      .select(
+        'id, invoice_number, invoice_type, status, total_minor, balance_due_minor, due_date, currency, updated_at',
+      )
       .eq('project_id', projectId)
       .order('updated_at', { ascending: false })
       .limit(10),

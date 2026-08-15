@@ -1,25 +1,305 @@
 ---
 import ClientDocumentLayout from '../../layouts/ClientDocumentLayout.astro';
+import ProposalDocument from '../../components/studio/proposals/ProposalDocument.astro';
+import { getPublicCapabilityServiceClient } from '../../lib/public-links/service';
+import {
+  resolveProposalPublicLink,
+  canAcceptResolvedProposal,
+  canRequestChangesResolvedProposal,
+  isProposalCommerciallyExpired,
+} from '../../lib/public-links/resolve';
+import { ACCEPTANCE_TEXT_VERSION, acceptProposalViaPublicLink, AcceptanceError } from '../../lib/proposals/acceptance';
+import { requestProposalChangesViaPublicLink, ChangeRequestError } from '../../lib/proposals/change-requests';
+import { isSameOriginMutation, requestSiteOrigin } from '../../lib/auth/origin';
+import { formatMoney, formatStudioDateTime } from '../../lib/clients/format';
+import type { CurrencyCode } from '../../lib/supabase/domain';
+import type { ProposalItemRow } from '../../lib/proposals/types';
 
 export const prerender = false;
 
-const { token } = Astro.params;
-const hasToken = Boolean(token && token !== 'undefined');
+const privateHeaders = {
+  'Cache-Control': 'private, no-store',
+  'X-Robots-Tag': 'noindex, nofollow, noarchive',
+  'Referrer-Policy': 'no-referrer',
+};
+
+const rawToken = Astro.params.token ?? '';
+const service = await getPublicCapabilityServiceClient();
+
+let flashError = '';
+let successMode: null | 'accepted' | 'changes' = null;
+let acceptResult: Awaited<ReturnType<typeof acceptProposalViaPublicLink>> | null = null;
+let resolved: Awaited<ReturnType<typeof resolveProposalPublicLink>> = {
+  ok: false,
+  reason: 'unavailable',
+};
+
+if (service) {
+  if (Astro.request.method === 'POST') {
+    const origin = requestSiteOrigin(Astro.request, Astro.url);
+    if (!isSameOriginMutation(Astro.request, origin)) {
+      return new Response('Invalid request origin.', {
+        status: 403,
+        headers: privateHeaders,
+      });
+    }
+
+    const form = await Astro.request.formData();
+    const intent = String(form.get('intent') ?? '');
+
+    try {
+      if (intent === 'accept') {
+        acceptResult = await acceptProposalViaPublicLink(service, {
+          rawToken,
+          acceptedByName: String(form.get('acceptedByName') ?? ''),
+          acceptedByEmail: String(form.get('acceptedByEmail') ?? ''),
+          agreedToTerms: form.get('agreedToTerms') === 'on' || form.get('agreedToTerms') === 'true',
+          userAgent: Astro.request.headers.get('user-agent'),
+        });
+        successMode = 'accepted';
+      } else if (intent === 'request_changes') {
+        await requestProposalChangesViaPublicLink(service, {
+          rawToken,
+          requestedByName: String(form.get('requestedByName') ?? ''),
+          requestedByEmail: String(form.get('requestedByEmail') ?? ''),
+          message: String(form.get('message') ?? ''),
+        });
+        successMode = 'changes';
+      }
+    } catch (error) {
+      if (error instanceof AcceptanceError || error instanceof ChangeRequestError) {
+        if (error.code !== 'unavailable') {
+          flashError = error.message;
+        }
+      } else {
+        flashError = 'Unable to process this request. Please try again.';
+      }
+    }
+  }
+
+  resolved = await resolveProposalPublicLink(service, rawToken);
+}
 ---
 
-<ClientDocumentLayout
-  title="Proposal"
-  description="Private proposal document. Secure token validation arrives in a later phase."
-  documentKind="proposal"
->
-  <h1 class="studio-doc-title">Proposal unavailable</h1>
-  <p class="studio-doc-lede">
-    This secure proposal link is reserved for client review and acceptance. Document content is not
-    loaded in this foundation phase
-    {hasToken ? ' for the provided token' : ''}.
-  </p>
-  <p class="mt-6 text-sm text-ink-muted">
-    If you received this link from Che Xu Studio, please check back later or contact the studio
-    directly. No proposal details are displayed here.
-  </p>
-</ClientDocumentLayout>
+{
+  !resolved.ok && successMode !== 'accepted' && successMode !== 'changes' ? (
+    <ClientDocumentLayout
+      title="Proposal unavailable"
+      description="This proposal link is no longer available."
+      documentKind="proposal"
+    >
+      <div class="py-10 text-center">
+        <h1 class="font-display text-2xl font-semibold text-navy-900">
+          This proposal link is no longer available.
+        </h1>
+        <p class="mt-4 text-sm text-ink-muted">
+          The link may have expired or been revoked. Please contact Che Xu Studio if you need
+          assistance.
+        </p>
+      </div>
+    </ClientDocumentLayout>
+  ) : successMode === 'accepted' && acceptResult ? (
+    <ClientDocumentLayout
+      title="Proposal accepted"
+      description="Your proposal has been accepted."
+      documentKind="proposal"
+    >
+      <div class="py-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand">Accepted</p>
+        <h1 class="mt-3 font-display text-3xl font-semibold text-navy-900">Proposal accepted</h1>
+        <p class="mt-4 text-base text-ink-muted">
+          Thank you. Your proposal has been accepted successfully.
+        </p>
+        <dl class="mt-8 space-y-3 text-sm">
+          <div class="flex justify-between gap-4 border-b border-border py-2">
+            <dt class="text-ink-muted">Deposit invoice</dt>
+            <dd class="font-medium tabular-nums text-navy-900">{acceptResult.invoiceNumber}</dd>
+          </div>
+          <div class="flex justify-between gap-4 border-b border-border py-2">
+            <dt class="text-ink-muted">Amount due</dt>
+            <dd class="font-medium tabular-nums text-navy-900">
+              {formatMoney(acceptResult.invoiceTotalMinor, acceptResult.currency)}
+            </dd>
+          </div>
+        </dl>
+        <p class="mt-8 text-sm text-ink-muted">
+          Payment instructions will follow. Online payment will be enabled after Stripe
+          integration.
+        </p>
+      </div>
+    </ClientDocumentLayout>
+  ) : successMode === 'changes' ? (
+    <ClientDocumentLayout
+      title="Changes requested"
+      description="Your change request was submitted."
+      documentKind="proposal"
+    >
+      <div class="py-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand">Received</p>
+        <h1 class="mt-3 font-display text-3xl font-semibold text-navy-900">
+          Change request submitted
+        </h1>
+        <p class="mt-4 text-base text-ink-muted">
+          Thank you. Che Xu Studio will review your request and follow up with a revised proposal
+          if needed.
+        </p>
+      </div>
+    </ClientDocumentLayout>
+  ) : resolved.ok ? (
+    <ClientDocumentLayout
+      title={resolved.document.proposal.proposal_number}
+      description={`Private proposal ${resolved.document.proposal.proposal_number}.`}
+      documentKind="proposal"
+    >
+      {
+        flashError && (
+          <p class="studio-auth-error mb-6" role="alert">
+            {flashError}
+          </p>
+        )
+      }
+
+      {
+        resolved.document.acceptance || resolved.document.proposal.status === 'accepted' ? (
+          <div class="mb-8 rounded-[var(--radius-md)] border border-border px-4 py-3 text-sm">
+            <p class="font-medium text-navy-900">Accepted</p>
+            <p class="mt-1 text-ink-muted">
+              Accepted
+              {resolved.document.acceptance
+                ? ` by ${resolved.document.acceptance.accepted_by_name} on ${formatStudioDateTime(resolved.document.acceptance.accepted_at)}`
+                : ''}
+              . Payment instructions will follow.
+            </p>
+          </div>
+        ) : isProposalCommerciallyExpired(resolved.document.proposal.expires_at) ? (
+          <div class="mb-8 rounded-[var(--radius-md)] border border-border px-4 py-3 text-sm">
+            <p class="font-medium text-navy-900">This proposal has expired.</p>
+            <p class="mt-1 text-ink-muted">
+              Please contact Che Xu Studio for an updated proposal.
+            </p>
+          </div>
+        ) : resolved.document.proposal.status === 'changes_requested' ? (
+          <div class="mb-8 rounded-[var(--radius-md)] border border-border px-4 py-3 text-sm">
+            <p class="font-medium text-navy-900">Changes requested</p>
+            <p class="mt-1 text-ink-muted">
+              A change request is pending for this version. Acceptance is paused until Che Xu Studio
+              issues a revision.
+            </p>
+          </div>
+        ) : null
+      }
+
+      <ProposalDocument
+        proposalNumber={resolved.document.proposal.proposal_number}
+        versionNumber={resolved.document.version.version_number}
+        title={resolved.document.version.title || resolved.document.proposal.title}
+        clientDisplayName={
+          resolved.document.version.client_display_name || 'Client'
+        }
+        projectName={resolved.document.version.project_name || 'Project'}
+        introduction={resolved.document.version.introduction}
+        projectOverview={resolved.document.version.project_overview}
+        objectives={resolved.document.version.objectives}
+        scope={resolved.document.version.scope}
+        deliverables={resolved.document.version.deliverables}
+        timeline={resolved.document.version.timeline}
+        paymentSchedule={resolved.document.version.payment_schedule}
+        termsAndConditions={resolved.document.version.terms_and_conditions}
+        notes={resolved.document.version.notes}
+        items={resolved.document.items as ProposalItemRow[]}
+        subtotalMinor={resolved.document.version.subtotal_minor}
+        discountMinor={resolved.document.version.discount_minor}
+        taxMinor={resolved.document.version.tax_minor}
+        totalMinor={resolved.document.version.total_minor}
+        taxBps={resolved.document.version.tax_bps}
+        currency={resolved.document.version.currency as CurrencyCode}
+        expiresAt={resolved.document.proposal.expires_at}
+        isImmutable={resolved.document.version.is_immutable}
+        finalizedAt={resolved.document.version.finalized_at}
+      />
+
+      {
+        canAcceptResolvedProposal(resolved.document) && (
+          <section class="studio-doc-no-print mt-12 border-t border-border pt-8" aria-labelledby="accept-heading">
+            <h2 id="accept-heading" class="font-display text-xl font-semibold text-navy-900">
+              Accept proposal
+            </h2>
+            <p class="mt-2 text-sm text-ink-muted">
+              Total {formatMoney(resolved.document.version.total_minor, resolved.document.version.currency as CurrencyCode)}.
+              Accepting confirms the scope, pricing, payment schedule, and terms shown above.
+            </p>
+            <form method="post" class="mt-6 space-y-4" data-accept-form>
+              <input type="hidden" name="intent" value="accept" />
+              <div class="studio-auth-field">
+                <label for="acceptedByName">Name</label>
+                <input id="acceptedByName" name="acceptedByName" type="text" required maxlength="200" autocomplete="name" />
+              </div>
+              <div class="studio-auth-field">
+                <label for="acceptedByEmail">Email</label>
+                <input id="acceptedByEmail" name="acceptedByEmail" type="email" required maxlength="320" autocomplete="email" inputmode="email" />
+              </div>
+              <label class="studio-checkbox">
+                <input type="checkbox" name="agreedToTerms" value="true" required />
+                <span>
+                  I confirm that I have reviewed this proposal and agree to the scope, pricing,
+                  payment schedule, and terms shown above. ({ACCEPTANCE_TEXT_VERSION})
+                </span>
+              </label>
+              <button type="submit" class="studio-action studio-action-primary" data-accept-submit>
+                Accept Proposal
+              </button>
+            </form>
+          </section>
+        )
+      }
+
+      {
+        canRequestChangesResolvedProposal(resolved.document) && (
+          <section class="studio-doc-no-print mt-12 border-t border-border pt-8" aria-labelledby="changes-heading">
+            <h2 id="changes-heading" class="font-display text-xl font-semibold text-navy-900">
+              Request changes
+            </h2>
+            <p class="mt-2 text-sm text-ink-muted">
+              Tell us what needs to change. The current proposal version will stay unchanged until
+              Che Xu Studio prepares a revision.
+            </p>
+            <form method="post" class="mt-6 space-y-4" data-changes-form>
+              <input type="hidden" name="intent" value="request_changes" />
+              <div class="studio-auth-field">
+                <label for="requestedByName">Name</label>
+                <input id="requestedByName" name="requestedByName" type="text" required maxlength="200" autocomplete="name" />
+              </div>
+              <div class="studio-auth-field">
+                <label for="requestedByEmail">Email</label>
+                <input id="requestedByEmail" name="requestedByEmail" type="email" required maxlength="320" autocomplete="email" inputmode="email" />
+              </div>
+              <div class="studio-auth-field">
+                <label for="message">Requested changes</label>
+                <textarea id="message" name="message" class="studio-textarea" rows="5" required minlength="10" maxlength="5000"></textarea>
+              </div>
+              <button type="submit" class="studio-action" data-changes-submit>
+                Request Changes
+              </button>
+            </form>
+          </section>
+        )
+      }
+    </ClientDocumentLayout>
+  ) : null
+}
+
+<script is:inline>
+  (() => {
+    function bindPending(formSel, btnSel) {
+      const form = document.querySelector(formSel);
+      const btn = document.querySelector(btnSel);
+      if (!(form instanceof HTMLFormElement) || !(btn instanceof HTMLButtonElement)) return;
+      form.addEventListener('submit', () => {
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+      });
+    }
+    bindPending('[data-accept-form]', '[data-accept-submit]');
+    bindPending('[data-changes-form]', '[data-changes-submit]');
+  })();
+</script>

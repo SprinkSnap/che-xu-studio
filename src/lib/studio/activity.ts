@@ -34,7 +34,12 @@ export type StudioActivityAction =
   | 'invoice.issued'
   | 'invoice.voided'
   | 'invoice.deposit_generated'
-  | 'invoice.final_generated';
+  | 'invoice.final_generated'
+  | 'proposal.public_link_created'
+  | 'proposal.public_link_revoked'
+  | 'proposal.viewed'
+  | 'proposal.accepted'
+  | 'proposal.changes_requested';
 
 type ActivityClient = SupabaseClient<Database>;
 
@@ -103,6 +108,11 @@ export function humanizeStudioActivity(action: string): string {
     'invoice.voided': 'Invoice voided',
     'invoice.deposit_generated': 'Deposit invoice generated',
     'invoice.final_generated': 'Final invoice generated',
+    'proposal.public_link_created': 'Client proposal link created',
+    'proposal.public_link_revoked': 'Client proposal link revoked',
+    'proposal.viewed': 'Proposal viewed by client',
+    'proposal.accepted': 'Proposal accepted',
+    'proposal.changes_requested': 'Proposal changes requested',
   };
   return map[action] ?? action.replace(/\./g, ' ');
 }

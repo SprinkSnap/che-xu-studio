@@ -6,7 +6,7 @@ import type { StudioSupabaseServiceClient } from '../supabase/types';
 import { hashPublicToken, PUBLIC_TOKEN_MIN_LENGTH } from './tokens';
 import { touchPublicLinkAccess } from './mutations';
 import { recordStudioActivity } from '../studio/activity';
-import type { ProposalPublicDocument, PublicLinkRow } from './types';
+import type { ProposalPublicDocument, PublicLinkRow, InvoicePublicDocument } from './types';
 
 export type ResolveResult =
   | { ok: true; document: ProposalPublicDocument; isFirstView: boolean }
@@ -180,4 +180,116 @@ export function canRequestChangesResolvedProposal(
   if (document.link.revoked_at) return false;
   if (isProposalCommerciallyExpired(document.proposal.expires_at, now)) return false;
   return document.version.is_immutable;
+}
+
+export type InvoiceResolveResult =
+  | { ok: true; document: InvoicePublicDocument; isFirstView: boolean }
+  | { ok: false; reason: 'unavailable' };
+
+/**
+ * Resolve a raw token to an exact issued Invoice snapshot.
+ * Invalid/revoked/malformed tokens all return the same unavailable result.
+ * Link remains viewable after Paid/Void for receipt/status; payment is gated separately.
+ */
+export async function resolveInvoicePublicLink(
+  service: StudioSupabaseServiceClient,
+  rawToken: string,
+): Promise<InvoiceResolveResult> {
+  const token = (rawToken ?? '').trim();
+  if (token.length < PUBLIC_TOKEN_MIN_LENGTH || !/^[A-Za-z0-9_-]+$/.test(token)) {
+    return { ok: false, reason: 'unavailable' };
+  }
+
+  let tokenHash: string;
+  try {
+    tokenHash = await hashPublicToken(token);
+  } catch {
+    return { ok: false, reason: 'unavailable' };
+  }
+
+  const { data: link, error: linkError } = await service
+    .from('public_links')
+    .select('*')
+    .eq('resource_type', 'invoice')
+    .eq('token_hash', tokenHash)
+    .maybeSingle();
+
+  if (linkError || !link) {
+    return { ok: false, reason: 'unavailable' };
+  }
+
+  const linkRow = link as PublicLinkRow;
+  if (linkRow.revoked_at) {
+    return { ok: false, reason: 'unavailable' };
+  }
+
+  // Optional link expiry (hard deny when set and past)
+  if (linkRow.expires_at) {
+    const expires = new Date(linkRow.expires_at);
+    if (!Number.isNaN(expires.getTime()) && expires.getTime() < Date.now()) {
+      return { ok: false, reason: 'unavailable' };
+    }
+  }
+
+  const { data: invoice, error: invoiceError } = await service
+    .from('invoices')
+    .select(
+      `id, invoice_number, invoice_type, status, currency, issue_date, due_date,
+       subtotal_minor, discount_minor, tax_minor, tax_bps, total_minor,
+       amount_paid_minor, balance_due_minor, payment_instructions,
+       client_id, project_id, client_display_name, client_contact_name,
+       client_contact_email, client_billing_address, project_name,
+       studio_business_name, studio_billing_email, studio_business_address,
+       paid_at, voided_at, updated_at`,
+    )
+    .eq('id', linkRow.resource_id)
+    .maybeSingle();
+
+  if (invoiceError || !invoice || invoice.status === 'draft') {
+    return { ok: false, reason: 'unavailable' };
+  }
+
+  const { data: items, error: itemsError } = await service
+    .from('invoice_items')
+    .select('id, description, quantity, rate_minor, amount_minor, sort_order')
+    .eq('invoice_id', invoice.id)
+    .order('sort_order', { ascending: true });
+  if (itemsError) {
+    return { ok: false, reason: 'unavailable' };
+  }
+
+  const isFirstView = !linkRow.first_viewed_at;
+  await touchPublicLinkAccess(service, linkRow.id, isFirstView);
+
+  if (isFirstView) {
+    await recordStudioActivity(service, {
+      actorProfileId: null,
+      actorType: 'client',
+      action: 'invoice.viewed',
+      clientId: invoice.client_id,
+      projectId: invoice.project_id,
+      subjectType: 'invoice',
+      subjectId: invoice.id,
+      metadata: {
+        public_link_id: linkRow.id,
+      },
+    });
+  }
+
+  return {
+    ok: true,
+    isFirstView,
+    document: {
+      link: {
+        ...linkRow,
+        first_viewed_at: isFirstView ? new Date().toISOString() : linkRow.first_viewed_at,
+        last_accessed_at: new Date().toISOString(),
+      },
+      invoice: {
+        ...invoice,
+        currency: (invoice.currency as 'CAD' | 'USD') || 'CAD',
+      },
+      items: items ?? [],
+    },
+  };
 }

@@ -35,11 +35,22 @@ export type StudioActivityAction =
   | 'invoice.voided'
   | 'invoice.deposit_generated'
   | 'invoice.final_generated'
+  | 'invoice.public_link_created'
+  | 'invoice.public_link_revoked'
+  | 'invoice.viewed'
+  | 'invoice.partially_paid'
+  | 'invoice.paid'
   | 'proposal.public_link_created'
   | 'proposal.public_link_revoked'
   | 'proposal.viewed'
   | 'proposal.accepted'
-  | 'proposal.changes_requested';
+  | 'proposal.changes_requested'
+  | 'payment.checkout_created'
+  | 'payment.succeeded'
+  | 'payment.failed'
+  | 'payment.refunded';
+
+export type StudioActivityActorType = 'user' | 'system' | 'stripe' | 'client';
 
 type ActivityClient = SupabaseClient<Database>;
 
@@ -47,6 +58,7 @@ export async function recordStudioActivity(
   client: ActivityClient,
   input: {
     actorProfileId?: string | null;
+    actorType?: StudioActivityActorType;
     action: StudioActivityAction;
     clientId?: string | null;
     projectId?: string | null;
@@ -63,9 +75,12 @@ export async function recordStudioActivity(
       }
     }
 
+    const actorType: StudioActivityActorType =
+      input.actorType ?? (input.actorProfileId ? 'user' : 'system');
+
     await client.from('activity_logs').insert({
       actor_user_id: input.actorProfileId ?? null,
-      actor_type: input.actorProfileId ? 'user' : 'system',
+      actor_type: actorType,
       client_id: input.clientId ?? null,
       project_id: input.projectId ?? null,
       action: input.action,
@@ -113,6 +128,15 @@ export function humanizeStudioActivity(action: string): string {
     'proposal.viewed': 'Proposal viewed by client',
     'proposal.accepted': 'Proposal accepted',
     'proposal.changes_requested': 'Proposal changes requested',
+    'invoice.public_link_created': 'Client invoice link created',
+    'invoice.public_link_revoked': 'Client invoice link revoked',
+    'invoice.viewed': 'Invoice viewed by client',
+    'invoice.partially_paid': 'Invoice partially paid',
+    'invoice.paid': 'Invoice paid',
+    'payment.checkout_created': 'Checkout session created',
+    'payment.succeeded': 'Payment succeeded',
+    'payment.failed': 'Payment failed',
+    'payment.refunded': 'Payment refunded',
   };
   return map[action] ?? action.replace(/\./g, ' ');
 }

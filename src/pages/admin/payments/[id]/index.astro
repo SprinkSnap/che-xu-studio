@@ -1,0 +1,217 @@
+---
+import StudioLayout from '../../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../../components/studio/StudioPanel.astro';
+import StudioStatusBadge from '../../../../components/studio/StudioStatusBadge.astro';
+import { requireStudioPermission } from '../../../../lib/auth/require';
+import { getPaymentDetail } from '../../../../lib/payments/queries';
+import { PAYMENT_STATUS_LABELS, type PaymentStatus } from '../../../../lib/payments/types';
+import { summarizeRefunds } from '../../../../lib/payments/refunds';
+import { formatMoney, formatStudioDateTime } from '../../../../lib/clients/format';
+import { humanizeStudioActivity } from '../../../../lib/studio/activity';
+import type { CurrencyCode } from '../../../../lib/supabase/domain';
+import type { RefundRow } from '../../../../lib/payments/types';
+
+export const prerender = false;
+
+await requireStudioPermission(Astro, 'studio.payments.read');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const paymentId = Astro.params.id ?? '';
+if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(paymentId)) {
+  return new Response('Not found', { status: 404 });
+}
+
+const detail = await getPaymentDetail(supabase, paymentId);
+if (!detail) {
+  return new Response('Not found', { status: 404 });
+}
+
+const { payment, refunds, invoice, client, project, activity } = detail;
+const currency = payment.currency as CurrencyCode;
+const refundSummary = summarizeRefunds(refunds);
+
+function paymentTone(status: PaymentStatus): 'neutral' | 'info' | 'success' | 'warning' {
+  switch (status) {
+    case 'succeeded':
+      return 'success';
+    case 'partially_refunded':
+    case 'pending':
+      return 'warning';
+    default:
+      return 'neutral';
+  }
+}
+---
+
+<StudioLayout title="Payment detail" description="Verified Stripe payment detail.">
+  <StudioPageHeader
+    slot="header"
+    title={formatMoney(payment.amount_minor, currency)}
+    description={`${PAYMENT_STATUS_LABELS[payment.status as PaymentStatus] ?? payment.status} · ${payment.provider}`}
+  />
+
+  <div slot="actions">
+    <a class="studio-action" href="/admin/payments">All payments</a>
+  </div>
+
+  <div class="mb-6">
+    <StudioStatusBadge
+      label={PAYMENT_STATUS_LABELS[payment.status as PaymentStatus] ?? payment.status}
+      tone={paymentTone(payment.status as PaymentStatus)}
+    />
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <StudioPanel title="Payment">
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Amount</dt>
+          <dd class="tabular-nums font-medium text-navy-900">
+            {formatMoney(payment.amount_minor, currency)} {currency}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Method</dt>
+          <dd>{payment.payment_method || 'Card'}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Paid</dt>
+          <dd>{payment.paid_at ? formatStudioDateTime(payment.paid_at) : '—'}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Refunded</dt>
+          <dd class="tabular-nums">
+            {formatMoney(payment.refunded_minor, currency)}
+            {refundSummary.count > 0 ? ` (${refundSummary.count})` : ''}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-ink-muted">Provider</dt>
+          <dd class="capitalize">{payment.provider}</dd>
+        </div>
+      </dl>
+    </StudioPanel>
+
+    <StudioPanel title="Related">
+      <dl class="space-y-3 text-sm">
+        {
+          client && (
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-muted">Client</dt>
+              <dd>
+                <a class="text-brand hover:underline" href={`/admin/clients/${client.id}`}>
+                  {client.display_name || client.company_name}
+                </a>
+              </dd>
+            </div>
+          )
+        }
+        {
+          invoice && (
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-muted">Invoice</dt>
+              <dd>
+                <a class="text-brand hover:underline" href={`/admin/invoices/${invoice.id}`}>
+                  {invoice.invoice_number}
+                </a>
+              </dd>
+            </div>
+          )
+        }
+        {
+          project && (
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-muted">Project</dt>
+              <dd>
+                <a class="text-brand hover:underline" href={`/admin/projects/${project.id}`}>
+                  {project.name}
+                </a>
+              </dd>
+            </div>
+          )
+        }
+        {
+          invoice && (
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-muted">Invoice balance</dt>
+              <dd class="tabular-nums">
+                {formatMoney(invoice.balance_due_minor, invoice.currency)}
+              </dd>
+            </div>
+          )
+        }
+      </dl>
+    </StudioPanel>
+  </div>
+
+  <div class="mt-6">
+    <StudioPanel title="Refunds">
+      {
+        refunds.length === 0 ? (
+          <p class="text-sm text-ink-muted">No refunds recorded.</p>
+        ) : (
+          <ul class="space-y-3" role="list">
+            {refunds.map((refund: RefundRow) => (
+              <li class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span class="tabular-nums text-navy-900">
+                  {formatMoney(refund.amount_minor, refund.currency as CurrencyCode)}
+                </span>
+                <span class="text-ink-muted">
+                  {refund.status}
+                  {refund.refunded_at ? ` · ${formatStudioDateTime(refund.refunded_at)}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="mt-6">
+    <StudioPanel title="Provider references">
+      <dl class="space-y-2 text-sm">
+        <div class="flex flex-col gap-1 sm:flex-row sm:justify-between">
+          <dt class="text-ink-muted">Payment ID</dt>
+          <dd class="break-all font-mono text-xs text-navy-900">
+            {payment.provider_payment_id || '—'}
+          </dd>
+        </div>
+        <div class="flex flex-col gap-1 sm:flex-row sm:justify-between">
+          <dt class="text-ink-muted">Checkout Session</dt>
+          <dd class="break-all font-mono text-xs text-navy-900">
+            {payment.provider_checkout_session_id || '—'}
+          </dd>
+        </div>
+      </dl>
+      <p class="mt-3 text-xs text-ink-muted">
+        Provider identifiers are for Studio troubleshooting only and are not secret credentials.
+      </p>
+    </StudioPanel>
+  </div>
+
+  <div class="mt-6">
+    <StudioPanel title="Activity">
+      {
+        activity.length === 0 ? (
+          <p class="text-sm text-ink-muted">No related activity.</p>
+        ) : (
+          <ul class="space-y-3" role="list">
+            {activity.map((row: { id: string; action: string; created_at: string }) => (
+              <li class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                <span class="text-navy-900">{humanizeStudioActivity(row.action)}</span>
+                <time class="text-ink-muted" datetime={row.created_at}>
+                  {formatStudioDateTime(row.created_at)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
+</StudioLayout>

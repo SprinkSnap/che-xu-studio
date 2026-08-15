@@ -1,11 +1,16 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+/**
+ * Legacy marketing checkout cancelled route.
+ * Invoice cancel UX returns to /invoice/[token]?payment=cancelled.
+ */
 ---
 
 <BaseLayout
   title="Checkout cancelled"
-  description="Online card checkout is not enabled yet. Continue with a quote request through Che Xu Studio."
+  description="No payment was completed. Return to your invoice link or contact Che Xu Studio."
   path="/checkout/cancelled"
   noindex={true}
   showMobileCta={false}
@@ -21,12 +26,12 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
       />
       <h1 class="font-display text-4xl font-bold text-navy-900">No checkout was completed</h1>
       <p class="lead mt-4">
-        Online card payments are not enabled on this website yet. Use the contact form to request a
-        package quote or monthly plan.
+        If you started paying a Studio invoice, return to your secure invoice link to try again.
+        Cancelling checkout does not change invoice payment status.
       </p>
       <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <a href="/contact?intent=quote" class="btn-primary">Get a Project Quote</a>
-        <a href="/#package-finder" class="btn-secondary">Find My Best Package</a>
+        <a href="/contact" class="btn-primary">Contact the studio</a>
+        <a href="/" class="btn-secondary">Back to home</a>
       </div>
     </div>
   </section>

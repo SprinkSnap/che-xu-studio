@@ -1,25 +1,236 @@
 ---
 import ClientDocumentLayout from '../../layouts/ClientDocumentLayout.astro';
+import InvoiceDocument from '../../components/studio/invoices/InvoiceDocument.astro';
+import { getPublicCapabilityServiceClient } from '../../lib/public-links/service';
+import { resolveInvoicePublicLink } from '../../lib/public-links/resolve';
+import { isInvoicePayableRelaxed } from '../../lib/payments/eligibility';
+import {
+  displayInvoiceStatus,
+  INVOICE_TYPE_LABELS,
+  type InvoiceType,
+} from '../../lib/invoices/workflow';
+import { formatMoney } from '../../lib/clients/format';
+import type { CurrencyCode } from '../../lib/supabase/domain';
+import type { InvoiceItemRow } from '../../lib/invoices/types';
 
 export const prerender = false;
 
-const { token } = Astro.params;
-const hasToken = Boolean(token && token !== 'undefined');
+const privateHeaders = {
+  'Cache-Control': 'private, no-store',
+  'X-Robots-Tag': 'noindex, nofollow, noarchive',
+  'Referrer-Policy': 'no-referrer',
+};
+
+const rawToken = Astro.params.token ?? '';
+const paymentParam = Astro.url.searchParams.get('payment');
+const service = await getPublicCapabilityServiceClient();
+
+let resolved: Awaited<ReturnType<typeof resolveInvoicePublicLink>> = {
+  ok: false,
+  reason: 'unavailable',
+};
+
+if (service) {
+  resolved = await resolveInvoicePublicLink(service, rawToken);
+}
+
+// Reinforce private headers on the response
+Astro.response.headers.set('Cache-Control', privateHeaders['Cache-Control']);
+Astro.response.headers.set('X-Robots-Tag', privateHeaders['X-Robots-Tag']);
+Astro.response.headers.set('Referrer-Policy', privateHeaders['Referrer-Policy']);
 ---
 
-<ClientDocumentLayout
-  title="Invoice"
-  description="Private invoice document. Secure token validation and payment arrive in later phases."
-  documentKind="invoice"
->
-  <h1 class="studio-doc-title">Invoice unavailable</h1>
-  <p class="studio-doc-lede">
-    This secure invoice link is reserved for client payment. Invoice totals and line items are not
-    loaded in this foundation phase
-    {hasToken ? ' for the provided token' : ''}.
-  </p>
-  <p class="mt-6 text-sm text-ink-muted">
-    If you received this link from Che Xu Studio, please check back later or contact the studio
-    directly. No invoice or payment details are displayed here.
-  </p>
-</ClientDocumentLayout>
+{
+  !resolved.ok ? (
+    <ClientDocumentLayout
+      title="Invoice unavailable"
+      description="This invoice link is no longer available."
+      documentKind="invoice"
+    >
+      <div class="py-10 text-center">
+        <h1 class="font-display text-2xl font-semibold text-navy-900">
+          This invoice link is no longer available.
+        </h1>
+        <p class="mt-4 text-sm text-ink-muted">
+          The link may have expired or been revoked. Please contact Che Xu Studio if you need
+          assistance.
+        </p>
+      </div>
+    </ClientDocumentLayout>
+  ) : (
+    (() => {
+      const { invoice, items } = resolved.document;
+      const currency = invoice.currency as CurrencyCode;
+      const { label: statusLabel } = displayInvoiceStatus(invoice, new Date().toISOString().slice(0, 10));
+      const payable = isInvoicePayableRelaxed({
+        id: invoice.id,
+        client_id: invoice.client_id,
+        project_id: invoice.project_id,
+        invoice_number: invoice.invoice_number,
+        invoice_type: invoice.invoice_type,
+        status: invoice.status,
+        currency,
+        total_minor: invoice.total_minor,
+        amount_paid_minor: invoice.amount_paid_minor,
+        balance_due_minor: invoice.balance_due_minor,
+        updated_at: invoice.updated_at,
+        voided_at: invoice.voided_at,
+      });
+      const paid = invoice.status === 'paid' && invoice.balance_due_minor === 0;
+      const processing = paymentParam === 'processing' && !paid;
+      const cancelled = paymentParam === 'cancelled';
+
+      return (
+        <ClientDocumentLayout
+          title={`Invoice ${invoice.invoice_number}`}
+          description="Private invoice document."
+          documentKind="invoice"
+        >
+          {
+            processing && (
+              <div
+                class="mb-6 rounded-[var(--radius-md)] border border-border bg-white px-4 py-3 text-sm text-navy-900"
+                role="status"
+                aria-live="polite"
+                data-payment-processing
+                data-status-url={`/api/invoices/public/${encodeURIComponent(rawToken)}/status`}
+              >
+                <p class="font-medium">Payment processing</p>
+                <p class="mt-1 text-ink-muted">
+                  We are confirming your payment with our processor. This page will update when
+                  payment is verified. Do not close this tab yet.
+                </p>
+              </div>
+            )
+          }
+          {
+            cancelled && !paid && (
+              <div
+                class="mb-6 rounded-[var(--radius-md)] border border-border bg-white px-4 py-3 text-sm text-navy-900"
+                role="status"
+              >
+                <p class="font-medium">Checkout cancelled</p>
+                <p class="mt-1 text-ink-muted">
+                  No payment was collected. You can pay this invoice when you are ready.
+                </p>
+              </div>
+            )
+          }
+          {
+            paid && (
+              <div
+                class="mb-6 rounded-[var(--radius-md)] border border-border bg-white px-4 py-3 text-sm text-navy-900"
+                role="status"
+                aria-live="polite"
+              >
+                <p class="font-medium">Payment received</p>
+                <p class="mt-1 text-ink-muted">
+                  This invoice is paid. Balance due is {formatMoney(0, currency)}.
+                </p>
+              </div>
+            )
+          }
+
+          <InvoiceDocument
+            invoiceNumber={invoice.invoice_number}
+            invoiceTypeLabel={INVOICE_TYPE_LABELS[invoice.invoice_type as InvoiceType] ?? invoice.invoice_type}
+            statusLabel={statusLabel}
+            clientDisplayName={invoice.client_display_name || 'Client'}
+            clientContactName={invoice.client_contact_name}
+            clientContactEmail={invoice.client_contact_email}
+            clientBillingAddress={invoice.client_billing_address}
+            projectName={invoice.project_name}
+            studioBusinessName={invoice.studio_business_name || 'Che Xu Studio'}
+            studioBillingEmail={invoice.studio_billing_email}
+            studioBusinessAddress={invoice.studio_business_address}
+            issueDate={invoice.issue_date}
+            dueDate={invoice.due_date}
+            items={items as InvoiceItemRow[]}
+            subtotalMinor={invoice.subtotal_minor}
+            discountMinor={invoice.discount_minor}
+            taxMinor={invoice.tax_minor}
+            taxBps={invoice.tax_bps}
+            totalMinor={invoice.total_minor}
+            amountPaidMinor={invoice.amount_paid_minor}
+            balanceDueMinor={invoice.balance_due_minor}
+            currency={currency}
+            paymentInstructions={invoice.payment_instructions}
+            showPaymentPlaceholder={false}
+          />
+
+          {
+            payable && (
+              <form
+                method="post"
+                action={`/api/invoices/public/${encodeURIComponent(rawToken)}/checkout`}
+                class="studio-doc-no-print mt-8"
+              >
+                <button type="submit" class="btn-primary min-h-11 w-full sm:w-auto">
+                  Pay Invoice — {formatMoney(invoice.balance_due_minor, currency)}
+                </button>
+                <p class="mt-3 text-sm text-ink-muted">
+                  You will continue to a secure Stripe Checkout page. Card payments may offer Apple
+                  Pay or Google Pay when supported by your device and browser.
+                </p>
+              </form>
+            )
+          }
+          {
+            !payable && !paid && invoice.status === 'void' && (
+              <p class="mt-8 text-sm text-ink-muted">This invoice is void and cannot be paid.</p>
+            )
+          }
+        </ClientDocumentLayout>
+      );
+    })()
+  )
+}
+
+{
+  resolved.ok && Astro.url.searchParams.get('payment') === 'processing' && (
+    <script is:inline>
+      (() => {
+        const el = document.querySelector('[data-payment-processing]');
+        if (!(el instanceof HTMLElement)) return;
+        const url = el.getAttribute('data-status-url');
+        if (!url) return;
+        let attempts = 0;
+        const maxAttempts = 20;
+        const tick = async () => {
+          attempts += 1;
+          try {
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.paid === true) {
+                const next = new URL(window.location.href);
+                next.searchParams.delete('payment');
+                next.searchParams.delete('session_id');
+                window.location.replace(next.toString());
+                return;
+              }
+            }
+          } catch {
+            /* retry */
+          }
+          if (attempts < maxAttempts) {
+            window.setTimeout(tick, Math.min(1500 + attempts * 250, 4000));
+          } else {
+            el.querySelector('p.font-medium')?.replaceWith(
+              Object.assign(document.createElement('p'), {
+                className: 'font-medium',
+                textContent: 'Still confirming payment',
+              }),
+            );
+            const muted = el.querySelector('p.text-ink-muted');
+            if (muted) {
+              muted.textContent =
+                'Refresh this page in a moment. Payment is only confirmed after secure verification — not by this redirect alone.';
+            }
+          }
+        };
+        window.setTimeout(tick, 1200);
+      })();
+    </script>
+  )
+}

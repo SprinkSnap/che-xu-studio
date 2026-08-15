@@ -21,6 +21,8 @@ interface CloudflareEnv {
   CONTACT_RATE_LIMITER?: RateLimitBinding;
   /** Studio auth login / recovery rate limiter. */
   AUTH_RATE_LIMITER?: RateLimitBinding;
+  /** Public Invoice Checkout Session creation rate limiter. */
+  CHECKOUT_RATE_LIMITER?: RateLimitBinding;
 
   TURNSTILE_SECRET_KEY?: string;
 
@@ -54,6 +56,18 @@ interface CloudflareEnv {
    * Never prefix with PUBLIC_. Never expose to browser bundles.
    */
   SUPABASE_SECRET_KEY?: string;
+
+  /** Stripe publishable key (browser-safe if needed). */
+  PUBLIC_STRIPE_PUBLISHABLE_KEY?: string;
+  /**
+   * Stripe secret key (server-only). Never prefix with PUBLIC_.
+   * Never log or return from APIs.
+   */
+  STRIPE_SECRET_KEY?: string;
+  /**
+   * Stripe webhook signing secret (server-only). Never prefix with PUBLIC_.
+   */
+  STRIPE_WEBHOOK_SECRET?: string;
 }
 
 interface ImportMetaEnv {
@@ -67,6 +81,11 @@ interface ImportMetaEnv {
   readonly PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
   /** Server-only when provided via Vite/process env for local tooling — never PUBLIC_. */
   readonly SUPABASE_SECRET_KEY?: string;
+  readonly PUBLIC_STRIPE_PUBLISHABLE_KEY?: string;
+  /** Server-only — never PUBLIC_. */
+  readonly STRIPE_SECRET_KEY?: string;
+  /** Server-only — never PUBLIC_. */
+  readonly STRIPE_WEBHOOK_SECRET?: string;
 }
 
 interface ImportMeta {

@@ -14,6 +14,12 @@ import {
   InvoiceMutationError,
 } from '../../../../lib/invoices/mutations';
 import {
+  createInvoicePublicLink,
+  revokeInvoicePublicLink,
+  listInvoicePublicLinks,
+  PublicLinkError,
+} from '../../../../lib/public-links/mutations';
+import {
   formDataToObject,
   GENERIC_ISSUE_ERROR,
   GENERIC_VOID_ERROR,
@@ -57,6 +63,7 @@ const invoiceId = idParsed.data;
 
 let flashError = '';
 let flashSuccess = '';
+let createdClientLinkUrl = '';
 
 if (Astro.request.method === 'POST') {
   if (!canWrite) {
@@ -98,9 +105,25 @@ if (Astro.request.method === 'POST') {
           );
           return Astro.redirect(`/admin/invoices/${invoiceId}?notice=voided`, 303);
         }
+      } else if (intent === 'create_payment_link') {
+        const created = await createInvoicePublicLink(supabase, {
+          invoiceId,
+          actorProfileId: auth.profile.id,
+          siteOrigin: origin,
+        });
+        createdClientLinkUrl = created.rawUrl;
+        flashSuccess = 'Client payment link created. Copy it now — the raw token is not stored.';
+      } else if (intent === 'revoke_payment_link') {
+        const linkId = String(form.get('linkId') ?? '');
+        await revokeInvoicePublicLink(supabase, {
+          invoiceId,
+          linkId,
+          actorProfileId: auth.profile.id,
+        });
+        return Astro.redirect(`/admin/invoices/${invoiceId}?notice=link_revoked`, 303);
       }
     } catch (error) {
-      if (error instanceof InvoiceMutationError) {
+      if (error instanceof InvoiceMutationError || error instanceof PublicLinkError) {
         flashError = error.message;
       } else {
         flashError = intent === 'void' ? GENERIC_VOID_ERROR : GENERIC_ISSUE_ERROR;
@@ -115,6 +138,7 @@ if (notice === 'voided') flashSuccess = 'Invoice voided. The invoice number is p
 if (notice === 'saved') flashSuccess = 'Draft saved.';
 if (notice === 'generated') flashSuccess = 'Invoice generated from proposal snapshot.';
 if (notice === 'existing') flashSuccess = 'Existing invoice returned (idempotent generation).';
+if (notice === 'link_revoked') flashSuccess = 'Client payment link revoked.';
 
 const detail = await getInvoiceDetail(supabase, invoiceId);
 if (!detail) {
@@ -127,6 +151,21 @@ const currency = invoice.currency as CurrencyCode;
 const isDraft = canEditInvoiceFinancials(invoice.status);
 const showIssue = canWrite && canIssueInvoice(invoice.status);
 const showVoid = canWrite && canVoidInvoice(invoice);
+const publicLinks = await listInvoicePublicLinks(supabase, invoiceId);
+const hasActivePaymentLink = publicLinks.some((l) => !l.revoked_at);
+const canCreatePaymentLink =
+  canWrite &&
+  invoice.status !== 'draft' &&
+  invoice.status !== 'void' &&
+  !invoice.voided_at &&
+  invoice.balance_due_minor > 0;
+
+const paymentLinkUnavailableReason =
+  invoice.status === 'draft'
+    ? 'Issue the invoice before creating a client payment link.'
+    : invoice.balance_due_minor <= 0
+      ? 'No payment link needed while balance due is zero. Existing links remain viewable for status/receipt until revoked.'
+      : 'Payment links are unavailable for this invoice state.';
 
 function qtyLabel(quantity: number): string {
   return formatScaledQuantity(Math.round(Number(quantity) * 10_000));
@@ -173,6 +212,29 @@ function qtyLabel(quantity: number): string {
       <p class="mb-6 text-sm text-navy-900" role="status">
         {flashSuccess}
       </p>
+    )
+  }
+
+  {
+    createdClientLinkUrl && (
+      <div class="mb-6 rounded-[var(--radius-md)] border border-border bg-white p-4" role="status">
+        <p class="text-sm font-medium text-navy-900">Copy payment link (shown once)</p>
+        <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            id="created-client-link"
+            class="w-full min-h-11 rounded-[var(--radius-md)] border border-border px-3 text-sm"
+            type="text"
+            readonly
+            value={createdClientLinkUrl}
+          />
+          <button type="button" class="studio-action studio-action-primary" data-copy-client-link>
+            Copy Payment Link
+          </button>
+        </div>
+        <p class="mt-2 text-xs text-ink-muted">
+          Raw tokens are not stored. If lost, revoke and create a replacement link.
+        </p>
+      </div>
     )
   }
 
@@ -349,9 +411,9 @@ function qtyLabel(quantity: number): string {
           <ul class="space-y-3" role="list">
             {payments.map((payment) => (
               <li class="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span class="tabular-nums text-navy-900">
+                <a class="tabular-nums text-brand hover:underline" href={`/admin/payments/${payment.id}`}>
                   {formatMoney(payment.amount_minor, payment.currency as CurrencyCode)}
-                </span>
+                </a>
                 <span class="text-ink-muted">
                   {payment.status}
                   {payment.paid_at ? ` · ${formatStudioDateTime(payment.paid_at)}` : ''}
@@ -364,6 +426,55 @@ function qtyLabel(quantity: number): string {
       </div>
     )
   }
+
+  <div class="mt-6">
+    <StudioPanel title="Client payment link">
+      {
+        canCreatePaymentLink ? (
+          <form method="post" class="mb-4">
+            <input type="hidden" name="intent" value="create_payment_link" />
+            <button type="submit" class="studio-action studio-action-primary">
+              {hasActivePaymentLink ? 'Replace Payment Link' : 'Create Payment Link'}
+            </button>
+          </form>
+        ) : (
+          <p class="mb-4 text-sm text-ink-muted">{paymentLinkUnavailableReason}</p>
+        )
+      }
+      {
+        publicLinks.length === 0 ? (
+          <p class="text-sm text-ink-muted">No client payment links yet.</p>
+        ) : (
+          <ul class="space-y-3" role="list">
+            {publicLinks.map((link) => (
+              <li class="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <div>
+                  <p class="text-navy-900">
+                    {link.revoked_at ? 'Revoked' : 'Active'} · created{' '}
+                    {formatStudioDateTime(link.created_at)}
+                  </p>
+                  <p class="text-ink-muted">
+                    {link.first_viewed_at
+                      ? `First viewed ${formatStudioDateTime(link.first_viewed_at)}`
+                      : 'Not viewed yet'}
+                  </p>
+                </div>
+                {!link.revoked_at && canWrite && (
+                  <form method="post">
+                    <input type="hidden" name="intent" value="revoke_payment_link" />
+                    <input type="hidden" name="linkId" value={link.id} />
+                    <button type="submit" class="studio-action">
+                      Revoke
+                    </button>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </StudioPanel>
+  </div>
 
   {
     (showIssue || showVoid) && (
@@ -440,5 +551,17 @@ function qtyLabel(quantity: number): string {
         }
       });
     });
+    const copyBtn = document.querySelector('[data-copy-client-link]');
+    const input = document.getElementById('created-client-link');
+    if (copyBtn instanceof HTMLButtonElement && input instanceof HTMLInputElement) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(input.value);
+          copyBtn.textContent = 'Copied';
+        } catch {
+          input.select();
+        }
+      });
+    }
   })();
 </script>

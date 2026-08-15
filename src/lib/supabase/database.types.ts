@@ -559,6 +559,42 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_checkout_sessions: {
+        Row: {
+          id: string
+          invoice_id: string
+          provider_session_id: string
+          amount_minor: number
+          currency: 'CAD' | 'USD'
+          status: string
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          invoice_id: string
+          provider_session_id: string
+          amount_minor: number
+          currency: 'CAD' | 'USD'
+          status?: string
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          invoice_id?: string
+          provider_session_id?: string
+          amount_minor?: number
+          currency?: 'CAD' | 'USD'
+          status?: string
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           id: string
@@ -1296,6 +1332,32 @@ export type Database = {
       finalize_proposal_version: {
         Args: { p_proposal_id: string; p_version_id: string }
         Returns: Database['public']['Tables']['proposal_versions']['Row']
+      }
+      apply_succeeded_stripe_payment: {
+        Args: {
+          p_invoice_id: string
+          p_client_id: string
+          p_amount_minor: number
+          p_currency: Database['public']['Enums']['currency_code']
+          p_provider_payment_id: string
+          p_provider_checkout_session_id?: string | null
+          p_payment_method?: string | null
+          p_paid_at?: string | null
+          p_metadata?: Json
+        }
+        Returns: Json
+      }
+      apply_succeeded_stripe_refund: {
+        Args: {
+          p_provider_refund_id: string
+          p_provider_payment_id: string
+          p_amount_minor: number
+          p_currency: Database['public']['Enums']['currency_code']
+          p_refunded_at?: string | null
+          p_reason?: string | null
+          p_metadata?: Json
+        }
+        Returns: Json
       }
     }
     Enums: {

@@ -61,7 +61,10 @@ export function injectPublicWorkerVars(config, env = process.env, { log = true }
         '  STUDIO_OS_ENABLED=true',
         '  STUDIO_BASE_URL=https://chexustudio.com',
         '  PUBLIC_STRIPE_PUBLISHABLE_KEY',
-        'And Encrypt secrets: TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CRON_SECRET.',
+        'And Encrypt secrets (never plain Worker vars):',
+        '  TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY,',
+        '  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CRON_SECRET',
+        'If any of those appear as plain text bindings, move to encrypted secrets and rotate.',
       ].join('\n'),
     );
   }

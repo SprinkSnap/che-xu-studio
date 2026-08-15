@@ -1,75 +1,47 @@
-# Launch gate — Phase 15
+# Launch gate — production
 
-**Status: READY FOR PHASE 16**
+**Status: PRODUCTION ROLLOUT BLOCKED**
 
-Code and automated verification for release hardening are complete. **Production go-live remains blocked on external configuration** listed below — that work is Phase 16, not a Phase 15 code defect.
-
-Do not treat this document as “live traffic approved.” It means: no known P0/P1 code blockers remain; proceed to controlled production rollout.
+Phase 15 code gate remains **READY FOR PHASE 16**.  
+Phase 16 production cutover is **not** complete. Do not treat Studio OS as production-verified.
 
 ---
 
-## Category results
+## Category results (post–Phase 16 evaluation)
 
 | Category | Result | Evidence |
 |----------|--------|----------|
-| Security | **Pass** | Invite-only config; privilege guards; private `/api/studio`; timing-safe cron; capability rate limit; open-redirect tests; secret leak check |
-| Data Integrity | **Pass** | Immutability triggers; numbering auth; payment-field service-only; allocation fail-closed; DB tests |
-| Payments | **Pass** | Signature verification; webhook idempotency; no synthetic refund double-count; Stripe mode mismatch guard |
-| Email | **Pass** | Outbox independent of provider; reminder paid-race covered in Phase 12 suite; Cron auth hardened |
-| Documents | **Pass** | Private bucket policies in migrations; capability PDF no-store; renderer content-only (no arbitrary URL) |
-| Accessibility | **Conditional** | Prior axe coverage on key flows; no new critical a11y regressions introduced in hardening; full manual sweep remains owner QA in Phase 16 |
-| Performance | **Conditional** | Reporting indexes (Phase 14); no new N+1 in this pass; fixture-scale load deferred to post-launch monitoring |
-| Operations | **Pass** | `release-hardening.md`, `production-checklist.md`, `recovery.md`, `check:launch` |
-| External Configuration | **Blocked (expected)** | Supabase prod, PITR, Stripe live webhook, Resend domain, DNS, Cron, BROWSER, Storage — **unverified** |
-| Regression Tests | **Pass** | Unit/security/financial property tests; schema + db adversarial checks (run in CI/agent) |
+| Security | **Blocked** | Production Auth `disable_signup: false`; secrets as plain_text bindings; Studio enabled while incomplete |
+| Data Integrity | **Conditional** | Code/migrations ready; production apply/RLS **unverified** |
+| Payments | **Blocked** | No Stripe bindings on Worker |
+| Email | **Blocked** | Resend key not encrypted; domain auth unverified |
+| Documents | **Blocked** | No `BROWSER` binding on observed production version |
+| Accessibility | **Conditional** | Code suite OK; production browser smoke blocked by CF challenge / incomplete Studio |
+| Performance | **Conditional** | Unverified in production |
+| Operations | **Pass** | Rollout, launch-record, runbook, recovery, checklist present |
+| External Configuration | **Blocked** | See `production-rollout.md` |
+| Regression Tests (repo) | **Pass** | Release commands on `main` commit (see launch-record) |
 
 ---
 
-## Findings summary
+## Required before `PRODUCTION LIVE — VERIFIED`
 
-### P0
-
-None open.
-
-### P1 (fixed)
-
-| Issue | Area | Fix | Regression |
-|-------|------|-----|------------|
-| Open Auth signup in config | Auth | `enable_signup = false`, password length 12 | `release-hardening.test.ts`, launch-check |
-| `/api/studio` missing user Supabase client | Auth/PDF | Private path includes `/api/studio` | `studio-foundation.test.ts` |
-| Member-writable payments ledger | RLS | Drop insert/update policies; payment fields service-only | migration `018`, `studio-db-test.mjs` |
-| Mixed Stripe test/live keys | Stripe | `assertStripeKeyModeConsistency` | `release-hardening.test.ts` |
-| `SUPABASE_SECRET_KEY` identifier in client bundle | Secrets | Split `public-config.ts` from server `config.ts` | `check:supabase-secret-leak` |
-
-### P2 (accepted / mitigated)
-
-| Issue | Mitigation |
-|-------|------------|
-| Rate limiters fail-open if binding missing | Document; production checklist requires bindings |
-| CSP `'unsafe-inline'` | Required for Turnstile/Astro; connect-src still narrow |
-| Project commercial fields editable post-acceptance | App TODO remains; issued invoices immutable; deferred |
-| Health previously leaked secret-configured flag | Removed |
-
-### P3
-
-Cosmetic / DX only — not tracked as launch blockers.
+1. Disable Supabase public signup; re-check Auth settings  
+2. Encrypt + rotate `SUPABASE_SECRET_KEY` and `RESEND_API_KEY`  
+3. PITR/backup verified; migrations through `018` applied; RLS/Storage verified  
+4. Stripe live keys + webhook + signature smoke (no unsafe client charges)  
+5. Resend domain verified; internal transactional smoke  
+6. `BROWSER` + Cron secret + capability rate limit on production Worker  
+7. `studio.chexustudio.com` DNS + `STUDIO_BASE_URL`  
+8. Controlled deploy from `main` SHA; smoke checklist green  
+9. Update this file to **PRODUCTION LIVE — VERIFIED** only with evidence
 
 ---
 
-## External blockers (Phase 16)
+## References
 
-These are **not** marked verified:
-
-1. Supabase production project + migrations + Auth signup OFF + PITR
-2. Stripe live keys + webhook signing secret
-3. Resend verified sender/domain
-4. Cloudflare DNS, Cron, BROWSER, private Storage, encrypted secrets
-5. Legal/billing identity + tax defaults confirmed by owner
-
----
-
-## Next step
-
-**Phase 16 — controlled production rollout:** configure/verify production Supabase, apply migrations, Studio domain routing, Stripe live + webhooks, Resend, Cloudflare Cron/Browser/Storage/secrets/backups, smoke tests, monitoring, rollback readiness.
-
-Do not skip the external checklist in `production-checklist.md`.
+- [production-rollout.md](./production-rollout.md)
+- [launch-record.md](./launch-record.md)
+- [runbook.md](./runbook.md)
+- [recovery.md](./recovery.md)
+- [production-checklist.md](./production-checklist.md)

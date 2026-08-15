@@ -19,6 +19,8 @@ const WORKER_VAR_KEYS = [
   // Studio OS gate + password-reset origin (plain vars; not secrets).
   'STUDIO_OS_ENABLED',
   'STUDIO_BASE_URL',
+  // Stripe publishable key (optional; Checkout redirect does not require it).
+  'PUBLIC_STRIPE_PUBLISHABLE_KEY',
 ];
 
 /**
@@ -54,7 +56,8 @@ export function injectPublicWorkerVars(config, env = process.env, { log = true }
         '  PUBLIC_SUPABASE_PUBLISHABLE_KEY',
         '  STUDIO_OS_ENABLED=true',
         '  STUDIO_BASE_URL=https://chexustudio.com',
-        'And Encrypt secrets: TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY.',
+        '  PUBLIC_STRIPE_PUBLISHABLE_KEY',
+        'And Encrypt secrets: TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET.',
       ].join('\n'),
     );
   }

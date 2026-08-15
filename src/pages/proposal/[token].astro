@@ -219,6 +219,20 @@ if (service) {
       />
 
       {
+        resolved.document.version.is_immutable && (
+          <p class="studio-doc-no-print mt-8">
+            <a
+              class="studio-action"
+              href={`/proposal/${encodeURIComponent(rawToken)}/pdf`}
+              data-download-pdf
+            >
+              Download PDF
+            </a>
+          </p>
+        )
+      }
+
+      {
         canAcceptResolvedProposal(resolved.document) && (
           <section class="studio-doc-no-print mt-12 border-t border-border pt-8" aria-labelledby="accept-heading">
             <h2 id="accept-heading" class="font-display text-xl font-semibold text-navy-900">

@@ -173,6 +173,30 @@ if (Astro.request.method === 'POST') {
           `/admin/proposals/${proposalId}?notice=${result.alreadySent ? 'already_sent' : 'email_sent'}`,
           303,
         );
+      } else if (intent === 'generate_pdf' || intent === 'regenerate_pdf') {
+        const versionParsed = uuidParamSchema.safeParse(versionId);
+        if (!versionParsed.success) {
+          flashError = 'Select a finalized version to generate a PDF.';
+        } else {
+          const { getOrCreateProposalPdf, ProposalPdfError: PdfErr } = await import(
+            '../../../../lib/pdf/proposal'
+          );
+          try {
+            await getOrCreateProposalPdf(supabase, {
+              proposalId,
+              versionId: versionParsed.data,
+              actorProfileId: actorId,
+              forceRegenerate: intent === 'regenerate_pdf',
+            });
+            return Astro.redirect(
+              `/admin/proposals/${proposalId}?notice=${intent === 'regenerate_pdf' ? 'pdf_regen' : 'pdf_ready'}`,
+              303,
+            );
+          } catch (pdfError) {
+            if (pdfError instanceof PdfErr) flashError = pdfError.message;
+            else flashError = 'Unable to generate PDF.';
+          }
+        }
       } else if (isInvoiceGenerate) {
         const versionParsed = uuidParamSchema.safeParse(versionId);
         if (!versionParsed.success) {
@@ -248,6 +272,8 @@ const noticeMap: Record<string, string> = {
   link_revoked: 'Client link revoked.',
   email_sent: 'Proposal email accepted by the provider. Proposal marked Sent.',
   already_sent: 'Proposal delivery was already recorded for this version.',
+  pdf_ready: 'Proposal PDF is ready to download.',
+  pdf_regen: 'Proposal PDF regenerated. Prior generation is preserved in history.',
 };
 if (notice && noticeMap[notice]) flashSuccess = noticeMap[notice];
 
@@ -328,6 +354,16 @@ const defaultRecipient =
     <a class="studio-action" href={`/admin/proposals/${proposal.id}/preview`}>
       Preview
     </a>
+    {
+      version.is_immutable && (
+        <a
+          class="studio-action"
+          href={`/api/studio/proposals/${proposal.id}/pdf?versionId=${version.id}`}
+        >
+          Download PDF
+        </a>
+      )
+    }
     <a class="studio-action" href={`/admin/projects/${project.id}`}>
       View project
     </a>
@@ -584,6 +620,39 @@ const defaultRecipient =
         )
       }
     </StudioPanel>
+
+    {
+      version.is_immutable && canWrite && (
+        <StudioPanel title="PDF document">
+          <div class="flex flex-wrap gap-2">
+            <form method="post">
+              <input type="hidden" name="intent" value="generate_pdf" />
+              <input type="hidden" name="versionId" value={version.id} />
+              <button type="submit" class="studio-action studio-action-primary">
+                Generate PDF
+              </button>
+            </form>
+            <form method="post">
+              <input type="hidden" name="intent" value="regenerate_pdf" />
+              <input type="hidden" name="versionId" value={version.id} />
+              <button type="submit" class="studio-action">
+                Regenerate PDF
+              </button>
+            </form>
+            <a
+              class="studio-action"
+              href={`/api/studio/proposals/${proposal.id}/pdf?versionId=${version.id}`}
+            >
+              Download PDF
+            </a>
+          </div>
+          <p class="mt-3 text-sm text-ink-muted">
+            Canonical PDF is bound to Version {version.version_number}. Regeneration preserves prior
+            files.
+          </p>
+        </StudioPanel>
+      )
+    }
   </div>
 
   <div class="mb-8">

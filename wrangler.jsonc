@@ -45,6 +45,11 @@
     "crons": ["15 * * * *"]
   },
 
+  // Cloudflare Browser Rendering — HTML → PDF for Proposal/Invoice/Receipt documents.
+  "browser": {
+    "binding": "BROWSER"
+  },
+
   // Rate limiting bindings for sensitive API endpoints.
   "ratelimits": [
     {

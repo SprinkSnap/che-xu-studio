@@ -121,7 +121,7 @@ Card: `4242 4242 4242 4242`.
 
 | Phase | Scope |
 | --- | --- |
-| 12 | Resend email / reminders / payment confirmations |
-| 13 | PDF receipts |
+| 12 | Resend email / reminders / payment confirmations ✅ |
+| 13 | PDF receipts — see [documents-pdf.md](./documents-pdf.md) ✅ |
 | 14 | Dashboard reporting |
 | Later | Admin-initiated refund UI, offline Mark Paid, Stripe Customer sync |

@@ -55,7 +55,13 @@ export type StudioActivityAction =
   | 'invoice.sent'
   | 'invoice.email_failed'
   | 'invoice.reminder_sent'
-  | 'invoice.reminder_failed';
+  | 'invoice.reminder_failed'
+  | 'proposal.pdf_generated'
+  | 'proposal.pdf_regenerated'
+  | 'invoice.pdf_generated'
+  | 'invoice.pdf_regenerated'
+  | 'payment.receipt_generated'
+  | 'document.generation_failed';
 
 export type StudioActivityActorType = 'user' | 'system' | 'stripe' | 'client';
 
@@ -151,6 +157,12 @@ export function humanizeStudioActivity(action: string): string {
     'payment.failed': 'Payment failed',
     'payment.refunded': 'Payment refunded',
     'payment.confirmation_sent': 'Payment confirmation email sent',
+    'proposal.pdf_generated': 'Proposal PDF generated',
+    'proposal.pdf_regenerated': 'Proposal PDF regenerated',
+    'invoice.pdf_generated': 'Invoice PDF generated',
+    'invoice.pdf_regenerated': 'Invoice PDF regenerated',
+    'payment.receipt_generated': 'Payment receipt generated',
+    'document.generation_failed': 'Document generation failed',
   };
   return map[action] ?? action.replace(/\./g, ' ');
 }

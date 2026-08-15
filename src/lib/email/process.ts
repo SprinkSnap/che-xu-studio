@@ -205,6 +205,17 @@ async function processOneOutboxRow(
     return;
   }
 
+  let attachments: import('./types').EmailAttachment[] | undefined;
+  if (emailType === 'payment_received' && str(payload, 'audience') !== 'studio' && row.payment_id) {
+    const { maybeReceiptPdfAttachment } = await import('../pdf/attachments');
+    const { receiptPdfFilename } = await import('../pdf/filenames');
+    const receipt = await maybeReceiptPdfAttachment(service, {
+      paymentId: row.payment_id,
+      filename: receiptPdfFilename(str(payload, 'invoice_number') || 'Invoice', str(payload, 'paid_at') || null),
+    });
+    if (receipt) attachments = [receipt];
+  }
+
   const sendResult = await sendViaResend(
     {
       to: row.recipient_email,
@@ -213,6 +224,7 @@ async function processOneOutboxRow(
       text,
       idempotencyKey: row.idempotency_key,
       disableTracking,
+      attachments,
     },
     emailEnv,
   );
@@ -283,8 +295,11 @@ export async function processStudioJobs(
 ): Promise<{
   outbox: { processed: number; sent: number; failed: number };
   reminders: { considered: number; sent: number; skipped: number; failed: number };
+  documents: { processed: number; ready: number; failed: number };
 }> {
   const outbox = await processEmailOutbox(service, emailEnv, 20);
   const reminders = await processDueReminders(service, emailEnv, 50);
-  return { outbox, reminders };
+  const { processDocumentJobs } = await import('../pdf/jobs');
+  const documents = await processDocumentJobs(service, 10);
+  return { outbox, reminders, documents };
 }

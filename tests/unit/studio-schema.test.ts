@@ -28,7 +28,21 @@ describe('studio phase 4 migrations', () => {
       '202608140013_proposal_public_acceptance.sql',
       '202608140014_stripe_payment_helpers.sql',
       '202608140015_email_outbox_reminders.sql',
+      '202608140016_document_generation.sql',
     ]);
+  });
+
+  it('ships document generation status, jobs, and private storage guards', () => {
+    const sql = readFileSync(
+      path.join(migrationsDir, '202608140016_document_generation.sql'),
+      'utf8',
+    );
+    expect(sql).toMatch(/document_jobs/);
+    expect(sql).toMatch(/documents_canonical_unique_idx/);
+    expect(sql).toMatch(/studio-documents/);
+    expect(sql).toMatch(/to_regclass\('storage\.buckets'\)/);
+    expect(sql).toMatch(/is_canonical/);
+    expect(sql).toMatch(/renderer_version/);
   });
 
   it('ships atomic project transition helpers', () => {

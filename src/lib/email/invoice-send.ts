@@ -141,6 +141,13 @@ export async function sendInvoiceEmail(
     .update({ subject: rendered.subject, recipient_email: recipient })
     .eq('id', log.id);
 
+  const { maybeInvoicePdfAttachment } = await import('../pdf/attachments');
+  const { invoicePdfFilename } = await import('../pdf/filenames');
+  const pdfAttachment = await maybeInvoicePdfAttachment(supabase, {
+    invoiceId: invoice.id,
+    filename: invoicePdfFilename(invoice.invoice_number),
+  });
+
   const sendResult = await sendViaResend(
     {
       to: recipient,
@@ -153,6 +160,7 @@ export async function sendInvoiceEmail(
         { name: 'email_type', value: emailType },
         { name: 'invoice_id', value: invoice.id },
       ],
+      attachments: pdfAttachment ? [pdfAttachment] : undefined,
     },
     emailEnv,
   );

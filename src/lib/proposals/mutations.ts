@@ -364,6 +364,21 @@ export async function finalizeProposalVersion(
     subjectId: proposalId,
     metadata: { versionId, versionNumber: row.version_number },
   });
+
+  try {
+    const { enqueueDocumentJob } = await import('../pdf/jobs');
+    await enqueueDocumentJob(supabase, {
+      documentType: 'proposal_pdf',
+      resourceType: 'proposal',
+      resourceId: proposalId,
+      versionId,
+      idempotencyKey: `proposal:${versionId}:pdf:v1`,
+      createdBy: actorProfileId,
+    });
+  } catch {
+    // PDF generation is a side effect — finalization must succeed.
+  }
+
   return row;
 }
 

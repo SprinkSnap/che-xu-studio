@@ -41,6 +41,13 @@ export async function sendViaResend(
   };
   if (replyTo) body.reply_to = replyTo;
   if (input.tags?.length) body.tags = input.tags;
+  if (input.attachments?.length) {
+    body.attachments = input.attachments.map((file) => ({
+      filename: file.filename,
+      content: file.content,
+      content_type: file.contentType || 'application/pdf',
+    }));
+  }
 
   // Privacy: disable click/open tracking for capability-link emails so Resend
   // does not rewrite secure Proposal/Invoice URLs through tracking redirects.

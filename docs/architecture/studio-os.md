@@ -97,10 +97,10 @@ Phase 2 does not implement host-based redirects; path-based routes are the sourc
 | Studio business schema + RLS | Supabase Postgres | Phase 4 |
 | Administrator authentication | Supabase Auth + membership | Phase 5 |
 | Client management | Supabase clients + contacts | Phase 6 |
-| Private PDFs / documents | Supabase Storage (non-enumerable) | Phase 13 |
+| Private PDFs / documents | Supabase Storage (non-enumerable) — see [documents-pdf.md](./documents-pdf.md) | Phase 13 |
 | Payments | Stripe Checkout + webhooks (no card data in our DB) | Phase 11 |
 | Transactional email | Resend + `email_logs` / `email_outbox` — see [email-reminders.md](./email-reminders.md) | Phase 12 |
-| PDF HTML → file | Cloudflare Browser Rendering + shared print CSS | Phase 13 |
+| PDF HTML → file | Cloudflare Browser Rendering + shared print CSS — see [documents-pdf.md](./documents-pdf.md) | Phase 13 |
 
 **Dual-database note:** `/migrations` = Cloudflare D1 leads; `/supabase/migrations` = Studio Postgres. Do not cross tools.
 

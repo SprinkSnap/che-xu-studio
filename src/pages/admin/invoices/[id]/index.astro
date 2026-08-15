@@ -146,6 +146,24 @@ if (Astro.request.method === 'POST') {
           `/admin/invoices/${invoiceId}?notice=${result.alreadySent ? 'already_sent' : 'email_sent'}`,
           303,
         );
+      } else if (intent === 'generate_pdf' || intent === 'regenerate_pdf') {
+        const { getOrCreateInvoicePdf, InvoicePdfError: PdfErr } = await import(
+          '../../../../lib/pdf/invoice'
+        );
+        try {
+          await getOrCreateInvoicePdf(supabase, {
+            invoiceId,
+            actorProfileId: auth.profile.id,
+            forceRegenerate: intent === 'regenerate_pdf',
+          });
+          return Astro.redirect(
+            `/admin/invoices/${invoiceId}?notice=${intent === 'regenerate_pdf' ? 'pdf_regen' : 'pdf_ready'}`,
+            303,
+          );
+        } catch (pdfError) {
+          if (pdfError instanceof PdfErr) flashError = pdfError.message;
+          else flashError = 'Unable to generate PDF.';
+        }
       } else if (intent === 'toggle_reminders') {
         const enabled = String(form.get('paymentRemindersEnabled') ?? '') === 'true';
         const { error } = await supabase
@@ -187,6 +205,8 @@ if (notice === 'email_sent') {
 if (notice === 'already_sent') flashSuccess = 'Invoice delivery was already recorded.';
 if (notice === 'reminders_on') flashSuccess = 'Payment reminders enabled for this invoice.';
 if (notice === 'reminders_off') flashSuccess = 'Payment reminders disabled for this invoice.';
+if (notice === 'pdf_ready') flashSuccess = 'Invoice PDF is ready to download.';
+if (notice === 'pdf_regen') flashSuccess = 'Invoice PDF regenerated. Prior generation preserved.';
 
 const detail = await getInvoiceDetail(supabase, invoiceId);
 if (!detail) {
@@ -243,6 +263,13 @@ function qtyLabel(quantity: number): string {
 
   <div slot="actions" class="flex flex-wrap gap-2">
     <a class="studio-action" href={`/admin/invoices/${invoice.id}/preview`}>Preview</a>
+    {
+      !isDraft && (
+        <a class="studio-action" href={`/api/studio/invoices/${invoice.id}/pdf`}>
+          Download PDF
+        </a>
+      )
+    }
     {
       canWrite && isDraft && (
         <a class="studio-action" href={`/admin/invoices/${invoice.id}/edit`}>
@@ -598,6 +625,42 @@ function qtyLabel(quantity: number): string {
       </div>
     )
   }
+
+  <div class="mt-6">
+    <StudioPanel title="PDF document">
+      {
+        isDraft ? (
+          <p class="text-sm text-ink-muted">Issue the invoice before generating a canonical PDF.</p>
+        ) : (
+          <div class="flex flex-wrap gap-2">
+            {canWrite && (
+              <>
+                <form method="post">
+                  <input type="hidden" name="intent" value="generate_pdf" />
+                  <button type="submit" class="studio-action studio-action-primary">
+                    Generate PDF
+                  </button>
+                </form>
+                <form method="post">
+                  <input type="hidden" name="intent" value="regenerate_pdf" />
+                  <button type="submit" class="studio-action">
+                    Regenerate PDF
+                  </button>
+                </form>
+              </>
+            )}
+            <a class="studio-action" href={`/api/studio/invoices/${invoice.id}/pdf`}>
+              Download PDF
+            </a>
+          </div>
+        )
+      }
+      <p class="mt-3 text-sm text-ink-muted">
+        Issued invoice PDFs are historical documents. Payment state is reflected on Receipts, not by
+        rewriting the issued PDF.
+      </p>
+    </StudioPanel>
+  </div>
 
   <div class="mt-6">
     <StudioPanel title="Email history">

@@ -44,6 +44,18 @@ export type SendEmailInput = {
   /** Disable Resend click/open tracking for capability-link emails. */
   disableTracking?: boolean;
   tags?: Array<{ name: string; value: string }>;
+  /**
+   * Optional PDF attachments fetched at send time.
+   * Never persist attachment bytes in email_outbox / Postgres.
+   */
+  attachments?: EmailAttachment[];
+};
+
+export type EmailAttachment = {
+  filename: string;
+  /** Base64 content for Resend — ephemeral in memory only. */
+  content: string;
+  contentType?: string;
 };
 
 export type SendEmailResult =

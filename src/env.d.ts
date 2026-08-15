@@ -24,6 +24,9 @@ interface CloudflareEnv {
   /** Public Invoice Checkout Session creation rate limiter. */
   CHECKOUT_RATE_LIMITER?: RateLimitBinding;
 
+  /** Cloudflare Browser Rendering binding for PDF generation. */
+  BROWSER?: unknown;
+
   TURNSTILE_SECRET_KEY?: string;
 
   /** Resend API key for contact-form inbox notifications + Studio mail. */

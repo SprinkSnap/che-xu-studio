@@ -33,6 +33,7 @@
     "supabase:db:test": "node scripts/studio-db-test.mjs",
     "check:supabase-secret-leak": "node scripts/check-supabase-secret-leak.mjs",
     "check:launch": "node scripts/launch-check.mjs",
+    "check:production-smoke": "node scripts/production-smoke.mjs",
     "test:security": "vitest run tests/unit/release-hardening.test.ts tests/unit/studio-auth.test.ts tests/unit/security.test.ts tests/unit/runtime-secrets.test.ts",
     "test:release": "npm run check:launch && npm run test:security && vitest run tests/unit/invoices.test.ts tests/unit/payments.test.ts tests/unit/proposal-acceptance.test.ts",
     "deploy": "npm run build && node scripts/cf-deploy.mjs",

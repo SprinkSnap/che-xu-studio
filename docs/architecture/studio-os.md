@@ -179,6 +179,5 @@ Phase 2 adds unit coverage for private-path helpers, sitemap allowlist exclusion
 
 ## Explicitly deferred
 
-Phase 16 production rollout (external vendor configuration, DNS, live Stripe/Resend, backups verification).
-Phase 15 hardening + launch gate: [docs/operations/launch-gate.md](../operations/launch-gate.md).
-See domain docs for completed phases (auth, clients, projects, proposals, invoices, payments, email, PDFs, [reporting](./reporting.md)).
+Phase 16 production cutover remains **PRODUCTION ROLLOUT BLOCKED** until external config is verified — see [docs/operations/launch-gate.md](../operations/launch-gate.md), [production-rollout.md](../operations/production-rollout.md), [runbook.md](../operations/runbook.md).
+See domain docs for completed phases (auth through reporting + Phase 15 hardening).

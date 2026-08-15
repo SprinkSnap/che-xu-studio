@@ -6,7 +6,8 @@ Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Work
 
 > Brand logo: `public/che-xu-studio-web-design-seo-logo.png`. Header/footer use `src/components/Wordmark.astro`.
 
-> Online card checkout is **not** enabled yet (no Stripe account). Package CTAs route to `/contact` for quotes.
+> Online card checkout for **marketing packages** still routes to `/contact` for quotes.
+> Studio OS Invoice Checkout (Stripe) is implemented in code (Phases 11–15); **production live cutover is gated** — see `docs/operations/launch-gate.md`.
 
 ## Architecture overview
 
@@ -307,7 +308,23 @@ npx playwright install chromium
 
 ## Production launch checklist
 
-See [`LAUNCH_CHECKLIST.md`](./LAUNCH_CHECKLIST.md).
+Studio OS operations (Phase 15–16):
+
+- [`docs/operations/launch-gate.md`](./docs/operations/launch-gate.md) — current READY / BLOCKED / LIVE status
+- [`docs/operations/production-checklist.md`](./docs/operations/production-checklist.md)
+- [`docs/operations/production-rollout.md`](./docs/operations/production-rollout.md)
+- [`docs/operations/launch-record.md`](./docs/operations/launch-record.md)
+- [`docs/operations/runbook.md`](./docs/operations/runbook.md)
+- [`docs/operations/recovery.md`](./docs/operations/recovery.md)
+- Architecture: `docs/architecture/*` (auth, payments, email, PDFs, reporting)
+
+Marketing-site checklist: [`LAUNCH_CHECKLIST.md`](./LAUNCH_CHECKLIST.md).
+
+Public smoke (may be inconclusive behind Cloudflare challenges):
+
+```bash
+PRODUCTION_SMOKE_BASE_URL=https://chexustudio.com npm run check:production-smoke
+```
 
 ### DNS / custom domain (do not execute here)
 

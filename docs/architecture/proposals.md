@@ -102,7 +102,7 @@ RLS + request-scoped user client. No public tokens. No service-key CRUD.
 ## Deferred
 
 - Invoice engine — Phase 9 ✅ (see [invoices.md](./invoices.md))  
-- Public `/proposal/[token]` + acceptance — Phase 10  
+- Public `/proposal/[token]` + acceptance — Phase 10 ✅ (see [proposal-acceptance.md](./proposal-acceptance.md))  
 - Stripe — Phase 11  
 - Email send / reminders — Phase 12  
 - PDF — Phase 13  

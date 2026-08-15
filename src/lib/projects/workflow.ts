@@ -40,7 +40,7 @@ export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
  */
 const ALLOWED_TRANSITIONS: Record<ProjectStatus, readonly ProjectStatus[]> = {
   inquiry: ['proposal', 'archived'],
-  proposal: ['awaiting_approval', 'inquiry', 'archived'],
+  proposal: ['awaiting_approval', 'deposit_due', 'inquiry', 'archived'],
   awaiting_approval: ['deposit_due', 'proposal', 'archived'],
   deposit_due: ['active', 'archived'],
   active: ['awaiting_final_payment', 'archived'],

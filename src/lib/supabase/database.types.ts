@@ -963,31 +963,76 @@ export type Database = {
           id: string
           resource_type: 'proposal' | 'invoice' | 'receipt'
           resource_id: string
+          proposal_version_id: string | null
           token_hash: string
           expires_at: string | null
           revoked_at: string | null
           created_at: string
           last_accessed_at: string | null
+          first_viewed_at: string | null
+          created_by: string | null
         }
         Insert: {
           id?: string
           resource_type: 'proposal' | 'invoice' | 'receipt'
           resource_id: string
+          proposal_version_id?: string | null
           token_hash: string
           expires_at?: string | null
           revoked_at?: string | null
           created_at?: string
           last_accessed_at?: string | null
+          first_viewed_at?: string | null
+          created_by?: string | null
         }
         Update: {
           id?: string
           resource_type?: 'proposal' | 'invoice' | 'receipt'
           resource_id?: string
+          proposal_version_id?: string | null
           token_hash?: string
           expires_at?: string | null
           revoked_at?: string | null
           created_at?: string
           last_accessed_at?: string | null
+          first_viewed_at?: string | null
+          created_by?: string | null
+        }
+        Relationships: []
+      }
+      proposal_change_requests: {
+        Row: {
+          id: string
+          proposal_id: string
+          proposal_version_id: string
+          client_id: string
+          requested_by_name: string
+          requested_by_email: string
+          message: string
+          created_at: string
+          resolved_at: string | null
+        }
+        Insert: {
+          id?: string
+          proposal_id: string
+          proposal_version_id: string
+          client_id: string
+          requested_by_name: string
+          requested_by_email: string
+          message: string
+          created_at?: string
+          resolved_at?: string | null
+        }
+        Update: {
+          id?: string
+          proposal_id?: string
+          proposal_version_id?: string
+          client_id?: string
+          requested_by_name?: string
+          requested_by_email?: string
+          message?: string
+          created_at?: string
+          resolved_at?: string | null
         }
         Relationships: []
       }

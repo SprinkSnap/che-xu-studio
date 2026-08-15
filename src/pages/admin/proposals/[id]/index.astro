@@ -36,6 +36,15 @@ import {
 } from '../../../../lib/proposals/validation';
 import { GENERIC_GENERATE_ERROR } from '../../../../lib/invoices/validation';
 import {
+  createProposalPublicLink,
+  revokeProposalPublicLink,
+  listProposalPublicLinks,
+  PublicLinkError,
+} from '../../../../lib/public-links/mutations';
+import { listChangeRequestsForProposal } from '../../../../lib/proposals/change-requests';
+import { isProposalCommerciallyExpired } from '../../../../lib/public-links/resolve';
+import type { PublicLinkRow } from '../../../../lib/public-links/types';
+import {
   canArchiveProposal,
   canCreateProposalRevision,
   canFinalizeProposalVersion,
@@ -72,15 +81,16 @@ const proposalId = idParsed.data;
 
 let flashError = '';
 let flashSuccess = '';
+let createdClientLinkUrl = '';
 
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   const intent = String(form.get('intent') ?? '');
   const isInvoiceGenerate = intent === 'generate_deposit' || intent === 'generate_final';
-  const allowed =
+  const permitted =
     (isInvoiceGenerate && canWriteInvoices) || (!isInvoiceGenerate && canWrite);
 
-  if (!allowed) {
+  if (!permitted) {
     flashError = 'You do not have permission to perform this action.';
   } else {
     const origin = requestSiteOrigin(Astro.request, Astro.url);
@@ -90,6 +100,7 @@ if (Astro.request.method === 'POST') {
 
     const actorId = auth.profile.id;
     const versionId = String(form.get('versionId') ?? '');
+    const linkId = String(form.get('linkId') ?? '');
 
     try {
       if (intent === 'finalize') {
@@ -111,6 +122,33 @@ if (Astro.request.method === 'POST') {
       } else if (intent === 'archive') {
         await archiveProposal(supabase, proposalId, actorId);
         return Astro.redirect(`/admin/proposals/${proposalId}?notice=archived`, 303);
+      } else if (intent === 'create_client_link') {
+        const versionParsed = uuidParamSchema.safeParse(versionId);
+        if (!versionParsed.success) {
+          flashError = 'Select a finalized version to create a client link.';
+        } else {
+          const created = await createProposalPublicLink(supabase, {
+            proposalId,
+            proposalVersionId: versionParsed.data,
+            actorProfileId: actorId,
+            siteOrigin: origin,
+          });
+          createdClientLinkUrl = created.rawUrl;
+          flashSuccess =
+            'Client link created. Copy it now — the raw URL is not stored and cannot be shown again.';
+        }
+      } else if (intent === 'revoke_client_link') {
+        const linkParsed = uuidParamSchema.safeParse(linkId);
+        if (!linkParsed.success) {
+          flashError = 'Unable to revoke client link.';
+        } else {
+          await revokeProposalPublicLink(supabase, {
+            proposalId,
+            linkId: linkParsed.data,
+            actorProfileId: actorId,
+          });
+          return Astro.redirect(`/admin/proposals/${proposalId}?notice=link_revoked`, 303);
+        }
       } else if (isInvoiceGenerate) {
         const versionParsed = uuidParamSchema.safeParse(versionId);
         if (!versionParsed.success) {
@@ -135,7 +173,11 @@ if (Astro.request.method === 'POST') {
         }
       }
     } catch (error) {
-      if (error instanceof ProposalMutationError || error instanceof InvoiceMutationError) {
+      if (
+        error instanceof ProposalMutationError ||
+        error instanceof InvoiceMutationError ||
+        error instanceof PublicLinkError
+      ) {
         flashError = error.message;
       } else if (intent === 'finalize') {
         flashError = GENERIC_FINALIZE_ERROR;
@@ -176,6 +218,7 @@ const noticeMap: Record<string, string> = {
   revision: 'New editable revision created.',
   archived: 'Proposal archived.',
   saved: 'Proposal draft saved.',
+  link_revoked: 'Client link revoked.',
 };
 if (notice && noticeMap[notice]) flashSuccess = noticeMap[notice];
 
@@ -203,6 +246,27 @@ const clientName = clientDisplayName(client);
 const relatedInvoices = await listInvoicesForProposal(supabase, proposal.id);
 const invoiceToday = todayIsoDateUtc();
 const canGenerateInvoices = canWriteInvoices && status !== 'archived';
+const publicLinks = await listProposalPublicLinks(supabase, proposal.id);
+const changeRequests = await listChangeRequestsForProposal(supabase, proposal.id);
+const { data: acceptanceRow } = await supabase
+  .from('proposal_acceptances')
+  .select('id, accepted_by_name, accepted_by_email, accepted_at, proposal_version_id')
+  .eq('proposal_id', proposal.id)
+  .order('accepted_at', { ascending: false })
+  .limit(1)
+  .maybeSingle();
+
+function linkStatusLabel(link: PublicLinkRow): string {
+  if (link.revoked_at) return 'Revoked';
+  if (acceptanceRow && acceptanceRow.proposal_version_id === link.proposal_version_id) {
+    return 'Accepted';
+  }
+  if (isProposalCommerciallyExpired(proposal.expires_at)) return 'Expired';
+  if (link.first_viewed_at) return 'Viewed';
+  return 'Active';
+}
+
+const canCreateClientLink = canWrite && version.is_immutable && status !== 'archived';
 ---
 
 <StudioLayout
@@ -243,6 +307,29 @@ const canGenerateInvoices = canWriteInvoices && status !== 'archived';
       <p class="studio-auth-success mb-6" role="status">
         {flashSuccess}
       </p>
+    )
+  }
+
+  {
+    createdClientLinkUrl && (
+      <div class="mb-6 rounded-[var(--radius-md)] border border-border bg-white p-4" role="status">
+        <p class="text-sm font-medium text-navy-900">Copy client link (shown once)</p>
+        <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            id="created-client-link"
+            class="w-full min-h-11 rounded-[var(--radius-md)] border border-border px-3 text-sm"
+            type="text"
+            readonly
+            value={createdClientLinkUrl}
+          />
+          <button type="button" class="studio-action studio-action-primary" data-copy-client-link>
+            Copy Client Link
+          </button>
+        </div>
+        <p class="mt-2 text-xs text-ink-muted">
+          Raw tokens are not stored. If lost, revoke and create a replacement link.
+        </p>
+      </div>
     )
   }
 
@@ -433,6 +520,102 @@ const canGenerateInvoices = canWriteInvoices && status !== 'archived';
   </div>
 
   <div class="mb-8">
+    <StudioPanel title="Client link & acceptance">
+      <dl class="mb-6 grid gap-3 text-sm sm:grid-cols-2">
+        <div>
+          <dt class="text-ink-muted">Acceptance</dt>
+          <dd class="mt-1 text-navy-900">
+            {
+              acceptanceRow
+                ? `Accepted by ${acceptanceRow.accepted_by_name} (${acceptanceRow.accepted_by_email}) on ${formatStudioDateTime(acceptanceRow.accepted_at)}`
+                : 'Not accepted'
+            }
+          </dd>
+        </div>
+        <div>
+          <dt class="text-ink-muted">Proposal expiration</dt>
+          <dd class="mt-1 text-navy-900">{formatDateOnly(proposal.expires_at)}</dd>
+        </div>
+      </dl>
+
+      {
+        canCreateClientLink && (
+          <form method="post" class="mb-4">
+            <input type="hidden" name="intent" value="create_client_link" />
+            <input type="hidden" name="versionId" value={version.id} />
+            <button type="submit" class="studio-action studio-action-primary">
+              {publicLinks.some((l) => !l.revoked_at && l.proposal_version_id === version.id)
+                ? 'Replace Client Link'
+                : 'Create Client Link'}
+            </button>
+          </form>
+        )
+      }
+
+      {
+        !version.is_immutable && (
+          <p class="mb-4 text-sm text-ink-muted">
+            Finalize this version before creating a client link.
+          </p>
+        )
+      }
+
+      {
+        publicLinks.length === 0 ? (
+          <StudioEmptyState
+            title="No client links yet"
+            description="Create a secure capability link after finalizing the proposal version."
+          />
+        ) : (
+          <ul class="divide-y divide-border" role="list">
+            {publicLinks.map((link) => (
+              <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                <div>
+                  <p class="font-medium text-navy-900">{linkStatusLabel(link)}</p>
+                  <p class="mt-1 text-ink-muted">
+                    Created {formatStudioDateTime(link.created_at)}
+                    {link.first_viewed_at
+                      ? ` · First viewed ${formatStudioDateTime(link.first_viewed_at)}`
+                      : ''}
+                    {link.expires_at ? ` · Expires ${formatStudioDateTime(link.expires_at)}` : ''}
+                  </p>
+                </div>
+                {canWrite && !link.revoked_at && (
+                  <form method="post">
+                    <input type="hidden" name="intent" value="revoke_client_link" />
+                    <input type="hidden" name="linkId" value={link.id} />
+                    <button type="submit" class="studio-action">
+                      Revoke
+                    </button>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      {
+        changeRequests.length > 0 && (
+          <div class="mt-6 border-t border-border pt-4">
+            <h3 class="text-sm font-semibold text-navy-900">Change requests</h3>
+            <ul class="mt-3 divide-y divide-border" role="list">
+              {changeRequests.map((req) => (
+                <li class="py-3 text-sm">
+                  <p class="font-medium text-navy-900">
+                    {req.requested_by_name} · {formatStudioDateTime(req.created_at)}
+                  </p>
+                  <p class="mt-1 whitespace-pre-line text-ink-muted">{req.message}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </StudioPanel>
+  </div>
+
+  <div class="mb-8">
     <StudioPanel title="Related invoices">
       {
         !version.is_immutable && canGenerateInvoices && (
@@ -529,5 +712,18 @@ const canGenerateInvoices = canWriteInvoices && status !== 'archived';
         if (!confirm('Archive this proposal?')) event.preventDefault();
       });
     });
+    const copyBtn = document.querySelector('[data-copy-client-link]');
+    const input = document.getElementById('created-client-link');
+    if (copyBtn instanceof HTMLButtonElement && input instanceof HTMLInputElement) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(input.value);
+          copyBtn.textContent = 'Copied';
+        } catch {
+          input.select();
+          copyBtn.textContent = 'Select & copy';
+        }
+      });
+    }
   })();
 </script>

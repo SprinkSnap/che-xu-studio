@@ -3,6 +3,7 @@ import { securityHeaders } from './lib/security';
 import {
   isStudioOsEnabled,
   isStudioPrivatePath,
+  isClientDocumentPath,
   STUDIO_CACHE_CONTROL,
   STUDIO_ROBOTS_HEADER,
 } from './lib/studio/private-paths';
@@ -202,6 +203,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
       'Cache-Control',
       'public, max-age=0, s-maxage=60, stale-while-revalidate=30',
     );
+  }
+
+  // Capability document pages: never send full token URLs as referrers.
+  if (isClientDocumentPath(path)) {
+    response.headers.set('Referrer-Policy', 'no-referrer');
   }
 
   return response;

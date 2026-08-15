@@ -25,6 +25,7 @@ describe('studio phase 4 migrations', () => {
       '202608140010_project_workflow_helpers.sql',
       '202608140011_proposal_management_helpers.sql',
       '202608140012_invoice_management_helpers.sql',
+      '202608140013_proposal_public_acceptance.sql',
     ]);
   });
 

@@ -680,10 +680,10 @@ COMMIT;
         'profiles','clients','client_contacts','projects','proposal_templates','proposals',
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
-        'activity_logs','settings','number_counters','webhook_events'
+        'activity_logs','settings','number_counters','webhook_events','proposal_change_requests'
       );
   `).trim();
-  assert(tableCount === '21', `Expected 21 Studio tables, got ${tableCount}`);
+  assert(tableCount === '22', `Expected 22 Studio tables, got ${tableCount}`);
 
   // RLS enabled on all
   const rlsOff = adminPsql(`
@@ -695,11 +695,33 @@ COMMIT;
         'profiles','clients','client_contacts','projects','proposal_templates','proposals',
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
-        'activity_logs','settings','number_counters','webhook_events'
+        'activity_logs','settings','number_counters','webhook_events','proposal_change_requests'
       )
       AND NOT c.relrowsecurity;
   `).trim();
   assert(rlsOff === '', `RLS disabled on: ${rlsOff || '(none)'}`);
+
+  // Phase 10: public link exact-version uniqueness
+  const linkHash = adminPsql(`SELECT encode(sha256('phase10-token-a'::bytea), 'hex');`).trim();
+  adminPsql(`
+    INSERT INTO public.public_links (
+      resource_type, resource_id, proposal_version_id, token_hash
+    ) VALUES (
+      'proposal', '${proposalId}', '${versionId}', '${linkHash}'
+    );
+  `);
+  try {
+    adminPsql(`
+      INSERT INTO public.public_links (
+        resource_type, resource_id, proposal_version_id, token_hash
+      ) VALUES (
+        'proposal', '${proposalId}', '${versionId}', encode(sha256('phase10-token-b'::bytea), 'hex')
+      );
+    `);
+    throw new Error('duplicate active proposal_version link should fail');
+  } catch (err) {
+    assert(/unique|public_links_active/i.test(String(err)), String(err));
+  }
 
   console.log('[studio-db-test] OK — migrations applied; numbering, immutability, constraints, and RLS checks passed.');
 }

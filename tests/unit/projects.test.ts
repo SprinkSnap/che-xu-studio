@@ -127,7 +127,7 @@ describe('project workflow', () => {
   it('allows every documented transition', () => {
     const expected: Record<ProjectStatus, ProjectStatus[]> = {
       inquiry: ['proposal', 'archived'],
-      proposal: ['awaiting_approval', 'inquiry', 'archived'],
+      proposal: ['awaiting_approval', 'deposit_due', 'inquiry', 'archived'],
       awaiting_approval: ['deposit_due', 'proposal', 'archived'],
       deposit_due: ['active', 'archived'],
       active: ['awaiting_final_payment', 'archived'],

@@ -23,6 +23,7 @@ describe('studio phase 4 migrations', () => {
       '202608140008_profile_privilege_guards.sql',
       '202608140009_client_management_helpers.sql',
       '202608140010_project_workflow_helpers.sql',
+      '202608140011_proposal_management_helpers.sql',
     ]);
   });
 
@@ -35,6 +36,17 @@ describe('studio phase 4 migrations', () => {
     expect(helpers).toMatch(/status_before_archive/);
     expect(helpers).toMatch(/SECURITY INVOKER/);
     expect(helpers).toMatch(/project status conflict/);
+  });
+
+  it('ships proposal management helpers without faking sent', () => {
+    const helpers = readFileSync(
+      path.join(migrationsDir, '202608140011_proposal_management_helpers.sql'),
+      'utf8',
+    );
+    expect(helpers).toMatch(/finalize_proposal_version/);
+    expect(helpers).toMatch(/create_proposal_revision/);
+    expect(helpers).toMatch(/finalized_at/);
+    expect(helpers).toMatch(/Parent stays draft/);
   });
 
   it('blocks profile self-promotion and open self-enrollment', () => {

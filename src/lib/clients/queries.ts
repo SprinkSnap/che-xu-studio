@@ -207,45 +207,64 @@ export async function getClientDetail(
   const client = await getClientById(supabase, clientId);
   if (!client) return null;
 
-  const [contactsResult, financialResult, projectsResult, paymentsResult, activityResult] =
-    await Promise.all([
-      supabase
-        .from('client_contacts')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('is_primary', { ascending: false })
-        .order('name', { ascending: true }),
-      supabase
-        .from('client_financial_summary')
-        .select('lifetime_paid_minor, outstanding_balance_minor')
-        .eq('client_id', clientId)
-        .maybeSingle(),
-      supabase
-        .from('projects')
-        .select(
-          'id, name, status, project_price_minor, currency, target_completion_date, archived_at, updated_at',
-        )
-        .eq('client_id', clientId)
-        .order('updated_at', { ascending: false })
-        .limit(20),
-      supabase
-        .from('payments')
-        .select('id, amount_minor, currency, status, paid_at, created_at')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
-        .limit(20),
-      supabase
-        .from('activity_logs')
-        .select('id, action, created_at, metadata')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
-        .limit(25),
-    ]);
+  const [
+    contactsResult,
+    financialResult,
+    projectsResult,
+    paymentsResult,
+    proposalsResult,
+    activityResult,
+  ] = await Promise.all([
+    supabase
+      .from('client_contacts')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('is_primary', { ascending: false })
+      .order('name', { ascending: true }),
+    supabase
+      .from('client_financial_summary')
+      .select('lifetime_paid_minor, outstanding_balance_minor')
+      .eq('client_id', clientId)
+      .maybeSingle(),
+    supabase
+      .from('projects')
+      .select(
+        'id, name, status, project_price_minor, currency, target_completion_date, archived_at, updated_at',
+      )
+      .eq('client_id', clientId)
+      .order('updated_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('payments')
+      .select('id, amount_minor, currency, status, paid_at, created_at')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('proposals')
+      .select(
+        `
+          id, proposal_number, title, status, project_id, updated_at, current_version_id,
+          projects!inner(id, name),
+          proposal_versions!proposals_current_version_fk(id, total_minor, currency)
+        `,
+      )
+      .eq('client_id', clientId)
+      .order('updated_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('activity_logs')
+      .select('id, action, created_at, metadata')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+      .limit(25),
+  ]);
 
   if (contactsResult.error) throw contactsResult.error;
   if (financialResult.error) throw financialResult.error;
   if (projectsResult.error) throw projectsResult.error;
   if (paymentsResult.error) throw paymentsResult.error;
+  if (proposalsResult.error) throw proposalsResult.error;
   if (activityResult.error) throw activityResult.error;
 
   const contacts = (contactsResult.data ?? []) as ClientContactRow[];
@@ -255,6 +274,24 @@ export async function getClientDetail(
   const hasActiveProjects = projects.some((p) =>
     (ACTIVE_PROJECT_STATUSES as readonly string[]).includes(p.status),
   );
+
+  const proposals = (proposalsResult.data ?? []).map((row) => {
+    const project = Array.isArray(row.projects) ? row.projects[0] : row.projects;
+    const version = Array.isArray(row.proposal_versions)
+      ? row.proposal_versions[0]
+      : row.proposal_versions;
+    return {
+      id: row.id,
+      proposal_number: row.proposal_number,
+      title: row.title,
+      status: row.status,
+      project_id: row.project_id,
+      project_name: (project as { name?: string } | null)?.name || 'Project',
+      total_minor: Number((version as { total_minor?: number } | null)?.total_minor ?? 0),
+      currency: (version as { currency?: string } | null)?.currency || 'CAD',
+      updated_at: row.updated_at,
+    };
+  });
 
   return {
     client,
@@ -266,6 +303,7 @@ export async function getClientDetail(
     },
     projects,
     payments: paymentsResult.data ?? [],
+    proposals,
     activity: (activityResult.data ?? []).map((row) => ({
       id: row.id,
       action: row.action,

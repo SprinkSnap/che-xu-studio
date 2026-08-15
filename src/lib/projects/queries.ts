@@ -206,7 +206,9 @@ export async function getProjectDetail(
       .maybeSingle(),
     supabase
       .from('proposals')
-      .select('id, status, updated_at, current_version_id')
+      .select(
+        'id, proposal_number, title, status, expires_at, current_version_id, updated_at',
+      )
       .eq('project_id', projectId)
       .order('updated_at', { ascending: false })
       .limit(10),
@@ -234,8 +236,11 @@ export async function getProjectDetail(
     client: clientResult.data,
     proposals: (proposalsResult.data ?? []).map((row) => ({
       id: row.id,
-      title: null,
+      proposal_number: row.proposal_number,
+      title: row.title,
       status: row.status,
+      expires_at: row.expires_at,
+      current_version_id: row.current_version_id,
       updated_at: row.updated_at,
     })),
     invoices: invoicesResult.data ?? [],

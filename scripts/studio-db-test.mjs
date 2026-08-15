@@ -553,6 +553,61 @@ COMMIT;
     'restored project should persist as inquiry',
   );
 
+  // Phase 8 — finalize does not set sent; revision creates v2
+  const propProject = adminPsql(`
+    INSERT INTO public.projects (client_id, name, status, project_price_minor, deposit_bps, tax_bps, currency)
+    VALUES ('${clientId}', 'Proposal Host', 'inquiry', 800000, 5000, 1300, 'CAD')
+    RETURNING id;
+  `).trim();
+  const propNumber = adminPsql(`SELECT public.next_document_number('proposal', 'CXS-P', 2026);`).trim();
+  const propId = adminPsql(`
+    INSERT INTO public.proposals (client_id, project_id, proposal_number, title, status, created_by)
+    VALUES ('${clientId}', '${propProject}', '${propNumber}', 'Phase 8 Proposal', 'draft', '${ownerProfile}')
+    RETURNING id;
+  `).trim();
+  const propVersion = adminPsql(`
+    INSERT INTO public.proposal_versions (
+      proposal_id, version_number, title, subtotal_minor, discount_minor, tax_minor, total_minor, currency, tax_bps, deposit_bps
+    ) VALUES ('${propId}', 1, 'Phase 8 Proposal', 800000, 0, 104000, 904000, 'CAD', 1300, 5000)
+    RETURNING id;
+  `).trim();
+  adminPsql(`UPDATE public.proposals SET current_version_id = '${propVersion}' WHERE id = '${propId}';`);
+  adminPsql(`
+    INSERT INTO public.proposal_items (proposal_version_id, description, quantity, rate_minor, amount_minor)
+    VALUES ('${propVersion}', 'Website', 1, 800000, 800000);
+  `);
+
+  const finalizedImmutable = asRoleCommit(
+    'authenticated',
+    ownerAuth,
+    `SELECT is_immutable::text FROM public.finalize_proposal_version('${propId}'::uuid, '${propVersion}'::uuid);`,
+  ).trim();
+  assert(
+    finalizedImmutable === 't' || finalizedImmutable === 'true',
+    `finalize should lock version, got ${finalizedImmutable}`,
+  );
+  const parentStillDraft = adminPsql(`SELECT status::text FROM public.proposals WHERE id = '${propId}';`).trim();
+  assert(parentStillDraft === 'draft', `finalize must keep draft status, got ${parentStillDraft}`);
+  const sentAtNull = adminPsql(`SELECT (sent_at IS NULL)::text FROM public.proposals WHERE id = '${propId}';`).trim();
+  assert(
+    sentAtNull === 't' || sentAtNull === 'true',
+    `finalize must not set sent_at (null check=${sentAtNull})`,
+  );
+
+  const revisionNumber = asRoleCommit(
+    'authenticated',
+    ownerAuth,
+    `SELECT version_number::text FROM public.create_proposal_revision('${propId}'::uuid);`,
+  ).trim();
+  assert(revisionNumber === '2', `revision should be version 2, got ${revisionNumber}`);
+  const v1StillImmutable = adminPsql(
+    `SELECT is_immutable::text FROM public.proposal_versions WHERE id = '${propVersion}';`,
+  ).trim();
+  assert(
+    v1StillImmutable === 't' || v1StillImmutable === 'true',
+    'source version must remain immutable after revision',
+  );
+
   // Table inventory
   const tableCount = adminPsql(`
     SELECT count(*) FROM information_schema.tables

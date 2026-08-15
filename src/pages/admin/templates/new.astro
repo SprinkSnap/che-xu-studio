@@ -1,0 +1,102 @@
+---
+import StudioLayout from '../../../layouts/StudioLayout.astro';
+import StudioPageHeader from '../../../components/studio/StudioPageHeader.astro';
+import StudioPanel from '../../../components/studio/StudioPanel.astro';
+import TemplateFormFields from '../../../components/studio/templates/TemplateFormFields.astro';
+import { requireStudioPermission } from '../../../lib/auth/require';
+import { isSameOriginMutation, requestSiteOrigin } from '../../../lib/auth/origin';
+import {
+  createProposalTemplate,
+  ProposalMutationError,
+} from '../../../lib/proposals/mutations';
+import {
+  formDataToObject,
+  GENERIC_TEMPLATE_ERROR,
+  templateWriteSchema,
+} from '../../../lib/proposals/validation';
+import type { TemplateFormValues } from '../../../lib/proposals/types';
+
+export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.templates.manage');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const emptyValues = (): TemplateFormValues => ({
+  name: '',
+  description: '',
+  introduction: '',
+  projectOverview: '',
+  objectives: '',
+  scope: '',
+  deliverables: '',
+  timeline: '',
+  paymentTerms: '',
+  termsAndConditions: '',
+  notes: '',
+  makeDefault: false,
+});
+
+let errorMessage = '';
+let values: TemplateFormValues = emptyValues();
+
+if (Astro.request.method === 'POST') {
+  const origin = requestSiteOrigin(Astro.request, Astro.url);
+  if (!isSameOriginMutation(Astro.request, origin)) {
+    return new Response('Invalid request origin.', { status: 403 });
+  }
+
+  const form = await Astro.request.formData();
+  const raw = formDataToObject(form);
+  values = {
+    name: raw.name ?? '',
+    description: raw.description ?? '',
+    introduction: raw.introduction ?? '',
+    projectOverview: raw.projectOverview ?? '',
+    objectives: raw.objectives ?? '',
+    scope: raw.scope ?? '',
+    deliverables: raw.deliverables ?? '',
+    timeline: raw.timeline ?? '',
+    paymentTerms: raw.paymentTerms ?? '',
+    termsAndConditions: raw.termsAndConditions ?? '',
+    notes: raw.notes ?? '',
+    makeDefault: raw.makeDefault === 'on',
+  };
+
+  const parsed = templateWriteSchema.safeParse(raw);
+  if (!parsed.success) {
+    errorMessage = parsed.error.issues[0]?.message || GENERIC_TEMPLATE_ERROR;
+  } else {
+    try {
+      return Astro.redirect(
+        `/admin/templates/${await createProposalTemplate(supabase, parsed.data, auth.profile.id)}/edit?notice=created`,
+        303,
+      );
+    } catch (error) {
+      errorMessage =
+        error instanceof ProposalMutationError ? error.message : GENERIC_TEMPLATE_ERROR;
+    }
+  }
+}
+---
+
+<StudioLayout title="New template" description="Create a proposal template.">
+  <StudioPageHeader
+    slot="header"
+    title="New template"
+    description="Define reusable narrative defaults for new proposals."
+  />
+  <a slot="actions" class="studio-action" href="/admin/templates">Back to templates</a>
+
+  <StudioPanel title="Template details">
+    <form method="post" action="/admin/templates/new" novalidate>
+      <TemplateFormFields values={values} mode="create" errorMessage={errorMessage} />
+      <div class="studio-actions mt-2">
+        <button type="submit" class="studio-action studio-action-primary">Save template</button>
+        <a class="studio-action" href="/admin/templates">Cancel</a>
+      </div>
+    </form>
+  </StudioPanel>
+</StudioLayout>

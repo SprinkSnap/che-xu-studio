@@ -31,6 +31,11 @@ import {
   type ProjectStatus,
 } from '../../../../lib/projects/workflow';
 import {
+  PROPOSAL_STATUS_LABELS,
+  proposalStatusTone,
+  type ProposalStatus,
+} from '../../../../lib/proposals/workflow';
+import {
   clientDisplayName,
   formatDateOnly,
   formatMoney,
@@ -43,6 +48,7 @@ export const prerender = false;
 
 const auth = await requireStudioPermission(Astro, 'studio.projects.read');
 const canWrite = roleHasPermission(auth.profile.role, 'studio.projects.write');
+const canWriteProposals = roleHasPermission(auth.profile.role, 'studio.proposals.write');
 const supabase = Astro.locals.studioSupabase;
 if (!supabase) {
   return Astro.redirect('/admin/login');
@@ -306,21 +312,62 @@ const clientName = clientDisplayName(client);
   </div>
 
   <div class="studio-detail-grid mb-8">
-    <StudioPanel title="Related proposal">
+    <StudioPanel title="Proposals">
+      {
+        canWriteProposals && !isArchived && (
+          <div class="mb-4">
+            <a
+              class="studio-action studio-action-primary"
+              href={`/admin/proposals/new?project=${project.id}`}
+            >
+              Create Proposal
+            </a>
+          </div>
+        )
+      }
       {
         proposals.length === 0 ? (
           <StudioEmptyState
-            title="No proposal created yet"
-            description="Proposal creation will be available in the proposal workflow (Phase 8)."
-          />
+            title="No proposals yet"
+            description="Create a proposal from this project to draft scope, pricing, and terms."
+          >
+            {canWriteProposals && !isArchived && (
+              <a
+                class="studio-action studio-action-primary mt-2"
+                href={`/admin/proposals/new?project=${project.id}`}
+              >
+                Create Proposal
+              </a>
+            )}
+          </StudioEmptyState>
         ) : (
           <ul class="divide-y divide-border" role="list">
             {proposals.map((proposal) => (
-              <li class="flex items-center justify-between gap-3 py-3 text-sm">
-                <span class="font-medium text-navy-900">Proposal {proposal.id.slice(0, 8)}</span>
-                <span class="text-ink-muted capitalize">
-                  {proposal.status.replaceAll('_', ' ')}
-                </span>
+              <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                <div>
+                  <a class="studio-client-link" href={`/admin/proposals/${proposal.id}`}>
+                    {proposal.proposal_number}
+                  </a>
+                  <p class="mt-1 text-ink-muted">
+                    {proposal.title}
+                    <span class="mx-2" aria-hidden="true">
+                      ·
+                    </span>
+                    Expires {formatDateOnly(proposal.expires_at)}
+                  </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <StudioStatusBadge
+                    label={
+                      PROPOSAL_STATUS_LABELS[proposal.status as ProposalStatus] ||
+                      proposal.status.replaceAll('_', ' ')
+                    }
+                    tone={proposalStatusTone(proposal.status as ProposalStatus)}
+                  />
+                  <a class="studio-action" href={`/admin/proposals/${proposal.id}`}>
+                    View
+                  </a>
+                </div>
               </li>
             ))}
           </ul>

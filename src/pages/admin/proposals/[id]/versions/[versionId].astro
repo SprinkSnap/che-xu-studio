@@ -1,0 +1,89 @@
+---
+import ClientDocumentLayout from '../../../../../layouts/ClientDocumentLayout.astro';
+import ProposalDocument from '../../../../../components/studio/proposals/ProposalDocument.astro';
+import { requireStudioPermission } from '../../../../../lib/auth/require';
+import { getProposalVersionDetail } from '../../../../../lib/proposals/queries';
+import { uuidParamSchema } from '../../../../../lib/proposals/validation';
+import { clientDisplayName } from '../../../../../lib/clients/format';
+import type { CurrencyCode } from '../../../../../lib/supabase/domain';
+
+export const prerender = false;
+
+await requireStudioPermission(Astro, 'studio.proposals.read');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const proposalParsed = uuidParamSchema.safeParse(Astro.params.id);
+const versionParsed = uuidParamSchema.safeParse(Astro.params.versionId);
+if (!proposalParsed.success || !versionParsed.success) {
+  return new Response('Not found', { status: 404 });
+}
+
+let detail = null as Awaited<ReturnType<typeof getProposalVersionDetail>>;
+try {
+  detail = await getProposalVersionDetail(
+    supabase,
+    proposalParsed.data,
+    versionParsed.data,
+  );
+} catch {
+  detail = null;
+}
+
+if (!detail) {
+  return new Response('Not found', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'private, no-store',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    },
+  });
+}
+
+const { proposal, version, items, client, project } = detail;
+const clientName =
+  version.client_display_name?.trim() || clientDisplayName(client);
+const projectName = version.project_name?.trim() || project.name;
+---
+
+<ClientDocumentLayout
+  title={`${proposal.proposal_number} v${version.version_number}`}
+  description={`Historical version of proposal ${proposal.proposal_number}.`}
+  documentKind="proposal"
+>
+  <p class="studio-doc-no-print mb-6 text-sm text-ink-muted">
+    Historical version ·
+    <a class="studio-client-link" href={`/admin/proposals/${proposal.id}`}>
+      Back to proposal
+    </a>
+  </p>
+  <ProposalDocument
+    proposalNumber={proposal.proposal_number}
+    versionNumber={version.version_number}
+    title={version.title}
+    clientDisplayName={clientName}
+    projectName={projectName}
+    introduction={version.introduction}
+    projectOverview={version.project_overview}
+    objectives={version.objectives}
+    scope={version.scope}
+    deliverables={version.deliverables}
+    timeline={version.timeline}
+    paymentSchedule={version.payment_schedule}
+    termsAndConditions={version.terms_and_conditions}
+    notes={version.notes}
+    items={items}
+    subtotalMinor={version.subtotal_minor}
+    discountMinor={version.discount_minor}
+    taxMinor={version.tax_minor}
+    totalMinor={version.total_minor}
+    taxBps={version.tax_bps}
+    currency={version.currency as CurrencyCode}
+    expiresAt={version.expires_at || proposal.expires_at}
+    isImmutable={version.is_immutable}
+    finalizedAt={version.finalized_at}
+  />
+</ClientDocumentLayout>

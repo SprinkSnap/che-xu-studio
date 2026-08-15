@@ -1,0 +1,311 @@
+---
+import type { ProposalFormValues } from '../../../lib/proposals/types';
+
+interface Props {
+  values: ProposalFormValues;
+  errorMessage?: string;
+}
+
+const { values, errorMessage = '' } = Astro.props;
+const itemsJson = JSON.stringify(
+  values.items.map((item, index) => ({
+    id: item.id,
+    itemType: item.itemType,
+    description: item.description,
+    quantity: item.quantity,
+    rate: item.rate,
+    optional: item.optional,
+    selected: item.selected,
+    sortOrder: item.sortOrder ?? index,
+  })),
+);
+---
+
+{
+  errorMessage && (
+    <p class="studio-auth-error mb-6" role="alert" id="proposal-form-error">
+      {errorMessage}
+    </p>
+  )
+}
+
+<input type="hidden" name="expectedUpdatedAt" value={values.expectedUpdatedAt} />
+<input type="hidden" name="itemsJson" id="itemsJson" value={itemsJson} data-items-json />
+
+<div class="studio-project-form-grid">
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Basics</legend>
+    <div class="studio-auth-field">
+      <label for="title">Title</label>
+      <input
+        id="title"
+        name="title"
+        type="text"
+        required
+        maxlength="200"
+        value={values.title}
+        aria-describedby={errorMessage ? 'proposal-form-error' : undefined}
+      />
+    </div>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label for="currency">Currency</label>
+        <select id="currency" name="currency" required>
+          <option value="CAD" selected={values.currency === 'CAD'}>CAD</option>
+          <option value="USD" selected={values.currency === 'USD'}>USD</option>
+        </select>
+      </div>
+      <div class="studio-auth-field">
+        <label for="expiresAt">Expires</label>
+        <input id="expiresAt" name="expiresAt" type="date" value={values.expiresAt} />
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Narrative</legend>
+    <div class="studio-auth-field">
+      <label for="introduction">Introduction</label>
+      <textarea id="introduction" name="introduction" rows="4" class="studio-textarea">{values.introduction}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="projectOverview">Project overview</label>
+      <textarea id="projectOverview" name="projectOverview" rows="4" class="studio-textarea">{values.projectOverview}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="objectives">Objectives</label>
+      <textarea id="objectives" name="objectives" rows="4" class="studio-textarea">{values.objectives}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="scope">Scope</label>
+      <textarea id="scope" name="scope" rows="4" class="studio-textarea">{values.scope}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="deliverables">Deliverables</label>
+      <textarea id="deliverables" name="deliverables" rows="4" class="studio-textarea">{values.deliverables}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="timeline">Timeline</label>
+      <textarea id="timeline" name="timeline" rows="4" class="studio-textarea">{values.timeline}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="paymentSchedule">Payment schedule</label>
+      <textarea id="paymentSchedule" name="paymentSchedule" rows="4" class="studio-textarea">{values.paymentSchedule}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="termsAndConditions">Terms and conditions</label>
+      <textarea id="termsAndConditions" name="termsAndConditions" rows="4" class="studio-textarea">{values.termsAndConditions}</textarea>
+    </div>
+    <div class="studio-auth-field">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3" class="studio-textarea">{values.notes}</textarea>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Pricing lines</legend>
+    <p class="mb-4 text-sm text-ink-muted">
+      Line totals are calculated on the server. Browser amounts are for editing only.
+    </p>
+    <div class="flex flex-col gap-4" data-line-items-root>
+      <div class="flex flex-col gap-4" data-line-items-list role="list"></div>
+      <button type="button" class="studio-action self-start" data-add-line>Add line</button>
+    </div>
+  </fieldset>
+
+  <fieldset class="studio-fieldset">
+    <legend class="studio-legend">Tax &amp; deposit</legend>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label for="discount">Discount amount</label>
+        <input
+          id="discount"
+          name="discount"
+          type="text"
+          inputmode="decimal"
+          value={values.discount}
+        />
+      </div>
+      <div class="studio-auth-field">
+        <label for="taxPercent">Tax %</label>
+        <input
+          id="taxPercent"
+          name="taxPercent"
+          type="text"
+          inputmode="decimal"
+          required
+          value={values.taxPercent}
+        />
+      </div>
+    </div>
+    <div class="studio-auth-field">
+      <label for="depositPercent">Deposit %</label>
+      <input
+        id="depositPercent"
+        name="depositPercent"
+        type="text"
+        inputmode="decimal"
+        required
+        value={values.depositPercent}
+      />
+    </div>
+  </fieldset>
+</div>
+
+<div id="proposal-line-template" hidden>
+  <div
+    class="rounded-[var(--radius-md)] border border-border bg-white p-4"
+    data-line-item
+    role="listitem"
+  >
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label>Description</label>
+        <input type="text" data-field="description" maxlength="2000" />
+      </div>
+      <div class="studio-auth-field">
+        <label>Type</label>
+        <select data-field="itemType">
+          <option value="service">Service</option>
+          <option value="add_on">Add-on</option>
+          <option value="discount">Discount</option>
+        </select>
+      </div>
+    </div>
+    <div class="studio-form-row">
+      <div class="studio-auth-field">
+        <label>Quantity</label>
+        <input type="text" data-field="quantity" inputmode="decimal" value="1" />
+      </div>
+      <div class="studio-auth-field">
+        <label>Rate</label>
+        <input type="text" data-field="rate" inputmode="decimal" />
+      </div>
+    </div>
+    <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap gap-4">
+        <label class="studio-checkbox mb-0">
+          <input type="checkbox" data-field="optional" />
+          <span>Optional</span>
+        </label>
+        <label class="studio-checkbox mb-0">
+          <input type="checkbox" data-field="selected" checked />
+          <span>Selected</span>
+        </label>
+      </div>
+      <button type="button" class="studio-action" data-remove-line>Remove</button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (() => {
+    const hidden = document.querySelector('[data-items-json]');
+    const list = document.querySelector('[data-line-items-list]');
+    const addBtn = document.querySelector('[data-add-line]');
+    const templateRoot = document.getElementById('proposal-line-template');
+    const form = hidden && hidden.closest('form');
+    if (
+      !(hidden instanceof HTMLInputElement) ||
+      !(list instanceof HTMLElement) ||
+      !(addBtn instanceof HTMLElement) ||
+      !(templateRoot instanceof HTMLElement) ||
+      !(form instanceof HTMLFormElement)
+    ) {
+      return;
+    }
+
+    const sourceRow = templateRoot.querySelector('[data-line-item]');
+    if (!(sourceRow instanceof HTMLElement)) return;
+
+    function emptyLine() {
+      return {
+        itemType: 'service',
+        description: '',
+        quantity: '1',
+        rate: '0.00',
+        optional: false,
+        selected: true,
+        sortOrder: 0,
+      };
+    }
+
+    let items = [];
+    try {
+      const parsed = JSON.parse(hidden.value || '[]');
+      items = Array.isArray(parsed) && parsed.length ? parsed : [emptyLine()];
+    } catch {
+      items = [emptyLine()];
+    }
+
+    function syncHidden() {
+      const next = [];
+      list.querySelectorAll('[data-line-item]').forEach((row, index) => {
+        if (!(row instanceof HTMLElement)) return;
+        const description = row.querySelector('[data-field="description"]');
+        const itemType = row.querySelector('[data-field="itemType"]');
+        const quantity = row.querySelector('[data-field="quantity"]');
+        const rate = row.querySelector('[data-field="rate"]');
+        const optional = row.querySelector('[data-field="optional"]');
+        const selected = row.querySelector('[data-field="selected"]');
+        next.push({
+          itemType: itemType instanceof HTMLSelectElement ? itemType.value : 'service',
+          description: description instanceof HTMLInputElement ? description.value : '',
+          quantity: quantity instanceof HTMLInputElement ? quantity.value : '1',
+          rate: rate instanceof HTMLInputElement ? rate.value : '0',
+          optional: optional instanceof HTMLInputElement ? optional.checked : false,
+          selected: selected instanceof HTMLInputElement ? selected.checked : true,
+          sortOrder: index,
+        });
+      });
+      hidden.value = JSON.stringify(next);
+    }
+
+    function bindRow(row) {
+      row.querySelectorAll('input, select').forEach((el) => {
+        el.addEventListener('change', syncHidden);
+        el.addEventListener('input', syncHidden);
+      });
+      const remove = row.querySelector('[data-remove-line]');
+      if (remove instanceof HTMLElement) {
+        remove.addEventListener('click', () => {
+          if (list.querySelectorAll('[data-line-item]').length <= 1) {
+            alert('Keep at least one pricing line.');
+            return;
+          }
+          row.remove();
+          syncHidden();
+        });
+      }
+    }
+
+    function addRow(data) {
+      const row = sourceRow.cloneNode(true);
+      if (!(row instanceof HTMLElement)) return;
+      const description = row.querySelector('[data-field="description"]');
+      const itemType = row.querySelector('[data-field="itemType"]');
+      const quantity = row.querySelector('[data-field="quantity"]');
+      const rate = row.querySelector('[data-field="rate"]');
+      const optional = row.querySelector('[data-field="optional"]');
+      const selected = row.querySelector('[data-field="selected"]');
+      if (description instanceof HTMLInputElement) description.value = data.description || '';
+      if (itemType instanceof HTMLSelectElement) itemType.value = data.itemType || 'service';
+      if (quantity instanceof HTMLInputElement) quantity.value = data.quantity || '1';
+      if (rate instanceof HTMLInputElement) rate.value = data.rate || '';
+      if (optional instanceof HTMLInputElement) optional.checked = Boolean(data.optional);
+      if (selected instanceof HTMLInputElement) selected.checked = data.selected !== false;
+      bindRow(row);
+      list.appendChild(row);
+    }
+
+    items.forEach((item) => addRow(item));
+    syncHidden();
+
+    addBtn.addEventListener('click', () => {
+      addRow(emptyLine());
+      syncHidden();
+    });
+
+    form.addEventListener('submit', syncHidden);
+  })();
+</script>

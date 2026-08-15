@@ -66,21 +66,15 @@ const itemsJson = JSON.stringify(
     <legend class="studio-legend">Narrative</legend>
     <div class="studio-auth-field">
       <label for="introduction">Introduction</label>
-      <textarea id="introduction" name="introduction" rows="4" class="studio-textarea"
-        >{values.introduction}</textarea
-      >
+      <textarea id="introduction" name="introduction" rows="4" class="studio-textarea">{values.introduction}</textarea>
     </div>
     <div class="studio-auth-field">
       <label for="projectOverview">Project overview</label>
-      <textarea id="projectOverview" name="projectOverview" rows="4" class="studio-textarea"
-        >{values.projectOverview}</textarea
-      >
+      <textarea id="projectOverview" name="projectOverview" rows="4" class="studio-textarea">{values.projectOverview}</textarea>
     </div>
     <div class="studio-auth-field">
       <label for="objectives">Objectives</label>
-      <textarea id="objectives" name="objectives" rows="4" class="studio-textarea"
-        >{values.objectives}</textarea
-      >
+      <textarea id="objectives" name="objectives" rows="4" class="studio-textarea">{values.objectives}</textarea>
     </div>
     <div class="studio-auth-field">
       <label for="scope">Scope</label>
@@ -88,30 +82,19 @@ const itemsJson = JSON.stringify(
     </div>
     <div class="studio-auth-field">
       <label for="deliverables">Deliverables</label>
-      <textarea id="deliverables" name="deliverables" rows="4" class="studio-textarea"
-        >{values.deliverables}</textarea
-      >
+      <textarea id="deliverables" name="deliverables" rows="4" class="studio-textarea">{values.deliverables}</textarea>
     </div>
     <div class="studio-auth-field">
       <label for="timeline">Timeline</label>
-      <textarea id="timeline" name="timeline" rows="4" class="studio-textarea"
-        >{values.timeline}</textarea
-      >
+      <textarea id="timeline" name="timeline" rows="4" class="studio-textarea">{values.timeline}</textarea>
     </div>
     <div class="studio-auth-field">
       <label for="paymentSchedule">Payment schedule</label>
-      <textarea id="paymentSchedule" name="paymentSchedule" rows="4" class="studio-textarea"
-        >{values.paymentSchedule}</textarea
-      >
+      <textarea id="paymentSchedule" name="paymentSchedule" rows="4" class="studio-textarea">{values.paymentSchedule}</textarea>
     </div>
     <div class="studio-auth-field">
       <label for="termsAndConditions">Terms and conditions</label>
-      <textarea
-        id="termsAndConditions"
-        name="termsAndConditions"
-        rows="4"
-        class="studio-textarea">{values.termsAndConditions}</textarea
-      >
+      <textarea id="termsAndConditions" name="termsAndConditions" rows="4" class="studio-textarea">{values.termsAndConditions}</textarea>
     </div>
     <div class="studio-auth-field">
       <label for="notes">Notes</label>
@@ -169,7 +152,7 @@ const itemsJson = JSON.stringify(
   </fieldset>
 </div>
 
-<template id="proposal-line-template">
+<div id="proposal-line-template" hidden>
   <div
     class="rounded-[var(--radius-md)] border border-border bg-white p-4"
     data-line-item
@@ -178,7 +161,7 @@ const itemsJson = JSON.stringify(
     <div class="studio-form-row">
       <div class="studio-auth-field">
         <label>Description</label>
-        <input type="text" data-field="description" required maxlength="2000" />
+        <input type="text" data-field="description" maxlength="2000" />
       </div>
       <div class="studio-auth-field">
         <label>Type</label>
@@ -192,11 +175,11 @@ const itemsJson = JSON.stringify(
     <div class="studio-form-row">
       <div class="studio-auth-field">
         <label>Quantity</label>
-        <input type="text" data-field="quantity" inputmode="decimal" required value="1" />
+        <input type="text" data-field="quantity" inputmode="decimal" value="1" />
       </div>
       <div class="studio-auth-field">
         <label>Rate</label>
-        <input type="text" data-field="rate" inputmode="decimal" required />
+        <input type="text" data-field="rate" inputmode="decimal" />
       </div>
     </div>
     <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -213,24 +196,27 @@ const itemsJson = JSON.stringify(
       <button type="button" class="studio-action" data-remove-line>Remove</button>
     </div>
   </div>
-</template>
+</div>
 
 <script is:inline>
   (() => {
     const hidden = document.querySelector('[data-items-json]');
     const list = document.querySelector('[data-line-items-list]');
     const addBtn = document.querySelector('[data-add-line]');
-    const template = document.getElementById('proposal-line-template');
+    const templateRoot = document.getElementById('proposal-line-template');
     const form = hidden && hidden.closest('form');
     if (
       !(hidden instanceof HTMLInputElement) ||
       !(list instanceof HTMLElement) ||
       !(addBtn instanceof HTMLElement) ||
-      !(template instanceof HTMLTemplateElement) ||
+      !(templateRoot instanceof HTMLElement) ||
       !(form instanceof HTMLFormElement)
     ) {
       return;
     }
+
+    const sourceRow = templateRoot.querySelector('[data-line-item]');
+    if (!(sourceRow instanceof HTMLElement)) return;
 
     function emptyLine() {
       return {
@@ -263,8 +249,7 @@ const itemsJson = JSON.stringify(
         const optional = row.querySelector('[data-field="optional"]');
         const selected = row.querySelector('[data-field="selected"]');
         next.push({
-          itemType:
-            itemType instanceof HTMLSelectElement ? itemType.value : 'service',
+          itemType: itemType instanceof HTMLSelectElement ? itemType.value : 'service',
           description: description instanceof HTMLInputElement ? description.value : '',
           quantity: quantity instanceof HTMLInputElement ? quantity.value : '1',
           rate: rate instanceof HTMLInputElement ? rate.value : '0',
@@ -295,8 +280,7 @@ const itemsJson = JSON.stringify(
     }
 
     function addRow(data) {
-      const fragment = template.content.cloneNode(true);
-      const row = fragment.querySelector('[data-line-item]');
+      const row = sourceRow.cloneNode(true);
       if (!(row instanceof HTMLElement)) return;
       const description = row.querySelector('[data-field="description"]');
       const itemType = row.querySelector('[data-field="itemType"]');
@@ -309,9 +293,7 @@ const itemsJson = JSON.stringify(
       if (quantity instanceof HTMLInputElement) quantity.value = data.quantity || '1';
       if (rate instanceof HTMLInputElement) rate.value = data.rate || '';
       if (optional instanceof HTMLInputElement) optional.checked = Boolean(data.optional);
-      if (selected instanceof HTMLInputElement) {
-        selected.checked = data.selected !== false;
-      }
+      if (selected instanceof HTMLInputElement) selected.checked = data.selected !== false;
       bindRow(row);
       list.appendChild(row);
     }

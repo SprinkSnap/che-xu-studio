@@ -116,8 +116,10 @@ if (Astro.request.method === 'POST') {
     } else {
       try {
         await updateProposalTemplate(supabase, templateId, parsed.data, actorId);
-        const noticeKey = parsed.data.makeDefault ? 'default' : 'saved';
-        return Astro.redirect(`/admin/templates/${templateId}/edit?notice=${noticeKey}`, 303);
+        return Astro.redirect(
+          `/admin/templates/${templateId}/edit?notice=${parsed.data.makeDefault ? 'default' : 'saved'}`,
+          303,
+        );
       } catch (error) {
         errorMessage =
           error instanceof ProposalMutationError ? error.message : GENERIC_TEMPLATE_ERROR;

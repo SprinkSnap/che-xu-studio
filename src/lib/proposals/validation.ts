@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { parseMajorToMinor, percentInputToBps } from '../money/parse';
 import { parseQuantityToScaled, lineAmountMinor, calculateProposalTotals } from '../finance/calculations';
-import { PROPOSAL_STATUSES, type ProposalStatus } from './workflow';
+import { type ProposalStatus } from './workflow';
 import type { CurrencyCode } from '../supabase/domain';
 
 export const proposalSortSchema = z.enum([

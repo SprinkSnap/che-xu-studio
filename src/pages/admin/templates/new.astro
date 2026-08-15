@@ -70,8 +70,10 @@ if (Astro.request.method === 'POST') {
     errorMessage = parsed.error.issues[0]?.message || GENERIC_TEMPLATE_ERROR;
   } else {
     try {
-      const id = await createProposalTemplate(supabase, parsed.data, auth.profile.id);
-      return Astro.redirect(`/admin/templates/${id}/edit?notice=created`, 303);
+      return Astro.redirect(
+        `/admin/templates/${await createProposalTemplate(supabase, parsed.data, auth.profile.id)}/edit?notice=created`,
+        303,
+      );
     } catch (error) {
       errorMessage =
         error instanceof ProposalMutationError ? error.message : GENERIC_TEMPLATE_ERROR;

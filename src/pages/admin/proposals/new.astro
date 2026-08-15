@@ -85,12 +85,14 @@ if (Astro.request.method === 'POST') {
       errorMessage = parsed.error.issues[0]?.message || GENERIC_PROPOSAL_SAVE_ERROR;
     } else {
       try {
-        const proposalId = await createProposalFromProject(
-          supabase,
-          parsed.data,
-          auth.profile.id,
+        return Astro.redirect(
+          `/admin/proposals/${await createProposalFromProject(
+            supabase,
+            parsed.data,
+            auth.profile.id,
+          )}`,
+          303,
         );
-        return Astro.redirect(`/admin/proposals/${proposalId}`, 303);
       } catch (error) {
         errorMessage =
           error instanceof ProposalMutationError

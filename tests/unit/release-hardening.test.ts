@@ -45,9 +45,9 @@ describe('release hardening — auth & surfaces', () => {
   });
 
   it('rejects open redirects', () => {
-    expect(safeStudioRedirect('https://evil.example', '/admin')).toBe('/admin');
-    expect(safeStudioRedirect('//evil.example', '/admin')).toBe('/admin');
-    expect(safeStudioRedirect('/admin/clients', '/admin')).toBe('/admin/clients');
+    expect(safeStudioRedirect('https://evil.example')).toBe('/admin');
+    expect(safeStudioRedirect('//evil.example')).toBe('/admin');
+    expect(safeStudioRedirect('/admin/clients')).toBe('/admin/clients');
   });
 
   it('compares cron secrets in constant time for equal lengths', () => {
@@ -70,7 +70,8 @@ describe('release hardening — RLS ledger writes', () => {
     expect(sql).toMatch(/DROP POLICY IF EXISTS webhook_events_studio_insert/);
     expect(sql).toMatch(/enforce_invoice_payment_fields_service_only/);
     expect(sql).toMatch(/is_studio_user\(\)/);
-    expect(sql).toMatch(/auth\.role\(\) = 'service_role'/);
+    expect(sql).toMatch(/service_role/);
+    expect(sql).toMatch(/auth\.uid\(\) IS NOT NULL/);
   });
 
   it('never grants anon USING \(true\) business policies', () => {

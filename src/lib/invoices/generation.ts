@@ -232,7 +232,7 @@ async function createStageInvoice(
     },
   });
 
-  return invoice.id;
+  return { id: invoice.id, created: true };
 }
 
 /**

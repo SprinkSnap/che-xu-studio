@@ -256,6 +256,7 @@ function main() {
       file,
       `BEGIN;
 SELECT set_config('request.jwt.claim.sub', '${jwtSub}', true);
+SELECT set_config('request.jwt.claim.role', '${role}', true);
 SET LOCAL ROLE ${role};
 ${sql}
 ROLLBACK;
@@ -293,6 +294,7 @@ ROLLBACK;
       file,
       `BEGIN;
 SELECT set_config('request.jwt.claim.sub', '${jwtSub}', true);
+SELECT set_config('request.jwt.claim.role', '${role}', true);
 SET LOCAL ROLE ${role};
 ${sql}
 COMMIT;

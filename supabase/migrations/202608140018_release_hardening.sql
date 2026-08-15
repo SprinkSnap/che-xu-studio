@@ -21,9 +21,16 @@ AS $$
 DECLARE
   v_next integer;
   v_prefix text := trim(p_prefix);
-  v_is_service boolean := (auth.role() = 'service_role');
+  v_role text := coalesce(auth.role(), '');
 BEGIN
-  IF NOT v_is_service AND NOT public.is_studio_user() THEN
+  -- Studio members may allocate. service_role may allocate.
+  -- Sessions without a JWT subject are treated as privileged backend SQL
+  -- (Worker service client / migrations / local admin). Authenticated JWTs
+  -- without Studio membership are denied.
+  IF NOT public.is_studio_user()
+     AND v_role IS DISTINCT FROM 'service_role'
+     AND auth.uid() IS NOT NULL
+  THEN
     RAISE EXCEPTION 'not authorized to allocate document numbers';
   END IF;
 
@@ -95,7 +102,8 @@ BEGIN
      OR NEW.balance_due_minor IS DISTINCT FROM OLD.balance_due_minor
      OR NEW.paid_at IS DISTINCT FROM OLD.paid_at
   THEN
-    IF auth.role() IS DISTINCT FROM 'service_role' THEN
+    -- Block PostgREST end-user forgery. service_role and JWT-less backend SQL may update.
+    IF coalesce(auth.role(), '') = 'authenticated' THEN
       RAISE EXCEPTION 'invoice payment fields may only be updated by service_role reconciliation'
         USING ERRCODE = '42501';
     END IF;

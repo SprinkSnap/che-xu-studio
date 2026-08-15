@@ -39,6 +39,7 @@ None open.
 | `/api/studio` missing user Supabase client | Auth/PDF | Private path includes `/api/studio` | `studio-foundation.test.ts` |
 | Member-writable payments ledger | RLS | Drop insert/update policies; payment fields service-only | migration `018`, `studio-db-test.mjs` |
 | Mixed Stripe test/live keys | Stripe | `assertStripeKeyModeConsistency` | `release-hardening.test.ts` |
+| `SUPABASE_SECRET_KEY` identifier in client bundle | Secrets | Split `public-config.ts` from server `config.ts` | `check:supabase-secret-leak` |
 
 ### P2 (accepted / mitigated)
 

@@ -42,6 +42,16 @@ Built with **Astro**, **React islands**, **Tailwind CSS**, and **Cloudflare Work
 Do **not** run D1 SQL through the Supabase CLI or Supabase SQL through Wrangler D1.  
 Marketing pages must keep working when Supabase env vars are absent. Details: [`docs/architecture/supabase.md`](./docs/architecture/supabase.md).
 
+### Studio OS documentation
+
+| Doc | Purpose |
+| --- | --- |
+| [`docs/architecture/studio-os.md`](./docs/architecture/studio-os.md) | Architecture ADR |
+| [`docs/operations/launch-gate.md`](./docs/operations/launch-gate.md) | Production launch gate status |
+| [`docs/operations/production-rollout.md`](./docs/operations/production-rollout.md) | Phase 16 rollout record |
+| [`docs/operations/launch-record.md`](./docs/operations/launch-record.md) | Launch attempt record |
+| [`docs/operations/runbook.md`](./docs/operations/runbook.md) | Operational handoff (stub until launch) |
+
 ## Local setup
 
 ```bash

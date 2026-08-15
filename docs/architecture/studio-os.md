@@ -6,6 +6,8 @@
 
 This document locks architectural boundaries for the private Che Xu Studio operating system. Phase 3–4 deliver Supabase clients, Postgres schema, and RLS. Phase 5 delivers authentication and Studio membership enforcement. See also [supabase.md](./supabase.md) and [studio-auth.md](./studio-auth.md).
 
+**Operations / launch:** [launch-gate.md](../operations/launch-gate.md) · [production-rollout.md](../operations/production-rollout.md) · [runbook.md](../operations/runbook.md)
+
 ---
 
 ## Existing architecture

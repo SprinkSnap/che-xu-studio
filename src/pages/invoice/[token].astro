@@ -158,6 +158,16 @@ Astro.response.headers.set('Referrer-Policy', privateHeaders['Referrer-Policy'])
             showPaymentPlaceholder={false}
           />
 
+          <p class="studio-doc-no-print mt-8">
+            <a
+              class="studio-action"
+              href={`/invoice/${encodeURIComponent(rawToken)}/pdf`}
+              data-download-pdf
+            >
+              Download PDF
+            </a>
+          </p>
+
           {
             payable && (
               <form

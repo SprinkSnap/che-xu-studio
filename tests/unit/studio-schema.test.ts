@@ -28,7 +28,43 @@ describe('studio phase 4 migrations', () => {
       '202608140013_proposal_public_acceptance.sql',
       '202608140014_stripe_payment_helpers.sql',
       '202608140015_email_outbox_reminders.sql',
+      '202608140016_document_generation.sql',
+      '202608140017_reporting_indexes.sql',
+      '202608140018_release_hardening.sql',
     ]);
+  });
+
+  it('ships Phase 15 ledger write hardening', () => {
+    const sql = readFileSync(
+      path.join(migrationsDir, '202608140018_release_hardening.sql'),
+      'utf8',
+    );
+    expect(sql).toMatch(/DROP POLICY IF EXISTS payments_studio_insert/);
+    expect(sql).toMatch(/enforce_invoice_payment_fields_service_only/);
+    expect(sql).toMatch(/not authorized to allocate document numbers/);
+  });
+
+  it('ships reporting indexes for cash-event revenue windows', () => {
+    const sql = readFileSync(
+      path.join(migrationsDir, '202608140017_reporting_indexes.sql'),
+      'utf8',
+    );
+    expect(sql).toMatch(/payments_status_paid_at_idx/);
+    expect(sql).toMatch(/refunds_status_refunded_at_idx/);
+    expect(sql).toMatch(/activity_logs_created_at_idx/);
+  });
+
+  it('ships document generation status, jobs, and private storage guards', () => {
+    const sql = readFileSync(
+      path.join(migrationsDir, '202608140016_document_generation.sql'),
+      'utf8',
+    );
+    expect(sql).toMatch(/document_jobs/);
+    expect(sql).toMatch(/documents_canonical_unique_idx/);
+    expect(sql).toMatch(/studio-documents/);
+    expect(sql).toMatch(/to_regclass\('storage\.buckets'\)/);
+    expect(sql).toMatch(/is_canonical/);
+    expect(sql).toMatch(/renderer_version/);
   });
 
   it('ships atomic project transition helpers', () => {

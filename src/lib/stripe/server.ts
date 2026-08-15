@@ -5,6 +5,7 @@
 
 import Stripe from 'stripe';
 import {
+  assertStripeKeyModeConsistency,
   getStripeSecretKey,
   getStripeWebhookSecret,
   isStripeSecretConfigured,
@@ -20,6 +21,7 @@ function keyFingerprint(secretKey: string): string {
 }
 
 export function createStripeClient(env?: StripeEnvSource): Stripe {
+  assertStripeKeyModeConsistency(env);
   const secretKey = getStripeSecretKey(env);
   const fingerprint = keyFingerprint(secretKey);
   if (cachedClient && cachedKeyFingerprint === fingerprint) {

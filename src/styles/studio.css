@@ -80,16 +80,66 @@
     @apply rounded-[var(--radius-md)] border border-border bg-white px-5 py-4;
   }
 
+  .studio-metric-card-link {
+    @apply block transition duration-200 hover:border-navy-900/30 hover:bg-brand-wash focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900;
+  }
+
   .studio-metric-label {
     @apply text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted;
   }
 
   .studio-metric-value {
-    @apply mt-3 font-display text-2xl font-semibold text-navy-900;
+    @apply mt-3 font-display text-2xl font-semibold tabular-nums text-navy-900;
   }
 
   .studio-metric-hint {
     @apply mt-1 text-sm text-ink-muted;
+  }
+
+  .studio-dashboard-list {
+    @apply divide-y divide-border;
+  }
+
+  .studio-dashboard-row {
+    @apply flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4;
+  }
+
+  .studio-dashboard-row a {
+    @apply font-medium text-navy-900 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900;
+  }
+
+  .studio-dashboard-meta {
+    @apply text-sm text-ink-muted;
+  }
+
+  .studio-dashboard-amount {
+    @apply shrink-0 font-medium tabular-nums text-navy-900;
+  }
+
+  .studio-attention-list {
+    @apply space-y-2;
+  }
+
+  .studio-attention-item {
+    @apply flex flex-col gap-0.5 rounded-[var(--radius-md)] border border-border px-4 py-3 transition hover:bg-brand-wash sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .studio-revenue-bars {
+    @apply mt-4 grid grid-cols-6 items-end gap-2;
+    min-height: 7rem;
+  }
+
+  .studio-revenue-bar {
+    @apply flex flex-col items-center justify-end gap-1;
+  }
+
+  .studio-revenue-bar-fill {
+    @apply w-full rounded-sm bg-navy-900/80;
+    min-height: 2px;
+  }
+
+  .studio-revenue-bar-label {
+    @apply text-[0.65rem] uppercase tracking-wide text-ink-muted;
   }
 
   .studio-empty {

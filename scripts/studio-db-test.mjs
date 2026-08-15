@@ -256,6 +256,7 @@ function main() {
       file,
       `BEGIN;
 SELECT set_config('request.jwt.claim.sub', '${jwtSub}', true);
+SELECT set_config('request.jwt.claim.role', '${role}', true);
 SET LOCAL ROLE ${role};
 ${sql}
 ROLLBACK;
@@ -293,6 +294,7 @@ ROLLBACK;
       file,
       `BEGIN;
 SELECT set_config('request.jwt.claim.sub', '${jwtSub}', true);
+SELECT set_config('request.jwt.claim.role', '${role}', true);
 SET LOCAL ROLE ${role};
 ${sql}
 COMMIT;
@@ -681,10 +683,10 @@ COMMIT;
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
         'activity_logs','settings','number_counters','webhook_events','proposal_change_requests',
-        'invoice_checkout_sessions','email_outbox'
+        'invoice_checkout_sessions','email_outbox','document_jobs'
       );
   `).trim();
-  assert(tableCount === '24', `Expected 24 Studio tables, got ${tableCount}`);
+  assert(tableCount === '25', `Expected 25 Studio tables, got ${tableCount}`);
 
   // RLS enabled on all
   const rlsOff = adminPsql(`
@@ -697,7 +699,7 @@ COMMIT;
         'proposal_versions','proposal_items','proposal_acceptances','public_links','invoices',
         'invoice_items','payments','refunds','documents','email_logs','reminder_events',
         'activity_logs','settings','number_counters','webhook_events','proposal_change_requests',
-        'invoice_checkout_sessions','email_outbox'
+        'invoice_checkout_sessions','email_outbox','document_jobs'
       )
       AND NOT c.relrowsecurity;
   `).trim();
@@ -824,6 +826,46 @@ COMMIT;
     FROM public.invoices WHERE id = '${draftInvId}';
   `).trim();
   assert(afterRefund === 'partially_paid:451900:100', afterRefund);
+
+  // Phase 15 — ledger write hardening
+  const paymentInsertPolicy = adminPsql(`
+    SELECT count(*)::text FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'payments'
+      AND policyname IN ('payments_studio_insert', 'payments_studio_update');
+  `).trim();
+  assert(paymentInsertPolicy === '0', `payments write policies should be dropped, got ${paymentInsertPolicy}`);
+
+  const paymentFieldTrigger = adminPsql(`
+    SELECT count(*)::text FROM pg_trigger
+    WHERE tgname = 'invoices_payment_fields_service_only';
+  `).trim();
+  assert(paymentFieldTrigger === '1', 'invoices_payment_fields_service_only trigger missing');
+
+  try {
+    asRole(
+      'authenticated',
+      staffAuth,
+      `INSERT INTO public.payments (
+        invoice_id, client_id, amount_minor, currency, status, provider, provider_payment_id
+      ) VALUES (
+        '${draftInvId}', '${clientId}', 1, 'CAD', 'succeeded', 'stripe', 'pi_forged'
+      );`,
+    );
+    throw new Error('staff must not insert payments via PostgREST role');
+  } catch (err) {
+    assert(/policy|permission|denied|42501/i.test(String(err)), String(err));
+  }
+
+  try {
+    asRole(
+      'authenticated',
+      staffAuth,
+      `UPDATE public.invoices SET amount_paid_minor = 0, balance_due_minor = 0 WHERE id = '${draftInvId}';`,
+    );
+    throw new Error('staff must not forge invoice payment fields');
+  } catch (err) {
+    assert(/service_role|payment fields|42501|permission|denied/i.test(String(err)), String(err));
+  }
 
   console.log('[studio-db-test] OK — migrations applied; numbering, immutability, constraints, and RLS checks passed.');
 }

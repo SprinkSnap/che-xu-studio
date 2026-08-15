@@ -3,16 +3,17 @@ import {
   getStudioAuthCookieOptions,
   getSupabasePublicConfig,
   isSupabasePublicConfigured,
-  type SupabaseEnvSource,
-} from './config';
+  type SupabasePublicEnvSource,
+} from './public-config';
 import type { Database } from './database.types';
 import type { StudioSupabaseClient } from './types';
 
 /**
  * Browser Supabase client — PUBLIC credentials only.
- * Never import `./server` from this module (keeps the secret key out of client bundles).
+ * Import `./public-config` only (never `./config` or `./server`) so secret
+ * env identifiers stay out of client bundles.
  */
-export function createSupabaseBrowserClient(source?: SupabaseEnvSource): StudioSupabaseClient {
+export function createSupabaseBrowserClient(source?: SupabasePublicEnvSource): StudioSupabaseClient {
   if (typeof document === 'undefined') {
     throw new Error('createSupabaseBrowserClient must only run in the browser.');
   }
@@ -26,7 +27,7 @@ export function createSupabaseBrowserClient(source?: SupabaseEnvSource): StudioS
 }
 
 export function tryCreateSupabaseBrowserClient(
-  source?: SupabaseEnvSource,
+  source?: SupabasePublicEnvSource,
 ): StudioSupabaseClient | null {
   if (!isSupabasePublicConfigured(source)) return null;
   return createSupabaseBrowserClient(source);

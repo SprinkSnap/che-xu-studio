@@ -2,14 +2,25 @@
 interface Props {
   label: string;
   value?: string;
-  hint?: string;
+  hint?: string | null;
+  href?: string | null;
 }
 
-const { label, value = '—', hint = 'No data yet' } = Astro.props;
+const { label, value = '—', hint = null, href = null } = Astro.props;
 ---
 
-<div class="studio-metric-card">
-  <p class="studio-metric-label">{label}</p>
-  <p class="studio-metric-value">{value}</p>
-  {hint && <p class="studio-metric-hint">{hint}</p>}
-</div>
+{
+  href ? (
+    <a class="studio-metric-card studio-metric-card-link" href={href}>
+      <p class="studio-metric-label">{label}</p>
+      <p class="studio-metric-value">{value}</p>
+      {hint && <p class="studio-metric-hint">{hint}</p>}
+    </a>
+  ) : (
+    <div class="studio-metric-card">
+      <p class="studio-metric-label">{label}</p>
+      <p class="studio-metric-value">{value}</p>
+      {hint && <p class="studio-metric-hint">{hint}</p>}
+    </div>
+  )
+}

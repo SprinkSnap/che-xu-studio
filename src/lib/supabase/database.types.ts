@@ -214,6 +214,13 @@ export type Database = {
           generated_at: string
           created_by: string | null
           created_at: string
+          status: string
+          generation_version: number
+          renderer_version: string
+          is_canonical: boolean
+          failure_reason: string | null
+          metadata: Json
+          updated_at: string
         }
         Insert: {
           id?: string
@@ -229,6 +236,13 @@ export type Database = {
           generated_at?: string
           created_by?: string | null
           created_at?: string
+          status?: string
+          generation_version?: number
+          renderer_version?: string
+          is_canonical?: boolean
+          failure_reason?: string | null
+          metadata?: Json
+          updated_at?: string
         }
         Update: {
           id?: string
@@ -244,6 +258,73 @@ export type Database = {
           generated_at?: string
           created_by?: string | null
           created_at?: string
+          status?: string
+          generation_version?: number
+          renderer_version?: string
+          is_canonical?: boolean
+          failure_reason?: string | null
+          metadata?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_jobs: {
+        Row: {
+          id: string
+          document_type: 'proposal_pdf' | 'invoice_pdf' | 'receipt_pdf'
+          resource_type: 'proposal' | 'invoice' | 'receipt'
+          resource_id: string
+          version_id: string | null
+          payment_id: string | null
+          idempotency_key: string
+          status: string
+          attempt_count: number
+          max_attempts: number
+          next_attempt_at: string
+          last_error: string | null
+          document_id: string | null
+          created_by: string | null
+          created_at: string
+          processed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          document_type: 'proposal_pdf' | 'invoice_pdf' | 'receipt_pdf'
+          resource_type: 'proposal' | 'invoice' | 'receipt'
+          resource_id: string
+          version_id?: string | null
+          payment_id?: string | null
+          idempotency_key: string
+          status?: string
+          attempt_count?: number
+          max_attempts?: number
+          next_attempt_at?: string
+          last_error?: string | null
+          document_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          processed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          document_type?: 'proposal_pdf' | 'invoice_pdf' | 'receipt_pdf'
+          resource_type?: 'proposal' | 'invoice' | 'receipt'
+          resource_id?: string
+          version_id?: string | null
+          payment_id?: string | null
+          idempotency_key?: string
+          status?: string
+          attempt_count?: number
+          max_attempts?: number
+          next_attempt_at?: string
+          last_error?: string | null
+          document_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          processed_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

@@ -97,10 +97,11 @@ Phase 2 does not implement host-based redirects; path-based routes are the sourc
 | Studio business schema + RLS | Supabase Postgres | Phase 4 |
 | Administrator authentication | Supabase Auth + membership | Phase 5 |
 | Client management | Supabase clients + contacts | Phase 6 |
-| Private PDFs / documents | Supabase Storage (non-enumerable) | Phase 13 |
+| Private PDFs / documents | Supabase Storage (non-enumerable) — see [documents-pdf.md](./documents-pdf.md) | Phase 13 |
 | Payments | Stripe Checkout + webhooks (no card data in our DB) | Phase 11 |
 | Transactional email | Resend + `email_logs` / `email_outbox` — see [email-reminders.md](./email-reminders.md) | Phase 12 |
-| PDF HTML → file | Cloudflare Browser Rendering + shared print CSS | Phase 13 |
+| PDF HTML → file | Cloudflare Browser Rendering + shared print CSS — see [documents-pdf.md](./documents-pdf.md) | Phase 13 |
+| Live dashboard metrics | Reporting layer — see [reporting.md](./reporting.md) | Phase 14 |
 
 **Dual-database note:** `/migrations` = Cloudflare D1 leads; `/supabase/migrations` = Studio Postgres. Do not cross tools.
 
@@ -178,4 +179,6 @@ Phase 2 adds unit coverage for private-path helpers, sitemap allowlist exclusion
 
 ## Explicitly deferred
 
-Supabase packages/migrations, login UI, admin accounts, RLS, client/project/proposal/invoice CRUD, Stripe, webhooks, email automation, reminders, PDF engine, live dashboard metrics, production Studio DNS.
+Phase 16 production rollout (external vendor configuration, DNS, live Stripe/Resend, backups verification).
+Phase 15 hardening + launch gate: [docs/operations/launch-gate.md](../operations/launch-gate.md).
+See domain docs for completed phases (auth, clients, projects, proposals, invoices, payments, email, PDFs, [reporting](./reporting.md)).

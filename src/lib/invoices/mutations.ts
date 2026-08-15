@@ -353,6 +353,19 @@ export async function issueInvoice(
       currency: existing.currency,
     },
   });
+
+  try {
+    const { enqueueDocumentJob } = await import('../pdf/jobs');
+    await enqueueDocumentJob(supabase, {
+      documentType: 'invoice_pdf',
+      resourceType: 'invoice',
+      resourceId: invoiceId,
+      idempotencyKey: `invoice:${invoiceId}:pdf:v1`,
+      createdBy: actorProfileId,
+    });
+  } catch {
+    // PDF generation is a side effect — issue must succeed.
+  }
 }
 
 export async function voidInvoice(

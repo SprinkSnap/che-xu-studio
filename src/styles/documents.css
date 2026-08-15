@@ -1,0 +1,49 @@
+/**
+ * Shared document presentation styles (web client documents).
+ * Print/PDF capture styles live primarily in src/lib/documents/html.ts (embedded)
+ * and src/styles/print.css for browser print of client pages.
+ */
+
+:root {
+  --doc-ink: #0b1f33;
+  --doc-muted: #5b6b7c;
+  --doc-rule: #d7dee7;
+  --doc-page: #ffffff;
+}
+
+.studio-document {
+  color: var(--doc-ink);
+  background: var(--doc-page);
+}
+
+.studio-document h1,
+.studio-document h2 {
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  color: var(--doc-ink);
+}
+
+.studio-document table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.studio-document th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--doc-muted);
+  border-bottom: 1px solid var(--doc-rule);
+}
+
+.studio-document td {
+  border-bottom: 1px solid #eef2f6;
+  vertical-align: top;
+}
+
+.studio-document .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

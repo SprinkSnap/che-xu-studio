@@ -4,48 +4,388 @@ import StudioPageHeader from '../../components/studio/StudioPageHeader.astro';
 import StudioPanel from '../../components/studio/StudioPanel.astro';
 import StudioMetricCard from '../../components/studio/StudioMetricCard.astro';
 import StudioEmptyState from '../../components/studio/StudioEmptyState.astro';
-import StudioStatusBadge from '../../components/studio/StudioStatusBadge.astro';
+import { requireStudioPermission } from '../../lib/auth/require';
+import { loadStudioDashboard } from '../../lib/reporting/dashboard';
+import { formatMetricValue, formatCurrencyTotals } from '../../lib/reporting/format';
+import { formatMoney, formatDateOnly, formatStudioDateTime } from '../../lib/clients/format';
+import { amountForCurrency } from '../../lib/reporting/financials';
 
 export const prerender = false;
+
+const auth = await requireStudioPermission(Astro, 'studio.dashboard.view');
+const supabase = Astro.locals.studioSupabase;
+if (!supabase) {
+  return Astro.redirect('/admin/login');
+}
+
+const dashboard = await loadStudioDashboard(supabase, { role: auth.profile.role });
+const currency = dashboard.defaultCurrency;
+
+const outstandingDisplay = formatMetricValue(
+  dashboard.outstanding.availability,
+  dashboard.outstanding.totals,
+  currency,
+);
+const overdueMoney =
+  dashboard.outstanding.availability === 'ok'
+    ? formatCurrencyTotals(dashboard.outstanding.overdueTotals, currency).primary
+    : null;
+const monthRevenue = formatMetricValue(
+  dashboard.revenue.availability,
+  dashboard.revenue.month,
+  currency,
+);
+const yearRevenue = formatMetricValue(
+  dashboard.revenue.availability,
+  dashboard.revenue.year,
+  currency,
+);
+
+const chartSeries = dashboard.revenue.monthlySeries;
+const chartMax = Math.max(
+  1,
+  ...chartSeries.map((m) => Math.abs(amountForCurrency({ byCurrency: m.byCurrency, multiCurrency: false }, currency))),
+);
+
+function deadlineDetail(daysUntil: number): string {
+  if (daysUntil === 0) return 'Due today';
+  if (daysUntil > 0) return `${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+  const past = Math.abs(daysUntil);
+  return `${past} day${past === 1 ? '' : 's'} past target`;
+}
 ---
 
-<StudioLayout title="Dashboard" description="Studio OS dashboard foundation.">
+<StudioLayout title="Dashboard" description="Studio operational overview and reporting.">
   <StudioPageHeader
     slot="header"
     title="Dashboard"
-    description="Operational overview for clients, proposals, invoices, and payments. Metrics connect in later phases."
+    description={`Operational overview for Che Xu Studio. Periods use ${dashboard.timeZone}.`}
   />
 
-  <a slot="actions" class="studio-action studio-action-primary" href="/admin/clients">New Client</a>
-  <a slot="actions" class="studio-action" href="/admin/projects">New Project</a>
-  <a slot="actions" class="studio-action" href="/admin/proposals">New Proposal</a>
-  <a slot="actions" class="studio-action" href="/admin/invoices">New Invoice</a>
+  {
+    dashboard.quickActions.map((action) => (
+      <a
+        slot="actions"
+        class:list={['studio-action', action.primary && 'studio-action-primary']}
+        href={action.href}
+      >
+        {action.label}
+      </a>
+    ))
+  }
 
-  <div class="studio-metric-grid mb-8">
-    <StudioMetricCard label="Outstanding invoices" />
-    <StudioMetricCard label="Revenue this month" />
-    <StudioMetricCard label="Revenue this year" />
-    <StudioMetricCard label="Active projects" />
-    <StudioMetricCard label="Proposals awaiting approval" />
-    <StudioMetricCard label="Unpaid invoices" />
-    <StudioMetricCard label="Overdue invoices" />
-    <StudioMetricCard label="Recently paid invoices" />
+  <section class="studio-metric-grid mb-8" aria-label="Core metrics">
+    {
+      dashboard.canViewFinancials && (
+        <StudioMetricCard
+          label="Outstanding invoices"
+          value={outstandingDisplay.value}
+          hint={
+            dashboard.outstanding.availability === 'ok'
+              ? `${dashboard.outstanding.unpaidCount} unpaid · includes overdue`
+              : outstandingDisplay.hint
+          }
+          href={
+            dashboard.outstanding.availability === 'ok' ? '/admin/invoices' : null
+          }
+        />
+      )
+    }
+    {
+      dashboard.canViewFinancials && (
+        <StudioMetricCard
+          label="Revenue this month"
+          value={monthRevenue.value}
+          hint={monthRevenue.hint ?? 'Net payments − refunds'}
+        />
+      )
+    }
+    {
+      dashboard.canViewFinancials && (
+        <StudioMetricCard
+          label="Revenue this year"
+          value={yearRevenue.value}
+          hint={yearRevenue.hint ?? 'Net payments − refunds'}
+        />
+      )
+    }
+    <StudioMetricCard
+      label="Active projects"
+      value={
+        dashboard.projects.availability === 'unavailable'
+          ? 'Unavailable'
+          : String(dashboard.projects.activeCount)
+      }
+      hint={
+        dashboard.projects.availability === 'unavailable'
+          ? 'Could not load this metric'
+          : 'Status = Active'
+      }
+      href={dashboard.projects.availability === 'ok' ? '/admin/projects?status=active' : null}
+    />
+    <StudioMetricCard
+      label="Proposals awaiting approval"
+      value={
+        dashboard.proposals.availability === 'unavailable'
+          ? 'Unavailable'
+          : String(dashboard.proposals.awaitingApprovalCount)
+      }
+      hint={
+        dashboard.proposals.availability === 'unavailable'
+          ? 'Could not load this metric'
+          : 'Sent or viewed'
+      }
+      href={
+        dashboard.proposals.availability === 'ok' ? '/admin/proposals?status=sent' : null
+      }
+    />
+    {
+      dashboard.canViewFinancials && (
+        <StudioMetricCard
+          label="Overdue invoices"
+          value={
+            dashboard.outstanding.availability === 'unavailable'
+              ? 'Unavailable'
+              : `${dashboard.outstanding.overdueCount}${overdueMoney ? ` · ${overdueMoney}` : ''}`
+          }
+          hint={
+            dashboard.outstanding.availability === 'unavailable'
+              ? 'Could not load this metric'
+              : 'Past due with balance remaining'
+          }
+          href={
+            dashboard.outstanding.availability === 'ok'
+              ? '/admin/invoices?status=overdue'
+              : null
+          }
+        />
+      )
+    }
+  </section>
+
+  {
+    dashboard.attention.length > 0 && (
+      <StudioPanel title="Needs attention" id="needs-attention">
+        <ul class="studio-attention-list">
+          {
+            dashboard.attention.map((item) => (
+              <li>
+                <a class="studio-attention-item" href={item.href}>
+                  <span>
+                    <span class="font-medium text-navy-900">{item.label}</span>
+                    <span class="studio-dashboard-meta block">{item.detail}</span>
+                  </span>
+                  <span class="text-sm font-medium text-navy-900">{item.count}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </StudioPanel>
+    )
+  }
+
+  <div class:list={['grid gap-6', dashboard.attention.length > 0 && 'mt-6', 'lg:grid-cols-2']}>
+    <StudioPanel title="Upcoming deadlines" id="upcoming-deadlines">
+      {
+        dashboard.deadlines.availability === 'unavailable' ? (
+          <p class="text-sm text-ink-muted" role="status">
+            Deadlines unavailable.
+          </p>
+        ) : dashboard.deadlines.items.length === 0 ? (
+          <StudioEmptyState
+            title="No upcoming deadlines"
+            description="Projects with a target completion date in the next 30 days will appear here."
+          />
+        ) : (
+          <ul class="studio-dashboard-list">
+            {
+              dashboard.deadlines.items.map((row) => (
+                <li class="studio-dashboard-row">
+                  <div>
+                    <a href={`/admin/projects/${row.projectId}`}>{row.projectName}</a>
+                    <p class="studio-dashboard-meta">
+                      {row.clientName} · {row.statusLabel}
+                    </p>
+                  </div>
+                  <div class="text-right sm:text-right">
+                    <p class="studio-dashboard-amount">{formatDateOnly(row.targetCompletionDate)}</p>
+                    <p class="studio-dashboard-meta">{deadlineDetail(row.daysUntil)}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+        )
+      }
+    </StudioPanel>
+
+    {
+      dashboard.canViewFinancials ? (
+        <StudioPanel title="Recent payments" id="recent-payments">
+          {
+            dashboard.recentPayments.availability === 'unavailable' ? (
+              <p class="text-sm text-ink-muted" role="status">
+                Payments unavailable.
+              </p>
+            ) : dashboard.recentPayments.items.length === 0 ? (
+              <StudioEmptyState
+                title="No payments yet"
+                description="Successful Stripe payments will appear here after reconciliation."
+              />
+            ) : (
+              <ul class="studio-dashboard-list">
+                {
+                  dashboard.recentPayments.items.map((row) => (
+                    <li class="studio-dashboard-row">
+                      <div>
+                        <a href={`/admin/payments/${row.paymentId}`}>
+                          {formatMoney(row.amountMinor, row.currency)}
+                        </a>
+                        <p class="studio-dashboard-meta">
+                          {row.clientName} · {row.invoiceNumber}
+                          {row.projectName ? ` · ${row.projectName}` : ''}
+                        </p>
+                      </div>
+                      <p class="studio-dashboard-meta shrink-0">
+                        {formatStudioDateTime(row.paidAt)}
+                      </p>
+                    </li>
+                  ))
+                }
+              </ul>
+            )
+          }
+        </StudioPanel>
+      ) : (
+        <StudioPanel title="Recently paid invoices" id="recent-paid">
+          <StudioEmptyState
+            title="Payments restricted"
+            description="Payment history requires payment read permission."
+          />
+        </StudioPanel>
+      )
+    }
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-2">
-    <StudioPanel title="Upcoming deadlines">
-      <StudioEmptyState
-        title="No deadlines yet"
-        description="Project milestones and proposal expirations will appear here once Studio data is connected."
-      />
-    </StudioPanel>
-    <StudioPanel title="Recent client activity">
-      <StudioEmptyState
-        title="No activity yet"
-        description="Proposal views, acceptances, and payments will stream into this timeline in later phases."
-      >
-        <StudioStatusBadge label="Unconnected" tone="info" />
-      </StudioEmptyState>
+  {
+    dashboard.canViewFinancials &&
+      dashboard.revenue.availability === 'ok' &&
+      chartSeries.length > 0 && (
+        <div class="mt-6">
+          <StudioPanel title="Net revenue — last 6 months" id="revenue-chart">
+            <p class="sr-only">
+              {
+                chartSeries
+                  .map(
+                    (m) =>
+                      `${m.label}: ${formatMoney(amountForCurrency({ byCurrency: m.byCurrency, multiCurrency: false }, currency), currency)}`,
+                  )
+                  .join('. ')
+              }
+            </p>
+            {
+              dashboard.revenue.month.multiCurrency || dashboard.revenue.year.multiCurrency ? (
+                <p class="text-sm text-ink-muted">
+                  Chart shows {currency} only. Other currencies are listed in the metric cards
+                  above — amounts are never converted.
+                </p>
+              ) : null
+            }
+            <div class="studio-revenue-bars" aria-hidden="true">
+              {
+                chartSeries.map((month) => {
+                  const value = amountForCurrency(
+                    { byCurrency: month.byCurrency, multiCurrency: false },
+                    currency,
+                  );
+                  const heightPct = Math.max(2, Math.round((Math.abs(value) / chartMax) * 100));
+                  return (
+                    <div class="studio-revenue-bar" title={formatMoney(value, currency)}>
+                      <div
+                        class="studio-revenue-bar-fill"
+                        style={`height: ${heightPct}%; opacity: ${value < 0 ? '0.45' : '1'}`}
+                      />
+                      <span class="studio-revenue-bar-label">{month.label.slice(5)}</span>
+                    </div>
+                  );
+                })
+              }
+            </div>
+            <table class="mt-4 w-full text-sm">
+              <caption class="sr-only">Monthly net revenue in {currency}</caption>
+              <thead>
+                <tr class="text-left text-ink-muted">
+                  <th scope="col" class="py-1 font-medium">
+                    Month
+                  </th>
+                  <th scope="col" class="py-1 text-right font-medium">
+                    Net revenue
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {
+                  chartSeries.map((month) => (
+                    <tr class="border-t border-border">
+                      <th scope="row" class="py-2 font-normal text-navy-900">
+                        {month.label}
+                      </th>
+                      <td class="py-2 text-right tabular-nums text-navy-900">
+                        {formatMoney(
+                          amountForCurrency(
+                            { byCurrency: month.byCurrency, multiCurrency: false },
+                            currency,
+                          ),
+                          currency,
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </StudioPanel>
+        </div>
+      )
+  }
+
+  <div class="mt-6">
+    <StudioPanel title="Recent activity" id="recent-activity">
+      {
+        dashboard.activity.availability === 'unavailable' ? (
+          <p class="text-sm text-ink-muted" role="status">
+            Activity unavailable.
+          </p>
+        ) : dashboard.activity.items.length === 0 ? (
+          <StudioEmptyState
+            title="No recent activity"
+            description="Client, project, proposal, invoice, and payment events will appear here."
+          />
+        ) : (
+          <ul class="studio-dashboard-list">
+            {
+              dashboard.activity.items.map((row) => (
+                <li class="studio-dashboard-row">
+                  <div>
+                    {
+                      row.href ? (
+                        <a href={row.href}>{row.label}</a>
+                      ) : (
+                        <span class="font-medium text-navy-900">{row.label}</span>
+                      )
+                    }
+                    <p class="studio-dashboard-meta">{row.summary}</p>
+                  </div>
+                  <p class="studio-dashboard-meta shrink-0">
+                    {formatStudioDateTime(row.createdAt)}
+                  </p>
+                </li>
+              ))
+            }
+          </ul>
+        )
+      }
     </StudioPanel>
   </div>
 </StudioLayout>

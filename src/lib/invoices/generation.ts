@@ -134,7 +134,7 @@ async function createStageInvoice(
     lineDescription: string;
     actorProfileId: string | null;
   },
-): Promise<string> {
+): Promise<{ id: string; created: boolean }> {
   const generationKey = generationKeyFor(input.agreement.proposalVersionId, input.invoiceType);
   const existing = await findByGenerationKey(supabase, generationKey);
   if (existing) {
@@ -144,7 +144,7 @@ async function createStageInvoice(
         `A voided ${input.invoiceType} invoice already exists for this proposal version. Create a corrected invoice explicitly rather than regenerating.`,
       );
     }
-    return existing.id;
+    return { id: existing.id, created: false };
   }
 
   const defaults = await getStudioPaymentDefaults(supabase);
@@ -197,7 +197,7 @@ async function createStageInvoice(
   if (error || !invoice) {
     // Concurrent insert may hit unique generation_key — return existing.
     const raced = await findByGenerationKey(supabase, generationKey);
-    if (raced && raced.status !== 'void') return raced.id;
+    if (raced && raced.status !== 'void') return { id: raced.id, created: false };
     throw new InvoiceMutationError('failed', `Unable to create ${input.invoiceType} invoice.`);
   }
 
@@ -232,7 +232,7 @@ async function createStageInvoice(
     },
   });
 
-  return invoice.id;
+  return { id: invoice.id, created: true };
 }
 
 /**
@@ -269,7 +269,7 @@ export async function getOrCreateDepositInvoice(
   });
 
   const pct = bpsToPercentInput(agreement.depositBps);
-  const invoiceId = await createStageInvoice(supabase, {
+  const created = await createStageInvoice(supabase, {
     agreement,
     invoiceType: 'deposit',
     baseMinor: allocation.depositBaseMinor,
@@ -279,7 +279,7 @@ export async function getOrCreateDepositInvoice(
     actorProfileId: input.actorProfileId ?? null,
   });
 
-  return { invoiceId, created: true };
+  return { invoiceId: created.id, created: created.created };
 }
 
 /**
@@ -314,7 +314,7 @@ export async function getOrCreateFinalInvoice(
     depositBps: agreement.depositBps,
   });
 
-  const invoiceId = await createStageInvoice(supabase, {
+  const created = await createStageInvoice(supabase, {
     agreement,
     invoiceType: 'final',
     baseMinor: allocation.finalBaseMinor,
@@ -324,5 +324,5 @@ export async function getOrCreateFinalInvoice(
     actorProfileId: input.actorProfileId ?? null,
   });
 
-  return { invoiceId, created: true };
+  return { invoiceId: created.id, created: created.created };
 }

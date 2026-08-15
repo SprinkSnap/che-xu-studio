@@ -28,7 +28,6 @@ export const GET: APIRoute = async () => {
       ok: status.publicConfigured,
       services: {
         supabase: status.publicConfigured ? 'configured' : 'unconfigured',
-        supabaseSecret: status.secretConfigured ? 'configured' : 'unconfigured',
       },
     },
     200,

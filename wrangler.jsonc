@@ -45,6 +45,11 @@
     "crons": ["15 * * * *"]
   },
 
+  // Cloudflare Browser Rendering — HTML → PDF for Proposal/Invoice/Receipt documents.
+  "browser": {
+    "binding": "BROWSER"
+  },
+
   // Rate limiting bindings for sensitive API endpoints.
   "ratelimits": [
     {
@@ -76,6 +81,14 @@
       "namespace_id": "1004",
       "simple": {
         "limit": 12,
+        "period": 60
+      }
+    },
+    {
+      "name": "CAPABILITY_RATE_LIMITER",
+      "namespace_id": "1005",
+      "simple": {
+        "limit": 20,
         "period": 60
       }
     }

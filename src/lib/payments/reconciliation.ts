@@ -248,6 +248,19 @@ export async function reconcileSucceededStripePayment(
     } catch {
       // Outbox enqueue failure must not fail Stripe webhook reconciliation.
     }
+
+    try {
+      const { enqueueDocumentJob } = await import('../pdf/jobs');
+      await enqueueDocumentJob(service, {
+        documentType: 'receipt_pdf',
+        resourceType: 'receipt',
+        resourceId: result.paymentId,
+        paymentId: result.paymentId,
+        idempotencyKey: `payment:${result.paymentId}:receipt:v1`,
+      });
+    } catch {
+      // Receipt PDF is a side effect.
+    }
   }
 
   return result;

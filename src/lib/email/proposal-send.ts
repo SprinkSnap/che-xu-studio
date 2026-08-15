@@ -157,6 +157,14 @@ export async function sendProposalEmail(
     .update({ subject: rendered.subject, recipient_email: recipient })
     .eq('id', log.id);
 
+  const { maybeProposalPdfAttachment } = await import('../pdf/attachments');
+  const { proposalPdfFilename } = await import('../pdf/filenames');
+  const pdfAttachment = await maybeProposalPdfAttachment(supabase, {
+    proposalId: proposal.id,
+    versionId: version.id,
+    filename: proposalPdfFilename(proposal.proposal_number, version.version_number),
+  });
+
   const sendResult = await sendViaResend(
     {
       to: recipient,
@@ -169,6 +177,7 @@ export async function sendProposalEmail(
         { name: 'email_type', value: 'proposal_sent' },
         { name: 'proposal_id', value: proposal.id },
       ],
+      attachments: pdfAttachment ? [pdfAttachment] : undefined,
     },
     emailEnv,
   );

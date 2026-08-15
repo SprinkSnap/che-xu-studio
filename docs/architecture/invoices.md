@@ -141,8 +141,8 @@ Optimistic concurrency: draft saves and issue/void require matching `updated_at`
 
 | Phase | Scope |
 | --- | --- |
-| 10 | Public proposal acceptance → automatic deposit generation via `getOrCreateDepositInvoice` |
-| 11 | Stripe payments, paid/partial status, refunds — see [payments.md](./payments.md) |
-| 12 | Invoice email / reminders (`sent`) |
-| 13 | PDF generation |
+| 10 | Public proposal acceptance → automatic deposit generation via `getOrCreateDepositInvoice` ✅ |
+| 11 | Stripe payments, paid/partial status, refunds — see [payments.md](./payments.md) ✅ |
+| 12 | Invoice email / reminders (`sent`) ✅ |
+| 13 | PDF generation — see [documents-pdf.md](./documents-pdf.md) ✅ |
 | 14 | Dashboard reporting |

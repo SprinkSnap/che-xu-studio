@@ -288,19 +288,17 @@ async function handleChargeRefunded(
     throw new ReconciliationError('mismatch', 'Unsupported refund currency.');
   }
 
-  // Prefer individual refund objects on the charge for idempotent rows.
+  // Prefer individual refund objects. Do not invent a synthetic aggregate row —
+  // charge.refunded without expanded refunds is deferred to refund.* events to
+  // avoid double-counting when both paths arrive.
   const refunds = charge.refunds?.data ?? [];
   if (refunds.length === 0) {
-    // Aggregate-only fallback — use charge.amount_refunded as a single synthetic id once.
-    if (!charge.amount_refunded || charge.amount_refunded <= 0) return;
-    await reconcileSucceededStripeRefund(service, {
-      providerRefundId: `charge_refund_total_${charge.id}`,
-      providerPaymentId,
-      amountMinor: charge.amount_refunded,
-      currency,
-      refundedAt: new Date().toISOString(),
-      reason: charge.refunded ? 'charge.refunded' : null,
-    });
+    if (charge.amount_refunded && charge.amount_refunded > 0) {
+      console.error(
+        '[stripe-webhook] charge.refunded missing refund objects; awaiting refund.* events',
+        charge.id,
+      );
+    }
     return;
   }
 

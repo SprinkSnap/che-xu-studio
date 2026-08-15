@@ -49,6 +49,14 @@ export async function hashPublicToken(rawToken: string): Promise<string> {
 
 /** Constant-time string equality for equal-length hex digests. */
 export function timingSafeEqualHex(a: string, b: string): boolean {
+  return timingSafeEqualString(a, b);
+}
+
+/**
+ * Constant-time equality for secrets of equal length.
+ * Different lengths return false immediately (length is not secret for cron keys).
+ */
+export function timingSafeEqualString(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let mismatch = 0;
   for (let i = 0; i < a.length; i += 1) {

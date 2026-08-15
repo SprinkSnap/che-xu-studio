@@ -1,0 +1,50 @@
+/**
+ * Print styles for client document pages (Proposal / Invoice).
+ * Canonical PDFs use the embedded print CSS in src/lib/documents/html.ts.
+ * Page size default: Letter (Canada / Che Xu Studio primary context).
+ */
+
+@page {
+  size: Letter;
+  margin: 0.6in;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #0b1f33 !important;
+  }
+
+  .studio-doc-no-print,
+  .no-print,
+  nav,
+  header.site-header,
+  footer.site-footer,
+  [data-accept-form],
+  [data-changes-form],
+  [data-download-pdf],
+  form[action*="checkout"] {
+    display: none !important;
+  }
+
+  a[href]::after {
+    content: none !important;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  table {
+    break-inside: auto;
+  }
+
+  tr,
+  img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

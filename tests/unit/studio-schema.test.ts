@@ -29,7 +29,18 @@ describe('studio phase 4 migrations', () => {
       '202608140014_stripe_payment_helpers.sql',
       '202608140015_email_outbox_reminders.sql',
       '202608140016_document_generation.sql',
+      '202608140017_reporting_indexes.sql',
     ]);
+  });
+
+  it('ships reporting indexes for cash-event revenue windows', () => {
+    const sql = readFileSync(
+      path.join(migrationsDir, '202608140017_reporting_indexes.sql'),
+      'utf8',
+    );
+    expect(sql).toMatch(/payments_status_paid_at_idx/);
+    expect(sql).toMatch(/refunds_status_refunded_at_idx/);
+    expect(sql).toMatch(/activity_logs_created_at_idx/);
   });
 
   it('ships document generation status, jobs, and private storage guards', () => {

@@ -101,6 +101,7 @@ Phase 2 does not implement host-based redirects; path-based routes are the sourc
 | Payments | Stripe Checkout + webhooks (no card data in our DB) | Phase 11 |
 | Transactional email | Resend + `email_logs` / `email_outbox` — see [email-reminders.md](./email-reminders.md) | Phase 12 |
 | PDF HTML → file | Cloudflare Browser Rendering + shared print CSS — see [documents-pdf.md](./documents-pdf.md) | Phase 13 |
+| Live dashboard metrics | Reporting layer — see [reporting.md](./reporting.md) | Phase 14 |
 
 **Dual-database note:** `/migrations` = Cloudflare D1 leads; `/supabase/migrations` = Studio Postgres. Do not cross tools.
 
@@ -178,4 +179,5 @@ Phase 2 adds unit coverage for private-path helpers, sitemap allowlist exclusion
 
 ## Explicitly deferred
 
-Supabase packages/migrations, login UI, admin accounts, RLS, client/project/proposal/invoice CRUD, Stripe, webhooks, email automation, reminders, PDF engine, live dashboard metrics, production Studio DNS.
+Production Studio DNS, Phase 15 hardening/launch gate, Phase 16 production rollout.
+See domain docs for completed phases (auth, clients, projects, proposals, invoices, payments, email, PDFs, [reporting](./reporting.md)).

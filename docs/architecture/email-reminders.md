@@ -84,7 +84,9 @@ Raw tokens are generated at send time, hashed for storage, used in the email bod
 - No marketing UTMs on secure URLs.
 - HTML + plain-text for every template; dynamic content escaped.
 - Public Contact notify path unchanged.
-- Admin success flash includes the recipient address; Email history on the proposal detail shows status and `failure_reason`.
+- Admin success flash includes the recipient address; Email history on the proposal detail shows status, `failure_reason`, and Resend provider message id.
+- Client Proposal/Invoice sends BCC the studio notify/From mailbox so operators can confirm provider acceptance even when the client mailbox filters mail.
+- Hotmail/Outlook delivery requires a published DMARC record — see [email-deliverability.md](../operations/email-deliverability.md).
 
 ## Authorization + RLS
 

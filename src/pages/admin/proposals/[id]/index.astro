@@ -275,8 +275,8 @@ const noticeMap: Record<string, string> = {
   saved: 'Proposal draft saved.',
   link_revoked: 'Client link revoked.',
   email_sent: noticeTo
-    ? `Proposal email accepted by the provider for ${noticeTo}. Proposal marked Sent.`
-    : 'Proposal email accepted by the provider. Proposal marked Sent.',
+    ? `Resend accepted the email for ${noticeTo}. If it is not in Inbox or Junk (Hotmail/Outlook), Microsoft may be discarding it until DMARC is published on chexustudio.com — see docs/operations/email-deliverability.md. A studio BCC copy is also sent to the From mailbox.`
+    : 'Resend accepted the proposal email. If Hotmail shows nothing in Inbox or Junk, publish DMARC on chexustudio.com.',
   already_sent:
     'Proposal delivery was already recorded for this version. Use Resend Proposal to email again.',
   pdf_ready: 'Proposal PDF is ready to download.',
@@ -638,6 +638,9 @@ const defaultRecipient =
                   <p class="mt-1 text-ink-muted">
                     {entry.email_type} · {entry.recipient_email} · {entry.status}
                     {entry.failure_reason ? ` · ${entry.failure_reason}` : ''}
+                    {entry.provider_message_id
+                      ? ` · Resend ${entry.provider_message_id}`
+                      : ''}
                   </p>
                 </div>
                 <time class="text-ink-muted" datetime={entry.sent_at ?? entry.created_at}>
@@ -708,9 +711,11 @@ const defaultRecipient =
               {useResendIntent ? 'Resend Proposal' : 'Send Proposal'}
             </button>
             <p class="text-sm text-ink-muted">
-              Marks the proposal Sent only after the email provider accepts the message. A fresh
-              exact-version secure link is minted for this send. Confirm the recipient address
-              before submitting.
+              Marks the proposal Sent only after Resend accepts the message. A fresh exact-version
+              secure link is minted. Confirm the recipient address before submitting. If Hotmail puts
+              it in Junk: publish Cloudflare TXT Name <code>_dmarc</code> (not
+              <code>_dmarc.chexustudio.com</code>), then have the client mark Not junk and add
+              info@chexustudio.com to contacts.
             </p>
           </form>
         )
@@ -731,6 +736,9 @@ const defaultRecipient =
                       <p class="mt-1 text-ink-muted">
                         {entry.recipient_email} · {entry.status}
                         {entry.failure_reason ? ` · ${entry.failure_reason}` : ''}
+                        {entry.provider_message_id
+                          ? ` · Resend ${entry.provider_message_id}`
+                          : ''}
                       </p>
                     </div>
                     <time class="text-ink-muted" datetime={entry.sent_at ?? entry.created_at}>

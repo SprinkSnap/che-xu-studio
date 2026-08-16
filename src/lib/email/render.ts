@@ -25,12 +25,24 @@ export function wrapBrandedEmail(input: {
   ctaLabel?: string;
   ctaUrl?: string;
   footerNote?: string;
+  /** Prefer a plain text-style link over a large button (better for Outlook inbox). */
+  ctaStyle?: 'button' | 'link';
 }): string {
   const preview = escapeHtml(input.previewText);
   const heading = escapeHtml(input.heading);
+  const ctaStyle = input.ctaStyle ?? 'button';
   const cta =
     input.ctaLabel && input.ctaUrl
-      ? `<p style="margin:28px 0 8px">
+      ? ctaStyle === 'link'
+        ? `<p style="margin:24px 0 8px;font-size:16px;line-height:1.5">
+            <a href="${escapeHtml(input.ctaUrl)}" style="color:#0B1F33;font-weight:600">
+              ${escapeHtml(input.ctaLabel)}
+            </a>
+          </p>
+          <p style="margin:0;font-size:13px;color:#5B6B7C;word-break:break-all">
+            ${escapeHtml(input.ctaUrl)}
+          </p>`
+        : `<p style="margin:28px 0 8px">
           <a href="${escapeHtml(input.ctaUrl)}"
              style="display:inline-block;background:#0B1F33;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:6px;font-weight:600;font-size:16px">
             ${escapeHtml(input.ctaLabel)}
@@ -42,7 +54,7 @@ export function wrapBrandedEmail(input: {
       : '';
   const footer = escapeHtml(
     input.footerNote ||
-      'Che Xu Studio · Reply to this email if you have questions.',
+      'Che Xu Studio · This is a transactional message about your project. Reply to this email if you have questions.',
   );
 
   return `<!DOCTYPE html>

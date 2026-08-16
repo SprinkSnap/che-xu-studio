@@ -22,35 +22,36 @@ export function renderProposalDeliveryEmail(input: {
   reviewUrl: string;
 }): RenderedEmail {
   const subject = sanitizeEmailSubject(
-    `Proposal from Che Xu Studio — ${input.projectName}`,
+    `Your proposal ${input.proposalNumber} from Che Xu Studio`,
   );
   const greeting = input.contactName ? `Hello ${input.contactName},` : 'Hello,';
   const expireLine = input.expiresAt
-    ? `This proposal is available until ${input.expiresAt}.`
+    ? `This proposal link is available until ${input.expiresAt}.`
     : null;
 
   const bodyHtml = [
     paragraph(greeting),
     paragraph(
-      `Your proposal for ${input.projectName} is ready to review. Please open the secure link below to read the full proposal and respond.`,
+      `Here is your proposal for ${input.projectName}. Use the secure link below to review the exact version and respond.`,
     ),
     strongLine('Proposal', `${input.proposalNumber} — ${input.proposalTitle}`),
-    input.totalLabel ? strongLine('Investment', input.totalLabel) : '',
+    input.totalLabel ? strongLine('Total', input.totalLabel) : '',
     expireLine ? paragraph(expireLine) : '',
-    paragraph('If you have questions, reply to this email.'),
+    paragraph('If you have questions, reply directly to this email.'),
   ].join('');
 
   const text = [
     greeting,
     '',
-    `Your proposal for ${escapeText(input.projectName)} is ready to review.`,
+    `Here is your proposal for ${escapeText(input.projectName)}.`,
     `Proposal: ${input.proposalNumber} — ${input.proposalTitle}`,
-    input.totalLabel ? `Investment: ${input.totalLabel}` : null,
+    input.totalLabel ? `Total: ${input.totalLabel}` : null,
     expireLine,
     '',
-    `Review Proposal: ${input.reviewUrl}`,
+    `Review your proposal: ${input.reviewUrl}`,
     '',
-    'Che Xu Studio',
+    'This is a transactional message from Che Xu Studio.',
+    'Reply to this email if you have questions.',
   ]
     .filter(Boolean)
     .join('\n');
@@ -59,11 +60,14 @@ export function renderProposalDeliveryEmail(input: {
     subject,
     text,
     html: wrapBrandedEmail({
-      previewText: `Review your Che Xu Studio proposal for ${input.projectName}`,
-      heading: 'Your proposal is ready',
+      previewText: `Your proposal ${input.proposalNumber} is ready to review`,
+      heading: 'Your proposal',
       bodyHtml,
-      ctaLabel: 'Review Proposal',
+      ctaLabel: 'Open your proposal',
       ctaUrl: input.reviewUrl,
+      ctaStyle: 'link',
+      footerNote:
+        'Che Xu Studio · Transactional proposal delivery · Reply to this email with questions.',
     }),
   };
 }

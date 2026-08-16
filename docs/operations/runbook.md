@@ -2,7 +2,7 @@
 
 Practical operations for Che Xu Studio on Cloudflare Workers + Supabase.
 
-Related: [production-checklist.md](./production-checklist.md) · [recovery.md](./recovery.md) · [production-rollout.md](./production-rollout.md) · [launch-record.md](./launch-record.md)
+Related: [production-checklist.md](./production-checklist.md) · [recovery.md](./recovery.md) · [production-rollout.md](./production-rollout.md) · [launch-record.md](./launch-record.md) · [email-deliverability.md](./email-deliverability.md)
 
 ---
 
@@ -64,10 +64,14 @@ Immutable document content stays the same. Old token must 404/unavailable.
 
 1. Confirm recipient on the Proposal/Invoice detail (**Recent email attempts** / Email history) plus `STUDIO_FROM_EMAIL` / `CONTACT_FROM_EMAIL` domain verified in Resend.  
 2. Inspect `email_logs` / `email_outbox` for `status` and `failure_reason`. `sent` means Resend accepted the message — check spam and the Resend dashboard for that provider message id.  
-3. Fix config/address. Use **Resend Proposal** / **Resend Invoice** (fresh idempotency key). Do not rely on a silent already-sent path.  
-4. Keep Resend domain click/open tracking disabled so capability URLs are not rewritten.  
-5. Retry idempotently (Admin retry or Cron outbox).  
-6. Domain truth (sent/accepted/paid) must not roll back because mail failed.
+3. **Hotmail / Outlook:** if logs show `sent` with a Resend id but the client inbox is empty, publish DMARC and ask them to check Junk:
+   - TXT `_dmarc.chexustudio.com` → `v=DMARC1; p=none; rua=mailto:info@chexustudio.com; fo=1`
+   - Keep Resend DKIM (`resend._domainkey`) and Return-Path (`send` MX + SPF `include:amazonses.com`)
+   - Do **not** remove Microsoft 365 root SPF used for mailbox receiving  
+4. Fix config/address. Use **Resend Proposal** / **Resend Invoice** (fresh idempotency key).  
+5. Keep Resend domain click/open tracking disabled so capability URLs are not rewritten.  
+6. Retry idempotently (Admin retry or Cron outbox).  
+7. Domain truth (sent/accepted/paid) must not roll back because mail failed.
 
 **Emergency outbound stop:** disable Cloudflare Cron trigger for `/api/studio/jobs/process`, and/or unset/rotate `CRON_SECRET` so jobs 404. (No separate `EMAIL_SENDING_ENABLED` flag in code today.)
 

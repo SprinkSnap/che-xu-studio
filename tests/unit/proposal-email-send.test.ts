@@ -82,6 +82,7 @@ describe('sendViaResend payload', () => {
         html: '<p>Hi</p>',
         text: 'Hi',
         disableTracking: true,
+        bcc: 'info@chexustudio.com',
         idempotencyKey: 'proposal:v1:resend:1',
       },
       {
@@ -93,6 +94,7 @@ describe('sendViaResend payload', () => {
     expect(result.ok).toBe(true);
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
     expect(body.to).toEqual(['client@example.com']);
+    expect(body.bcc).toEqual(['info@chexustudio.com']);
     expect(body.from).toContain('info@chexustudio.com');
     expect(body.tracking).toBeUndefined();
   });

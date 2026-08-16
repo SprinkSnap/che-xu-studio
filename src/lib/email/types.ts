@@ -39,6 +39,8 @@ export type SendEmailInput = {
   html: string;
   text: string;
   replyTo?: string | null;
+  /** Optional BCC (e.g. studio delivery copy). Skipped when equal to `to`. */
+  bcc?: string | string[] | null;
   /** Resend idempotency key (defense in depth). */
   idempotencyKey?: string;
   /** Disable Resend click/open tracking for capability-link emails. */

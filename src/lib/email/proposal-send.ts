@@ -11,6 +11,7 @@ import { formatMoney } from '../clients/format';
 import type { CurrencyCode } from '../supabase/domain';
 import {
   getPublicSiteOrigin,
+  getStudioDeliveryBcc,
   readStudioEmailEnvFromRuntime,
   type StudioEmailEnvSource,
 } from './config';
@@ -34,6 +35,7 @@ export type ProposalSendResult = {
   alreadySent: boolean;
   emailLogId: string;
   recipientEmail: string;
+  providerMessageId?: string | null;
 };
 
 /**
@@ -123,6 +125,7 @@ export async function sendProposalEmail(
       alreadySent: false,
       emailLogId: resent.emailLogId,
       recipientEmail: resent.recipientEmail,
+      providerMessageId: resent.providerMessageId,
     };
   }
 
@@ -181,6 +184,7 @@ export async function sendProposalEmail(
       text: rendered.text,
       idempotencyKey,
       disableTracking: true,
+      bcc: getStudioDeliveryBcc(emailEnv),
       tags: [
         { name: 'email_type', value: 'proposal_sent' },
         { name: 'proposal_id', value: proposal.id },
@@ -298,7 +302,12 @@ export async function sendProposalEmail(
     }
   }
 
-  return { alreadySent: false, emailLogId: log.id, recipientEmail: recipient };
+  return {
+    alreadySent: false,
+    emailLogId: log.id,
+    recipientEmail: recipient,
+    providerMessageId: sendResult.providerMessageId,
+  };
 }
 
 /** Explicit resend — new idempotency key, mints a fresh link. */
@@ -310,7 +319,7 @@ export async function resendProposalEmail(
     recipientEmail?: string | null;
     emailEnv?: StudioEmailEnvSource;
   },
-): Promise<{ emailLogId: string; recipientEmail: string }> {
+): Promise<{ emailLogId: string; recipientEmail: string; providerMessageId: string }> {
   const emailEnv = input.emailEnv ?? (await readStudioEmailEnvFromRuntime());
   const siteOrigin = getPublicSiteOrigin(emailEnv);
 
@@ -396,6 +405,7 @@ export async function resendProposalEmail(
       text: rendered.text,
       idempotencyKey,
       disableTracking: true,
+      bcc: getStudioDeliveryBcc(emailEnv),
       tags: [
         { name: 'email_type', value: 'proposal_resent' },
         { name: 'proposal_id', value: proposal.id },
@@ -452,5 +462,9 @@ export async function resendProposalEmail(
     },
   });
 
-  return { emailLogId: log.id, recipientEmail: recipient };
+  return {
+    emailLogId: log.id,
+    recipientEmail: recipient,
+    providerMessageId: sendResult.providerMessageId,
+  };
 }

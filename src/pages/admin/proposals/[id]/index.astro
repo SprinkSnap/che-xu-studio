@@ -275,8 +275,8 @@ const noticeMap: Record<string, string> = {
   saved: 'Proposal draft saved.',
   link_revoked: 'Client link revoked.',
   email_sent: noticeTo
-    ? `Proposal email accepted by the provider for ${noticeTo}. Proposal marked Sent.`
-    : 'Proposal email accepted by the provider. Proposal marked Sent.',
+    ? `Resend accepted the proposal email for ${noticeTo}. Check the client inbox and Junk/Spam (Hotmail/Outlook often quarantine until DMARC is published). A delivery copy was BCC’d to the studio From mailbox when configured.`
+    : 'Resend accepted the proposal email. Check the client inbox and Junk/Spam.',
   already_sent:
     'Proposal delivery was already recorded for this version. Use Resend Proposal to email again.',
   pdf_ready: 'Proposal PDF is ready to download.',
@@ -638,6 +638,9 @@ const defaultRecipient =
                   <p class="mt-1 text-ink-muted">
                     {entry.email_type} · {entry.recipient_email} · {entry.status}
                     {entry.failure_reason ? ` · ${entry.failure_reason}` : ''}
+                    {entry.provider_message_id
+                      ? ` · Resend ${entry.provider_message_id}`
+                      : ''}
                   </p>
                 </div>
                 <time class="text-ink-muted" datetime={entry.sent_at ?? entry.created_at}>
@@ -708,9 +711,10 @@ const defaultRecipient =
               {useResendIntent ? 'Resend Proposal' : 'Send Proposal'}
             </button>
             <p class="text-sm text-ink-muted">
-              Marks the proposal Sent only after the email provider accepts the message. A fresh
-              exact-version secure link is minted for this send. Confirm the recipient address
-              before submitting.
+              Marks the proposal Sent only after Resend accepts the message. A fresh exact-version
+              secure link is minted. Confirm the recipient address before submitting. If the client
+              uses Hotmail/Outlook, ask them to check Junk — publish a DMARC TXT on chexustudio.com
+              if mail is accepted here but never arrives.
             </p>
           </form>
         )
@@ -731,6 +735,9 @@ const defaultRecipient =
                       <p class="mt-1 text-ink-muted">
                         {entry.recipient_email} · {entry.status}
                         {entry.failure_reason ? ` · ${entry.failure_reason}` : ''}
+                        {entry.provider_message_id
+                          ? ` · Resend ${entry.provider_message_id}`
+                          : ''}
                       </p>
                     </div>
                     <time class="text-ink-muted" datetime={entry.sent_at ?? entry.created_at}>

@@ -116,12 +116,13 @@ export async function listEmailLogsForProposal(
     sent_at: string | null;
     created_at: string;
     failure_reason: string | null;
+    provider_message_id: string | null;
   }>
 > {
   const { data, error } = await client
     .from('email_logs')
     .select(
-      'id, email_type, recipient_email, subject, status, sent_at, created_at, failure_reason',
+      'id, email_type, recipient_email, subject, status, sent_at, created_at, failure_reason, provider_message_id',
     )
     .eq('proposal_id', proposalId)
     .order('created_at', { ascending: false })

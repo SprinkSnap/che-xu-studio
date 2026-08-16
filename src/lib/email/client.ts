@@ -31,15 +31,20 @@ export async function sendViaResend(
   }
 
   const replyTo = input.replyTo?.trim() || getStudioReplyToEmail(env) || undefined;
+  const to = input.to.trim().toLowerCase();
+  const bccList = (Array.isArray(input.bcc) ? input.bcc : input.bcc ? [input.bcc] : [])
+    .map((value) => value.trim().toLowerCase())
+    .filter((value) => value.length > 0 && value !== to);
 
   const body: Record<string, unknown> = {
     from,
-    to: [input.to.trim()],
+    to: [to],
     subject: input.subject,
     html: input.html,
     text: input.text,
   };
   if (replyTo) body.reply_to = replyTo;
+  if (bccList.length) body.bcc = bccList;
   if (input.tags?.length) body.tags = input.tags;
   if (input.attachments?.length) {
     body.attachments = input.attachments.map((file) => ({

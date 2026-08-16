@@ -128,6 +128,21 @@ export function getStudioNotifyEmail(env?: StudioEmailEnvSource): string | null 
   );
 }
 
+/**
+ * BCC target for client-facing Proposal/Invoice delivery copies.
+ * Prefer explicit notify addresses; otherwise the From mailbox.
+ */
+export function getStudioDeliveryBcc(env?: StudioEmailEnvSource): string | null {
+  const resolved = env ?? resolveStudioEmailEnv();
+  const notify = getStudioNotifyEmail(resolved);
+  if (notify) return notify.toLowerCase();
+  try {
+    return extractEmailAddress(getStudioFromEmail(resolved));
+  } catch {
+    return null;
+  }
+}
+
 /** Public document base URL — never from untrusted Host header. */
 export function getPublicSiteOrigin(env?: StudioEmailEnvSource): string {
   const resolved = env ?? resolveStudioEmailEnv();

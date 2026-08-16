@@ -60,6 +60,14 @@ jobs:
             echo "::error::CLOUDFLARE_API_TOKEN looks too short (${#token} chars). Use the secret value shown once when creating the token — not the display name."
             exit 1
           fi
+          # Cloudflare token *names* (e.g. WorkersBuilds-2026-08-0323:43) are not valid
+          # credentials and produce auth 9106 / Authorization header 6111.
+          if printf '%s' "$token" | grep -Eqi '^(WorkersBuilds|Edit Cloudflare|Create Token|API Token)' \
+            || printf '%s' "$token" | grep -Eq '[0-9]{4}-[0-9]{2}-[0-9]{2}[0-9]{2}:[0-9]{2}$' \
+            || printf '%s' "$token" | grep -Fq ':'; then
+            echo "::error::CLOUDFLARE_API_TOKEN looks like a token display name (or contains ':'), not the secret value. Recreate the Cloudflare API token, copy the long secret string shown once, and update the GitHub Actions secret."
+            exit 1
+          fi
 
           echo "token_len=${#token}"
           echo "account_len=${#account}"

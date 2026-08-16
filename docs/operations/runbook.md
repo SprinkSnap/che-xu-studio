@@ -60,13 +60,14 @@ Immutable document content stays the same. Old token must 404/unavailable.
 
 ---
 
-## Email failed
+## Email failed / client did not receive
 
-1. Confirm recipient + `STUDIO_FROM_EMAIL` domain verified.  
-2. Inspect `email_logs` / `email_outbox` status.  
-3. Fix config/address.  
-4. Retry idempotently (Admin retry or Cron outbox).  
-5. Domain truth (sent/accepted/paid) must not roll back because mail failed.
+1. Confirm recipient on the Proposal/Invoice detail (**Recent email attempts** / Email history) plus `STUDIO_FROM_EMAIL` / `CONTACT_FROM_EMAIL` domain verified in Resend.  
+2. Inspect `email_logs` / `email_outbox` for `status` and `failure_reason`. `sent` means Resend accepted the message — check spam and the Resend dashboard for that provider message id.  
+3. Fix config/address. Use **Resend Proposal** / **Resend Invoice** (fresh idempotency key). Do not rely on a silent already-sent path.  
+4. Keep Resend domain click/open tracking disabled so capability URLs are not rewritten.  
+5. Retry idempotently (Admin retry or Cron outbox).  
+6. Domain truth (sent/accepted/paid) must not roll back because mail failed.
 
 **Emergency outbound stop:** disable Cloudflare Cron trigger for `/api/studio/jobs/process`, and/or unset/rotate `CRON_SECRET` so jobs 404. (No separate `EMAIL_SENDING_ENABLED` flag in code today.)
 

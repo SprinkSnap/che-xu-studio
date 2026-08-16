@@ -169,8 +169,11 @@ if (Astro.request.method === 'POST') {
                 actorProfileId: actorId,
                 recipientEmail: recipientOverride,
               });
+        const notice =
+          'alreadySent' in result && result.alreadySent ? 'already_sent' : 'email_sent';
+        const to = encodeURIComponent(result.recipientEmail);
         return Astro.redirect(
-          `/admin/proposals/${proposalId}?notice=${result.alreadySent ? 'already_sent' : 'email_sent'}`,
+          `/admin/proposals/${proposalId}?notice=${notice}&to=${to}`,
           303,
         );
       } else if (intent === 'generate_pdf' || intent === 'regenerate_pdf') {
@@ -264,14 +267,18 @@ if (!detail) {
 }
 
 const notice = Astro.url.searchParams.get('notice');
+const noticeTo = Astro.url.searchParams.get('to')?.trim() || '';
 const noticeMap: Record<string, string> = {
   finalized: 'Version finalized. Status remains draft until the proposal email is accepted by the provider.',
   revision: 'New editable revision created.',
   archived: 'Proposal archived.',
   saved: 'Proposal draft saved.',
   link_revoked: 'Client link revoked.',
-  email_sent: 'Proposal email accepted by the provider. Proposal marked Sent.',
-  already_sent: 'Proposal delivery was already recorded for this version.',
+  email_sent: noticeTo
+    ? `Proposal email accepted by the provider for ${noticeTo}. Proposal marked Sent.`
+    : 'Proposal email accepted by the provider. Proposal marked Sent.',
+  already_sent:
+    'Proposal delivery was already recorded for this version. Use Resend Proposal to email again.',
   pdf_ready: 'Proposal PDF is ready to download.',
   pdf_regen: 'Proposal PDF regenerated. Prior generation is preserved in history.',
 };
@@ -329,8 +336,30 @@ const canSendProposal =
   status !== 'accepted' &&
   !proposal.accepted_at;
 const emailLogs = await listEmailLogsForProposal(supabase, proposal.id);
+const { data: clientEmailRow } = await supabase
+  .from('clients')
+  .select('billing_email')
+  .eq('id', proposal.client_id)
+  .maybeSingle();
+const { data: primaryContact } = await supabase
+  .from('client_contacts')
+  .select('email')
+  .eq('client_id', proposal.client_id)
+  .eq('is_primary', true)
+  .maybeSingle();
+const hasSuccessfulDelivery = emailLogs.some(
+  (entry) => entry.status === 'sent' || entry.status === 'delivered',
+);
+const useResendIntent =
+  Boolean(proposal.sent_at) ||
+  hasSuccessfulDelivery ||
+  status === 'sent' ||
+  status === 'viewed' ||
+  status === 'changes_requested';
 const defaultRecipient =
   version.client_contact_email?.trim() ||
+  clientEmailRow?.billing_email?.trim() ||
+  primaryContact?.email?.trim() ||
   '';
 ---
 
@@ -663,28 +692,55 @@ const defaultRecipient =
             <input
               type="hidden"
               name="intent"
-              value={status === 'sent' || status === 'viewed' || status === 'changes_requested' ? 'resend_proposal' : 'send_proposal'}
+              value={useResendIntent ? 'resend_proposal' : 'send_proposal'}
             />
-              <label class="studio-auth-field">
-                <span class="text-ink-muted">Recipient email</span>
-                <input
-                  type="email"
-                  name="recipientEmail"
-                  value={defaultRecipient}
-                  required
-                  autocomplete="email"
-                />
-              </label>
+            <label class="studio-auth-field">
+              <span class="text-ink-muted">Recipient email</span>
+              <input
+                type="email"
+                name="recipientEmail"
+                value={defaultRecipient}
+                required
+                autocomplete="email"
+              />
+            </label>
             <button type="submit" class="studio-action studio-action-primary">
-              {status === 'draft' || status === 'expired' || status === 'declined'
-                ? 'Send Proposal'
-                : 'Resend Proposal'}
+              {useResendIntent ? 'Resend Proposal' : 'Send Proposal'}
             </button>
             <p class="text-sm text-ink-muted">
-              Marks the proposal Sent only after the email provider accepts delivery. A fresh
-              exact-version secure link is minted for this send.
+              Marks the proposal Sent only after the email provider accepts the message. A fresh
+              exact-version secure link is minted for this send. Confirm the recipient address
+              before submitting.
             </p>
           </form>
+        )
+      }
+
+      {
+        canSendProposal && (
+          <div class="mb-6">
+            <h3 class="mb-2 text-sm font-semibold text-navy-900">Recent email attempts</h3>
+            {emailLogs.length === 0 ? (
+              <p class="text-sm text-ink-muted">No proposal emails logged yet for this record.</p>
+            ) : (
+              <ul class="divide-y divide-border" role="list">
+                {emailLogs.slice(0, 5).map((entry) => (
+                  <li class="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
+                    <div>
+                      <p class="font-medium text-navy-900">{entry.subject}</p>
+                      <p class="mt-1 text-ink-muted">
+                        {entry.recipient_email} · {entry.status}
+                        {entry.failure_reason ? ` · ${entry.failure_reason}` : ''}
+                      </p>
+                    </div>
+                    <time class="text-ink-muted" datetime={entry.sent_at ?? entry.created_at}>
+                      {formatStudioDateTime(entry.sent_at ?? entry.created_at)}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )
       }
 

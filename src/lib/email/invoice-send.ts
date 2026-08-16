@@ -105,9 +105,6 @@ export async function sendInvoiceEmail(
   if (!log.created && (log.status === 'sent' || log.status === 'delivered')) {
     return { alreadySent: true, emailLogId: log.id };
   }
-  if (invoice.status === 'sent' && invoice.sent_at) {
-    return { alreadySent: true, emailLogId: log.id };
-  }
 
   let rawUrl: string;
   try {

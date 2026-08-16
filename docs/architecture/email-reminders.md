@@ -41,12 +41,14 @@ Retries use staged backoff (5m → 30m → 2h → 12h) with a max attempt count.
 `sendProposalEmail` / `resendProposalEmail`:
 
 1. Require finalized exact Version; reject Accepted/Archived.
-2. Resolve recipient from version contact snapshot (admin override allowed; snapshot not mutated).
+2. Resolve recipient from admin override → version contact snapshot → client billing email → primary contact.
 3. Mint a fresh hashed capability link bound to that Version (`mode: 'mint'`; prior links remain valid up to cap).
 4. Reserve `email_logs` with `proposal:{versionId}:delivery` (first delivery) or a resend key.
-5. Send with **click/open tracking disabled**.
+5. Send via Resend (domain click/open tracking should stay disabled so capability URLs are not rewritten).
 6. On provider success → mark log sent → set Proposal `sent` + `sent_at` → Project `proposal → awaiting_approval` when allowed.
-7. On failure → Proposal stays unsent; admin can retry safely.
+7. On failure → Proposal stays unsent; admin can retry safely. Provider error codes appear in Email history.
+
+If the first-delivery idempotency key already succeeded, **Send delegates to Resend** (new key + fresh link) instead of returning a silent `already_sent` no-op. The admin UI uses Resend whenever `sent_at` or a successful email log exists (including expired/declined proposals).
 
 Resend does **not** create a new Proposal Version.
 
@@ -78,10 +80,11 @@ Raw tokens are generated at send time, hashed for storage, used in the email bod
 
 - Verified production From domain (reject `resend.dev` From).
 - Client-facing Reply-To enabled.
-- Click tracking and open tracking **disabled** for capability-link emails.
+- Click tracking and open tracking are **domain-level** in Resend — keep both disabled for `chexustudio.com` so secure Proposal/Invoice URLs are not rewritten. (There is no per-message `tracking` field on Send Email.)
 - No marketing UTMs on secure URLs.
 - HTML + plain-text for every template; dynamic content escaped.
 - Public Contact notify path unchanged.
+- Admin success flash includes the recipient address; Email history on the proposal detail shows status and `failure_reason`.
 
 ## Authorization + RLS
 

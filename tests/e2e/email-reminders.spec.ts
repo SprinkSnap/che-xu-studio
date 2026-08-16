@@ -37,8 +37,8 @@ test.describe('Studio email & reminders', () => {
     await expect(page.getByText(/Payment reminders/i)).toBeVisible();
 
     await page.goto('/admin/settings/email-preview?template=proposal');
-    await expect(page.getByText(/Review Proposal/i).first()).toBeVisible();
+    await expect(page.getByText(/Open your proposal/i).first()).toBeVisible();
     await page.getByRole('link', { name: 'invoice' }).click();
-    await expect(page.getByText(/View & Pay Invoice/i).first()).toBeVisible();
+    await expect(page.getByText(/Open your invoice/i).first()).toBeVisible();
   });
 });

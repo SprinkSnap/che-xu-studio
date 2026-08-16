@@ -9,12 +9,14 @@ import { recordStudioActivity } from '../studio/activity';
 import { formatDateOnly } from '../clients/format';
 import {
   getPublicSiteOrigin,
+  getStudioDeliveryBcc,
   readStudioEmailEnvFromRuntime,
   type StudioEmailEnvSource,
 } from './config';
 import { sendViaResend } from './client';
 import { insertQueuedEmailLog, markEmailLogFailed, markEmailLogSent } from './logging';
 import { renderInvoiceDeliveryEmail } from './templates';
+import { resolveDeliveryRecipient } from './resolve-recipient';
 
 export class InvoiceSendError extends Error {
   readonly code: 'not_found' | 'invalid' | 'provider' | 'failed';
@@ -26,10 +28,23 @@ export class InvoiceSendError extends Error {
   }
 }
 
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 320;
+export type InvoiceSendResult = {
+  alreadySent: boolean;
+  emailLogId: string;
+  recipientEmail: string;
+  providerMessageId?: string | null;
+};
+
+function invoiceEmailType(invoiceType: string): 'deposit_invoice' | 'final_invoice' {
+  return invoiceType === 'final' ? 'final_invoice' : 'deposit_invoice';
 }
 
+/**
+ * Idempotency: invoice:{id}:delivery
+ * First successful provider acceptance wins for that key.
+ * If the first-delivery key already succeeded, Send delegates to Resend so the
+ * client still receives a fresh email.
+ */
 export async function sendInvoiceEmail(
   supabase: StudioSupabaseClient,
   input: {
@@ -38,7 +53,7 @@ export async function sendInvoiceEmail(
     recipientEmail?: string | null;
     emailEnv?: StudioEmailEnvSource;
   },
-): Promise<{ alreadySent: boolean; emailLogId: string }> {
+): Promise<InvoiceSendResult> {
   const emailEnv = input.emailEnv ?? (await readStudioEmailEnvFromRuntime());
   const siteOrigin = getPublicSiteOrigin(emailEnv);
 
@@ -70,32 +85,21 @@ export async function sendInvoiceEmail(
     throw new InvoiceSendError('invalid', 'Invoice has no balance due.');
   }
 
-  const recipient = (
-    input.recipientEmail?.trim() ||
-    invoice.client_contact_email ||
-    ''
-  )
-    .trim()
-    .toLowerCase();
-  if (!recipient || !isValidEmail(recipient)) {
+  const recipient = await resolveDeliveryRecipient(supabase, {
+    recipientEmail: input.recipientEmail,
+    snapshotEmail: invoice.client_contact_email,
+    clientId: invoice.client_id,
+  });
+  if (!recipient) {
     throw new InvoiceSendError('invalid', 'A valid recipient email is required.');
   }
 
-  const emailType =
-    invoice.invoice_type === 'deposit'
-      ? 'deposit_invoice'
-      : invoice.invoice_type === 'final'
-        ? 'final_invoice'
-        : 'deposit_invoice'; // schema has no generic invoice_sent — use deposit_invoice for manual
-
-  // For manual/adjustment use deposit_invoice type as closest transactional delivery enum
-  // (schema email_type does not include invoice_sent). Documented in architecture.
-
+  const emailType = invoiceEmailType(invoice.invoice_type);
   const idempotencyKey = `invoice:${invoice.id}:delivery`;
   const log = await insertQueuedEmailLog(supabase, {
     emailType,
     recipientEmail: recipient,
-    subject: `Invoice ${invoice.invoice_number} from Che Xu Studio`,
+    subject: `Your invoice ${invoice.invoice_number} from Che Xu Studio`,
     idempotencyKey,
     clientId: invoice.client_id,
     projectId: invoice.project_id,
@@ -103,7 +107,17 @@ export async function sendInvoiceEmail(
   });
 
   if (!log.created && (log.status === 'sent' || log.status === 'delivered')) {
-    return { alreadySent: true, emailLogId: log.id };
+    const resent = await resendInvoiceEmail(supabase, {
+      ...input,
+      recipientEmail: recipient,
+      emailEnv,
+    });
+    return {
+      alreadySent: false,
+      emailLogId: resent.emailLogId,
+      recipientEmail: resent.recipientEmail,
+      providerMessageId: resent.providerMessageId,
+    };
   }
 
   let rawUrl: string;
@@ -153,6 +167,7 @@ export async function sendInvoiceEmail(
       text: rendered.text,
       idempotencyKey,
       disableTracking: true,
+      bcc: getStudioDeliveryBcc(emailEnv),
       tags: [
         { name: 'email_type', value: emailType },
         { name: 'invoice_id', value: invoice.id },
@@ -173,7 +188,10 @@ export async function sendInvoiceEmail(
       subjectId: invoice.id,
       metadata: { email_log_id: log.id, error: sendResult.error },
     });
-    throw new InvoiceSendError('provider', 'Unable to send invoice email. Please try again.');
+    throw new InvoiceSendError(
+      'provider',
+      `Unable to send invoice email (${sendResult.error}). Check Email history and Resend.`,
+    );
   }
 
   await markEmailLogSent(supabase, log.id, sendResult.providerMessageId);
@@ -200,12 +218,19 @@ export async function sendInvoiceEmail(
       email_log_id: log.id,
       amount_minor: invoice.balance_due_minor,
       currency: invoice.currency,
+      recipient_domain: recipient.split('@')[1] || null,
     },
   });
 
-  return { alreadySent: false, emailLogId: log.id };
+  return {
+    alreadySent: false,
+    emailLogId: log.id,
+    recipientEmail: recipient,
+    providerMessageId: sendResult.providerMessageId,
+  };
 }
 
+/** Explicit resend — new idempotency key, mints a fresh link. */
 export async function resendInvoiceEmail(
   supabase: StudioSupabaseClient,
   input: {
@@ -214,7 +239,7 @@ export async function resendInvoiceEmail(
     recipientEmail?: string | null;
     emailEnv?: StudioEmailEnvSource;
   },
-): Promise<{ emailLogId: string }> {
+): Promise<{ emailLogId: string; recipientEmail: string; providerMessageId: string }> {
   const emailEnv = input.emailEnv ?? (await readStudioEmailEnvFromRuntime());
   const siteOrigin = getPublicSiteOrigin(emailEnv);
 
@@ -234,27 +259,33 @@ export async function resendInvoiceEmail(
     throw new InvoiceSendError('invalid', 'Invoice has no balance due.');
   }
 
-  const recipient = (
-    input.recipientEmail?.trim() ||
-    invoice.client_contact_email ||
-    ''
-  )
-    .trim()
-    .toLowerCase();
-  if (!recipient || !isValidEmail(recipient)) {
+  const recipient = await resolveDeliveryRecipient(supabase, {
+    recipientEmail: input.recipientEmail,
+    snapshotEmail: invoice.client_contact_email,
+    clientId: invoice.client_id,
+  });
+  if (!recipient) {
     throw new InvoiceSendError('invalid', 'A valid recipient email is required.');
   }
 
-  const emailType =
-    invoice.invoice_type === 'final' ? 'final_invoice' : 'deposit_invoice';
+  const emailType = invoiceEmailType(invoice.invoice_type);
   const idempotencyKey = `invoice:${invoice.id}:resend:${Date.now()}`;
 
-  const link = await createInvoicePublicLink(supabase, {
-    invoiceId: invoice.id,
-    actorProfileId: input.actorProfileId,
-    siteOrigin,
-    mode: 'mint',
-  });
+  let rawUrl: string;
+  try {
+    const link = await createInvoicePublicLink(supabase, {
+      invoiceId: invoice.id,
+      actorProfileId: input.actorProfileId,
+      siteOrigin,
+      mode: 'mint',
+    });
+    rawUrl = link.rawUrl;
+  } catch (err) {
+    if (err instanceof PublicLinkError) {
+      throw new InvoiceSendError('invalid', err.message);
+    }
+    throw err;
+  }
 
   const rendered = renderInvoiceDeliveryEmail({
     contactName: invoice.client_contact_name || '',
@@ -264,7 +295,7 @@ export async function resendInvoiceEmail(
     balanceDueMinor: invoice.balance_due_minor,
     currency: invoice.currency,
     dueDate: invoice.due_date ? formatDateOnly(invoice.due_date) : null,
-    viewUrl: link.rawUrl,
+    viewUrl: rawUrl,
   });
 
   const log = await insertQueuedEmailLog(supabase, {
@@ -278,6 +309,13 @@ export async function resendInvoiceEmail(
     metadata: { resend: true },
   });
 
+  const { maybeInvoicePdfAttachment } = await import('../pdf/attachments');
+  const { invoicePdfFilename } = await import('../pdf/filenames');
+  const pdfAttachment = await maybeInvoicePdfAttachment(supabase, {
+    invoiceId: invoice.id,
+    filename: invoicePdfFilename(invoice.invoice_number),
+  });
+
   const sendResult = await sendViaResend(
     {
       to: recipient,
@@ -286,13 +324,31 @@ export async function resendInvoiceEmail(
       text: rendered.text,
       idempotencyKey,
       disableTracking: true,
+      bcc: getStudioDeliveryBcc(emailEnv),
+      tags: [
+        { name: 'email_type', value: emailType },
+        { name: 'invoice_id', value: invoice.id },
+      ],
+      attachments: pdfAttachment ? [pdfAttachment] : undefined,
     },
     emailEnv,
   );
 
   if (!sendResult.ok) {
     await markEmailLogFailed(supabase, log.id, sendResult.error);
-    throw new InvoiceSendError('provider', 'Unable to resend invoice email.');
+    await recordStudioActivity(supabase, {
+      actorProfileId: input.actorProfileId,
+      action: 'invoice.email_failed',
+      clientId: invoice.client_id,
+      projectId: invoice.project_id,
+      subjectType: 'invoice',
+      subjectId: invoice.id,
+      metadata: { email_log_id: log.id, error: sendResult.error, resend: true },
+    });
+    throw new InvoiceSendError(
+      'provider',
+      `Unable to resend invoice email (${sendResult.error}). Check Email history and Resend.`,
+    );
   }
 
   await markEmailLogSent(supabase, log.id, sendResult.providerMessageId);
@@ -312,8 +368,16 @@ export async function resendInvoiceEmail(
     projectId: invoice.project_id,
     subjectType: 'invoice',
     subjectId: invoice.id,
-    metadata: { email_log_id: log.id, resend: true },
+    metadata: {
+      email_log_id: log.id,
+      resend: true,
+      recipient_domain: recipient.split('@')[1] || null,
+    },
   });
 
-  return { emailLogId: log.id };
+  return {
+    emailLogId: log.id,
+    recipientEmail: recipient,
+    providerMessageId: sendResult.providerMessageId,
+  };
 }

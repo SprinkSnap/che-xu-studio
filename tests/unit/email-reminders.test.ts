@@ -35,7 +35,7 @@ describe('email templates', () => {
     expect(email.html).not.toContain('display:inline-block;background:#0B1F33');
   });
 
-  it('renders invoice delivery with pay CTA', () => {
+  it('renders invoice delivery with transactional link CTA', () => {
     const email = renderInvoiceDeliveryEmail({
       contactName: 'Alex',
       invoiceNumber: 'INV-1',
@@ -47,8 +47,11 @@ describe('email templates', () => {
       viewUrl: 'https://chexustudio.com/invoice/xyz',
     });
     expect(email.subject).toContain('INV-1');
-    expect(email.html).toContain('View &amp; Pay Invoice');
-    expect(email.text).toContain('View & Pay Invoice');
+    expect(email.subject).toContain('Che Xu Studio');
+    expect(email.html).toContain('Open your invoice');
+    expect(email.html).toContain('https://chexustudio.com/invoice/xyz');
+    expect(email.text).toContain('Open your invoice:');
+    expect(email.html).not.toContain('display:inline-block;background:#0B1F33');
   });
 
   it('does not claim deposit activation unless project transitioned', () => {
@@ -111,7 +114,8 @@ describe('email templates', () => {
       viewUrl: 'https://chexustudio.com/invoice/xyz',
     });
     expect(reminder.subject.toLowerCase()).toContain('overdue');
-    expect(reminder.html).toContain('View &amp; Pay Invoice');
+    expect(reminder.html).toContain('Open your invoice');
+    expect(reminder.html).not.toContain('display:inline-block;background:#0B1F33');
 
     const internal = renderInternalNotificationEmail({
       title: 'Proposal accepted — Client',

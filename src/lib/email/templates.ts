@@ -83,34 +83,38 @@ export function renderInvoiceDeliveryEmail(input: {
   viewUrl: string;
 }): RenderedEmail {
   const subject = sanitizeEmailSubject(
-    `Invoice ${input.invoiceNumber} from Che Xu Studio`,
+    `Your invoice ${input.invoiceNumber} from Che Xu Studio`,
   );
   const greeting = input.contactName ? `Hello ${input.contactName},` : 'Hello,';
   const balance = money(input.balanceDueMinor, input.currency);
 
   const bodyHtml = [
     paragraph(greeting),
-    paragraph('Please find your invoice from Che Xu Studio.'),
+    paragraph(
+      'Here is your invoice from Che Xu Studio. Use the secure link below to view details and pay online.',
+    ),
     strongLine('Invoice', input.invoiceNumber),
     input.projectName ? strongLine('Project', input.projectName) : '',
     strongLine('Total', money(input.totalMinor, input.currency)),
     strongLine('Balance due', balance),
     input.dueDate ? strongLine('Due date', input.dueDate) : '',
-    paragraph('Use the secure link below to view details and pay online.'),
+    paragraph('If you have questions, reply directly to this email.'),
   ].join('');
 
   const text = [
     greeting,
     '',
+    'Here is your invoice from Che Xu Studio.',
     `Invoice: ${input.invoiceNumber}`,
     input.projectName ? `Project: ${input.projectName}` : null,
     `Total: ${money(input.totalMinor, input.currency)}`,
     `Balance due: ${balance}`,
     input.dueDate ? `Due date: ${input.dueDate}` : null,
     '',
-    `View & Pay Invoice: ${input.viewUrl}`,
+    `Open your invoice: ${input.viewUrl}`,
     '',
-    'Che Xu Studio',
+    'This is a transactional message from Che Xu Studio.',
+    'Reply to this email if you have questions.',
   ]
     .filter(Boolean)
     .join('\n');
@@ -119,11 +123,14 @@ export function renderInvoiceDeliveryEmail(input: {
     subject,
     text,
     html: wrapBrandedEmail({
-      previewText: `Invoice ${input.invoiceNumber} — balance due ${balance}`,
-      heading: `Invoice ${input.invoiceNumber}`,
+      previewText: `Your invoice ${input.invoiceNumber} — balance due ${balance}`,
+      heading: 'Your invoice',
       bodyHtml,
-      ctaLabel: 'View & Pay Invoice',
+      ctaLabel: 'Open your invoice',
       ctaUrl: input.viewUrl,
+      ctaStyle: 'link',
+      footerNote:
+        'Che Xu Studio · Transactional invoice delivery · Reply to this email with questions.',
     }),
   };
 }
@@ -253,9 +260,10 @@ export function renderReminderEmail(input: {
     `Balance due: ${balance}`,
     input.dueDate ? `Due date: ${input.dueDate}` : null,
     '',
-    `View & Pay Invoice: ${input.viewUrl}`,
+    `Open your invoice: ${input.viewUrl}`,
     '',
-    'Che Xu Studio',
+    'This is a transactional message from Che Xu Studio.',
+    'Reply to this email if you have questions.',
   ]
     .filter(Boolean)
     .join('\n');
@@ -267,8 +275,11 @@ export function renderReminderEmail(input: {
       previewText: lead,
       heading,
       bodyHtml,
-      ctaLabel: 'View & Pay Invoice',
+      ctaLabel: 'Open your invoice',
       ctaUrl: input.viewUrl,
+      ctaStyle: 'link',
+      footerNote:
+        'Che Xu Studio · Transactional payment reminder · Reply to this email with questions.',
     }),
   };
 }

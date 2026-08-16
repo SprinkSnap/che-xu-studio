@@ -33,6 +33,7 @@ describe('email templates', () => {
     expect(email.text).toContain('Review your proposal:');
     expect(email.html).not.toContain('internal');
     expect(email.html).not.toContain('display:inline-block;background:#0B1F33');
+    expect(email.html).not.toContain('border-radius:8px');
   });
 
   it('renders invoice delivery with transactional link CTA', () => {
@@ -52,6 +53,7 @@ describe('email templates', () => {
     expect(email.html).toContain('https://chexustudio.com/invoice/xyz');
     expect(email.text).toContain('Open your invoice:');
     expect(email.html).not.toContain('display:inline-block;background:#0B1F33');
+    expect(email.html).not.toContain('border-radius:8px');
   });
 
   it('does not claim deposit activation unless project transitioned', () => {

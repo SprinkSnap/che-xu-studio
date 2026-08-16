@@ -2,6 +2,8 @@
 
 Studio sends Proposal/Invoice mail through Resend (`From: info@chexustudio.com`). Mailboxes for the same domain are hosted on Microsoft 365.
 
+**Important:** `email_logs.status=sent` means Resend accepted the message. It does **not** mean Hotmail placed it in Inbox. Consumer Hotmail/Outlook often files cold Resend/Amazon SES mail in Junk even when SPF, DKIM, and DMARC all pass.
+
 ## What production already has
 
 | Record | Purpose | Observed |
@@ -33,23 +35,25 @@ Verify:
 dig +short TXT _dmarc.chexustudio.com
 ```
 
-## Hotmail goes to Junk (even though it is not spam)
+## Hotmail / Outlook Junk (auth is fine)
 
-Resend accepting the message (`email_logs.status=sent`) means SMTP handoff succeeded — not that Microsoft placed it in Inbox. After DMARC is live, Junk is usually reputation + recipient training:
+When Proposal and Invoice resends both land in Junk:
 
-1. **Confirm DMARC** — `dig` must return the TXT above (already live for chexustudio.com).
-2. **Recipient action (one time):** open Junk → open the proposal/invoice email → **Not junk** / **Report not junk**, then add `info@chexustudio.com` to contacts / safe senders. Microsoft learns from that engagement.
-3. **Resend once** from Studio after the client trains Hotmail (avoid repeated Hotmail sends while training).
-4. **Content:** Proposal and invoice mail use a plain link CTA (not a large marketing button) and transactional wording. Studio BCC copies client sends to the From/notify mailbox so you can confirm provider accept.
-5. Optional: register with [Microsoft SNDS](https://sendersupport.olc.protection.outlook.com/snds/) / sender support if Junk continues after auth + Not junk.
+1. **Train the recipient (required for Inbox):** Junk → open the message → **Not junk**, then add `info@chexustudio.com` to contacts / safe senders. Microsoft learns per mailbox.
+2. **Resend once** after that — do not hammer the same Hotmail address.
+3. **Immediate Inbox workaround:** Create Client / Payment Link in Studio, then email that URL from your **Microsoft 365 Outlook** mailbox (`info@chexustudio.com`). Same-ecosystem mail usually reaches Hotmail Inbox when Resend/SES does not.
+4. **Studio mitigations already shipping:** plain-link CTA, plain HTML layout, transactional MIME headers, no PDF attachments to Hotmail/Outlook/Live, studio BCC copy.
+5. **Keep `attach_pdf_by_default` off** in Studio settings (PDF attachments raise junk scores).
+6. Optional reputation: [Microsoft SNDS](https://sendersupport.olc.protection.outlook.com/snds/), [sender support](https://sender.office.com/), Resend dashboard bounces/complaints.
 
 ## Hotmail missing from Inbox and Junk
 
-Microsoft can discard after SMTP accept when DMARC is unpublished. Publish DMARC before further debugging. With DMARC live, check studio BCC and Resend dashboard before assuming discard.
+Microsoft can discard after SMTP accept when DMARC is unpublished. With DMARC live, check studio BCC + Resend dashboard before assuming discard.
 
 ## Do not
 
 - Replace apex Microsoft SPF with only `include:amazonses.com` (breaks M365).
 - Point apex MX at Resend/Amazon (hijacks inbound mail).
 - Enable Resend click tracking for capability-link templates (domain setting).
-- Keep hammering the same Hotmail address while `_dmarc` is empty or before the client marks Not junk.
+- Keep resending to the same Hotmail address before the client marks Not junk.
+- Expect Resend alone to guarantee Inbox on first contact with consumer Microsoft mailboxes.

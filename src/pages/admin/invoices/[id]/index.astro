@@ -205,8 +205,8 @@ const noticeMap: Record<string, string> = {
   existing: 'Existing invoice returned (idempotent generation).',
   link_revoked: 'Client payment link revoked.',
   email_sent: noticeTo
-    ? `Resend accepted the invoice email for ${noticeTo}. If Hotmail/Outlook put it in Junk, have the client mark Not junk and add info@chexustudio.com to contacts — then resend once. A studio BCC copy goes to the From mailbox. See docs/operations/email-deliverability.md.`
-    : 'Resend accepted the invoice email. If Hotmail shows Junk, have the client mark Not junk and add info@chexustudio.com to contacts.',
+    ? `Resend accepted the invoice email for ${noticeTo}. Hotmail/Outlook often still places Resend/SES mail in Junk until the recipient marks Not junk and adds info@chexustudio.com to contacts. For Inbox now, Create Payment Link and email the URL from your Microsoft 365 mailbox. See docs/operations/email-deliverability.md.`
+    : 'Resend accepted the invoice email. Hotmail may still use Junk until the recipient trains Not junk.',
   already_sent:
     'Invoice delivery was already recorded. Use Resend Invoice to email again.',
   reminders_on: 'Payment reminders enabled for this invoice.',
@@ -547,8 +547,12 @@ function qtyLabel(quantity: number): string {
             <p class="text-sm text-ink-muted">
               Marks the invoice Sent only after Resend accepts the message. A fresh secure payment
               link is minted (prior links stay valid until paid/void or revoked). Confirm the
-              recipient before submitting. If Hotmail puts it in Junk: have the client open it →
-              Not junk, add info@chexustudio.com to contacts, then resend once.
+              recipient before submitting.
+            </p>
+            <p class="text-sm text-ink-muted">
+              Hotmail/Outlook Junk: client opens Junk → Not junk, adds info@chexustudio.com to
+              contacts, then Resend once. For Inbox now, Create Payment Link below and send that URL
+              from your Microsoft 365 Outlook mailbox instead of Resend.
             </p>
           </form>
         )

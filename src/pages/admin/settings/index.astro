@@ -153,6 +153,12 @@ const settings = await getStudioSettings(supabase);
         Preview branded transactional templates without sending.
       </p>
       <a class="studio-action" href="/admin/settings/email-preview">Email previews</a>
+      <p class="mt-4 text-sm text-ink-muted">
+        Hotmail/Outlook Junk is usually mailbox reputation, not a Studio send failure. Prefer Create
+        Client/Payment Link + send from Microsoft 365 when Inbox placement matters immediately.
+        Details: <code>docs/operations/email-deliverability.md</code>. Keep PDF email attachments
+        disabled for better deliverability.
+      </p>
     </StudioPanel>
   </div>
 </StudioLayout>

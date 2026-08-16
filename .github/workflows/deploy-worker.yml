@@ -70,6 +70,11 @@ jobs:
             echo "::error::CLOUDFLARE_API_TOKEN looks like a token display name, not the secret value. Recreate the Cloudflare API token, copy the long secret string shown once (often starts with cfut_), and update the GitHub Actions secret."
             exit 1
           fi
+          # Workers Builds "API token" picker shows a UUID — that is not a Bearer secret.
+          if printf '%s' "$token" | grep -Eqi '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
+            echo "::error::CLOUDFLARE_API_TOKEN is a UUID (${#token} chars). That is a Builds token id, not the API token secret. Create a token at https://dash.cloudflare.com/profile/api-tokens (Edit Cloudflare Workers), copy the long secret shown once, and update the GitHub secret."
+            exit 1
+          fi
 
           echo "token_len=${#token}"
           echo "account_len=${#account}"

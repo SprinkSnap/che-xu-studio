@@ -26,11 +26,13 @@ describe('email templates', () => {
       totalLabel: 'CAD $1,000.00',
       reviewUrl: 'https://chexustudio.com/proposal/abc',
     });
-    expect(email.subject).toContain('Site Redesign');
-    expect(email.html).toContain('Review Proposal');
+    expect(email.subject).toContain('P-1');
+    expect(email.subject).toContain('Che Xu Studio');
+    expect(email.html).toContain('Open your proposal');
     expect(email.html).toContain('https://chexustudio.com/proposal/abc');
-    expect(email.text).toContain('Review Proposal:');
+    expect(email.text).toContain('Review your proposal:');
     expect(email.html).not.toContain('internal');
+    expect(email.html).not.toContain('display:inline-block;background:#0B1F33');
   });
 
   it('renders invoice delivery with pay CTA', () => {

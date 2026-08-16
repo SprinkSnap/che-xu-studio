@@ -712,9 +712,10 @@ const defaultRecipient =
             </button>
             <p class="text-sm text-ink-muted">
               Marks the proposal Sent only after Resend accepts the message. A fresh exact-version
-              secure link is minted. Confirm the recipient address before submitting. Hotmail/Outlook
-              may drop mail entirely (not only Junk) when `_dmarc.chexustudio.com` is missing — publish
-              that TXT record, then resend.
+              secure link is minted. Confirm the recipient address before submitting. If Hotmail puts
+              it in Junk: publish Cloudflare TXT Name <code>_dmarc</code> (not
+              <code>_dmarc.chexustudio.com</code>), then have the client mark Not junk and add
+              info@chexustudio.com to contacts.
             </p>
           </form>
         )

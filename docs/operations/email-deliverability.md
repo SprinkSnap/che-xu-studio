@@ -10,32 +10,46 @@ Studio sends Proposal/Invoice mail through Resend (`From: info@chexustudio.com`)
 | `send.chexustudio.com` MX → `feedback-smtp.us-east-1.amazonses.com` | Resend Return-Path | Present |
 | `send.chexustudio.com` TXT `v=spf1 include:amazonses.com ~all` | SPF for Return-Path | Present |
 | Apex TXT `v=spf1 include:spf.protection.outlook.com -all` | Microsoft 365 mailbox SPF | Present |
-| `_dmarc.chexustudio.com` | DMARC policy | **Missing** |
+| `_dmarc.chexustudio.com` | DMARC policy | Must be present (`p=none` minimum) |
 
 Resend SPF is evaluated on the `send.` Return-Path host, not the apex. Leave the Microsoft 365 apex SPF in place.
 
-## Required: publish DMARC
+## Publish DMARC in Cloudflare (not Porkbun)
 
-Hotmail/Outlook frequently quarantine or drop authenticated mail when the organizational domain has **no DMARC**. Studio `email_logs` can show `status=sent` with a Resend provider id while the client still sees nothing.
+Nameservers for `chexustudio.com` are Cloudflare. Add DNS only:
 
-Add (Cloudflare DNS → DNS only):
+| Field | Value |
+| --- | --- |
+| Type | TXT |
+| Name | `_dmarc` (exactly — Cloudflare already appends `.chexustudio.com`) |
+| Content | `v=DMARC1; p=none; rua=mailto:info@chexustudio.com; fo=1` |
+| Proxy | DNS only |
 
-```txt
-_dmarc.chexustudio.com.  TXT  "v=DMARC1; p=none; rua=mailto:info@chexustudio.com; fo=1"
+If Name is set to `_dmarc.chexustudio.com`, Cloudflare creates `_dmarc.chexustudio.com.chexustudio.com` and DMARC stays broken.
+
+Verify:
+
+```bash
+dig +short TXT _dmarc.chexustudio.com
 ```
 
-Start with `p=none` (monitor). After reports look clean, tighten to `p=quarantine` then `p=reject`.
+## Hotmail goes to Junk (even though it is not spam)
 
-## Hotmail / Outlook: accepted by Resend but missing from Inbox and Junk
+That usually means authentication or reputation is incomplete. Fix in this order:
 
-This is expected when **DMARC is unpublished**. Microsoft consumer mail (`hotmail.com`, `outlook.com`, `live.com`) can accept the SMTP handoff from Resend and then **discard** the message — it never appears in Inbox or Junk.
+1. **DMARC live** — `dig` must return the TXT above.
+2. **Recipient action (one time):** open Junk → open the proposal email → **Not junk** / **Report not junk**, then add `info@chexustudio.com` to contacts / safe senders. Microsoft learns from that engagement.
+3. **Resend once** after DMARC propagates (avoid repeated Hotmail sends while auth is broken).
+4. **Content:** Proposal mail uses a plain link CTA (not a large marketing button) and transactional wording.
+5. Optional: register with [Microsoft SNDS](https://sendersupport.olc.protection.outlook.com/snds/) / sender support if Junk continues after auth + Not junk.
 
-Checklist:
+## Hotmail missing from Inbox and Junk
 
-1. Confirm Studio Email history shows `sent` + a Resend id (provider accepted the message).
-2. Confirm `dig +short TXT _dmarc.chexustudio.com` returns a policy (at least `p=none`). If empty, publish DMARC before further debugging.
-3. In the Resend dashboard (full-access key), open that message id → look for delivered / bounced / failed / suppressed.
-4. After DMARC propagates, Resend Proposal again.
-5. Ask the recipient to check Focused vs Other, Junk, Deleted, and Blocked — but missing DMARC is the first fix.
+Microsoft can discard after SMTP accept when DMARC is unpublished. Publish DMARC before further debugging.
 
-Do not keep re-sending to Hotmail before DMARC is live; that can worsen sender reputation.
+## Do not
+
+- Replace apex Microsoft SPF with only `include:amazonses.com` (breaks M365).
+- Point apex MX at Resend/Amazon (hijacks inbound mail).
+- Enable Resend click tracking for capability-link templates (domain setting).
+- Keep hammering the same Hotmail address while `_dmarc` is empty.

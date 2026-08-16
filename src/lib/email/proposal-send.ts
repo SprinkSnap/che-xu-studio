@@ -18,6 +18,7 @@ import { sendViaResend } from './client';
 import { insertQueuedEmailLog, markEmailLogFailed, markEmailLogSent } from './logging';
 import { renderProposalDeliveryEmail } from './templates';
 import { formatDateOnly } from '../clients/format';
+import { resolveDeliveryRecipient } from './resolve-recipient';
 
 export class ProposalSendError extends Error {
   readonly code: 'not_found' | 'invalid' | 'conflict' | 'provider' | 'failed';
@@ -29,13 +30,17 @@ export class ProposalSendError extends Error {
   }
 }
 
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 320;
-}
+export type ProposalSendResult = {
+  alreadySent: boolean;
+  emailLogId: string;
+  recipientEmail: string;
+};
 
 /**
  * Idempotency: proposal:{versionId}:delivery
- * First successful provider acceptance wins; retries after success no-op.
+ * First successful provider acceptance wins for that key.
+ * If the first-delivery key already succeeded, Send delegates to Resend so the
+ * client still receives a fresh email (expired/declined "Send" must not no-op).
  */
 export async function sendProposalEmail(
   supabase: StudioSupabaseClient,
@@ -45,7 +50,7 @@ export async function sendProposalEmail(
     recipientEmail?: string | null;
     emailEnv?: StudioEmailEnvSource;
   },
-): Promise<{ alreadySent: boolean; emailLogId: string }> {
+): Promise<ProposalSendResult> {
   const emailEnv = input.emailEnv ?? (await readStudioEmailEnvFromRuntime());
   const siteOrigin = getPublicSiteOrigin(emailEnv);
 
@@ -81,21 +86,19 @@ export async function sendProposalEmail(
     throw new ProposalSendError('invalid', 'Finalize the proposal version before sending.');
   }
 
-  const recipient = (
-    input.recipientEmail?.trim() ||
-    version.client_contact_email ||
-    ''
-  )
-    .trim()
-    .toLowerCase();
-  if (!recipient || !isValidEmail(recipient)) {
+  const recipient = await resolveDeliveryRecipient(supabase, {
+    recipientEmail: input.recipientEmail,
+    snapshotEmail: version.client_contact_email,
+    clientId: proposal.client_id,
+  });
+  if (!recipient) {
     throw new ProposalSendError('invalid', 'A valid recipient email is required.');
   }
 
   const idempotencyKey = `proposal:${version.id}:delivery`;
 
-  // If already successfully sent for this version, do not resend via this key.
-  // Explicit Resend uses a different key with attempt suffix from admin UI.
+  // If already successfully sent for this version, do not claim success without
+  // sending — delegate to explicit resend with a fresh idempotency key + link.
   const log = await insertQueuedEmailLog(supabase, {
     emailType: 'proposal_sent',
     recipientEmail: recipient,
@@ -111,11 +114,16 @@ export async function sendProposalEmail(
   });
 
   if (!log.created && (log.status === 'sent' || log.status === 'delivered')) {
-    return { alreadySent: true, emailLogId: log.id };
-  }
-
-  if (proposal.status === 'sent' && proposal.sent_at) {
-    return { alreadySent: true, emailLogId: log.id };
+    const resent = await resendProposalEmail(supabase, {
+      ...input,
+      recipientEmail: recipient,
+      emailEnv,
+    });
+    return {
+      alreadySent: false,
+      emailLogId: resent.emailLogId,
+      recipientEmail: resent.recipientEmail,
+    };
   }
 
   let rawUrl: string;
@@ -195,7 +203,7 @@ export async function sendProposalEmail(
     });
     throw new ProposalSendError(
       'provider',
-      'Unable to send proposal email. Please try again.',
+      `Unable to send proposal email (${sendResult.error}). Check Email history and Resend.`,
     );
   }
 
@@ -207,7 +215,7 @@ export async function sendProposalEmail(
     .from('proposals')
     .update({ status: 'sent', sent_at: now })
     .eq('id', proposal.id)
-    .in('status', ['draft', 'viewed', 'changes_requested', 'sent'])
+    .in('status', ['draft', 'viewed', 'changes_requested', 'sent', 'expired', 'declined'])
     .select('id, status')
     .maybeSingle();
 
@@ -290,7 +298,7 @@ export async function sendProposalEmail(
     }
   }
 
-  return { alreadySent: false, emailLogId: log.id };
+  return { alreadySent: false, emailLogId: log.id, recipientEmail: recipient };
 }
 
 /** Explicit resend — new idempotency key, mints a fresh link. */
@@ -302,9 +310,7 @@ export async function resendProposalEmail(
     recipientEmail?: string | null;
     emailEnv?: StudioEmailEnvSource;
   },
-): Promise<{ emailLogId: string }> {
-  // Force a distinct key by temporarily clearing the "already sent" check path:
-  // use delivery:resend:{timestamp} after verifying proposal is sendable.
+): Promise<{ emailLogId: string; recipientEmail: string }> {
   const emailEnv = input.emailEnv ?? (await readStudioEmailEnvFromRuntime());
   const siteOrigin = getPublicSiteOrigin(emailEnv);
 
@@ -333,14 +339,12 @@ export async function resendProposalEmail(
     throw new ProposalSendError('invalid', 'Finalize the proposal version before sending.');
   }
 
-  const recipient = (
-    input.recipientEmail?.trim() ||
-    version.client_contact_email ||
-    ''
-  )
-    .trim()
-    .toLowerCase();
-  if (!recipient || !isValidEmail(recipient)) {
+  const recipient = await resolveDeliveryRecipient(supabase, {
+    recipientEmail: input.recipientEmail,
+    snapshotEmail: version.client_contact_email,
+    clientId: proposal.client_id,
+  });
+  if (!recipient) {
     throw new ProposalSendError('invalid', 'A valid recipient email is required.');
   }
 
@@ -376,6 +380,14 @@ export async function resendProposalEmail(
     metadata: { resend: true, proposal_version_id: version.id },
   });
 
+  const { maybeProposalPdfAttachment } = await import('../pdf/attachments');
+  const { proposalPdfFilename } = await import('../pdf/filenames');
+  const pdfAttachment = await maybeProposalPdfAttachment(supabase, {
+    proposalId: proposal.id,
+    versionId: version.id,
+    filename: proposalPdfFilename(proposal.proposal_number, version.version_number),
+  });
+
   const sendResult = await sendViaResend(
     {
       to: recipient,
@@ -384,23 +396,46 @@ export async function resendProposalEmail(
       text: rendered.text,
       idempotencyKey,
       disableTracking: true,
+      tags: [
+        { name: 'email_type', value: 'proposal_resent' },
+        { name: 'proposal_id', value: proposal.id },
+      ],
+      attachments: pdfAttachment ? [pdfAttachment] : undefined,
     },
     emailEnv,
   );
 
   if (!sendResult.ok) {
     await markEmailLogFailed(supabase, log.id, sendResult.error);
-    throw new ProposalSendError('provider', 'Unable to resend proposal email.');
+    await recordStudioActivity(supabase, {
+      actorProfileId: input.actorProfileId,
+      action: 'proposal.email_failed',
+      clientId: proposal.client_id,
+      projectId: proposal.project_id,
+      subjectType: 'proposal',
+      subjectId: proposal.id,
+      metadata: { email_log_id: log.id, error: sendResult.error, resend: true },
+    });
+    throw new ProposalSendError(
+      'provider',
+      `Unable to resend proposal email (${sendResult.error}). Check Email history and Resend.`,
+    );
   }
 
   await markEmailLogSent(supabase, log.id, sendResult.providerMessageId);
 
-  if (proposal.status === 'draft' || proposal.status === 'viewed' || proposal.status === 'changes_requested') {
+  if (
+    proposal.status === 'draft' ||
+    proposal.status === 'viewed' ||
+    proposal.status === 'changes_requested' ||
+    proposal.status === 'expired' ||
+    proposal.status === 'declined'
+  ) {
     await supabase
       .from('proposals')
       .update({ status: 'sent', sent_at: new Date().toISOString() })
       .eq('id', proposal.id)
-      .in('status', ['draft', 'viewed', 'changes_requested']);
+      .in('status', ['draft', 'viewed', 'changes_requested', 'expired', 'declined']);
   }
 
   await recordStudioActivity(supabase, {
@@ -410,8 +445,12 @@ export async function resendProposalEmail(
     projectId: proposal.project_id,
     subjectType: 'proposal',
     subjectId: proposal.id,
-    metadata: { email_log_id: log.id, resend: true },
+    metadata: {
+      email_log_id: log.id,
+      resend: true,
+      recipient_domain: recipient.split('@')[1] || null,
+    },
   });
 
-  return { emailLogId: log.id };
+  return { emailLogId: log.id, recipientEmail: recipient };
 }

@@ -49,11 +49,10 @@ export async function sendViaResend(
     }));
   }
 
-  // Privacy: disable click/open tracking for capability-link emails so Resend
-  // does not rewrite secure Proposal/Invoice URLs through tracking redirects.
-  if (input.disableTracking) {
-    body.tracking = { click: false, open: false };
-  }
+  // Note: Resend click/open tracking is domain-level (not a Send Email field).
+  // Keep domain click tracking disabled for chexustudio.com so capability URLs
+  // are not rewritten. `disableTracking` is retained for call-site intent only.
+  void input.disableTracking;
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,

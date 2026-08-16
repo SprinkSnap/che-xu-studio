@@ -45,6 +45,9 @@ export async function sendViaResend(
   };
   if (replyTo) body.reply_to = replyTo;
   if (bccList.length) body.bcc = bccList;
+  if (input.headers && Object.keys(input.headers).length > 0) {
+    body.headers = input.headers;
+  }
   if (input.tags?.length) body.tags = input.tags;
   if (input.attachments?.length) {
     body.attachments = input.attachments.map((file) => ({

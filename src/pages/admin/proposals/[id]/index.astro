@@ -275,8 +275,8 @@ const noticeMap: Record<string, string> = {
   saved: 'Proposal draft saved.',
   link_revoked: 'Client link revoked.',
   email_sent: noticeTo
-    ? `Resend accepted the email for ${noticeTo}. If it is not in Inbox or Junk (Hotmail/Outlook), Microsoft may be discarding it until DMARC is published on chexustudio.com — see docs/operations/email-deliverability.md. A studio BCC copy is also sent to the From mailbox.`
-    : 'Resend accepted the proposal email. If Hotmail shows nothing in Inbox or Junk, publish DMARC on chexustudio.com.',
+    ? `Resend accepted the email for ${noticeTo}. Hotmail/Outlook often still places first Resend/SES messages in Junk until the recipient marks Not junk and adds info@chexustudio.com to contacts. Prefer Create Client Link and email from your Microsoft 365 mailbox when Inbox placement matters immediately. See docs/operations/email-deliverability.md.`
+    : 'Resend accepted the proposal email. Hotmail may still use Junk until the recipient trains Not junk.',
   already_sent:
     'Proposal delivery was already recorded for this version. Use Resend Proposal to email again.',
   pdf_ready: 'Proposal PDF is ready to download.',
@@ -712,10 +712,13 @@ const defaultRecipient =
             </button>
             <p class="text-sm text-ink-muted">
               Marks the proposal Sent only after Resend accepts the message. A fresh exact-version
-              secure link is minted. Confirm the recipient address before submitting. If Hotmail puts
-              it in Junk: publish Cloudflare TXT Name <code>_dmarc</code> (not
-              <code>_dmarc.chexustudio.com</code>), then have the client mark Not junk and add
-              info@chexustudio.com to contacts.
+              secure link is minted. Confirm the recipient address before submitting.
+            </p>
+            <p class="text-sm text-ink-muted">
+              Hotmail/Outlook Junk: ask the client to open Junk → Not junk, then add
+              info@chexustudio.com to contacts, then Resend once. For guaranteed Inbox now, create a
+              client link below and send that URL from your Microsoft 365 Outlook mailbox instead of
+              Resend.
             </p>
           </form>
         )

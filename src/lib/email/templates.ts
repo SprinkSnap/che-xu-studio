@@ -66,6 +66,7 @@ export function renderProposalDeliveryEmail(input: {
       ctaLabel: 'Open your proposal',
       ctaUrl: input.reviewUrl,
       ctaStyle: 'link',
+      layout: 'plain',
       footerNote:
         'Che Xu Studio · Transactional proposal delivery · Reply to this email with questions.',
     }),
@@ -129,6 +130,7 @@ export function renderInvoiceDeliveryEmail(input: {
       ctaLabel: 'Open your invoice',
       ctaUrl: input.viewUrl,
       ctaStyle: 'link',
+      layout: 'plain',
       footerNote:
         'Che Xu Studio · Transactional invoice delivery · Reply to this email with questions.',
     }),
@@ -278,6 +280,7 @@ export function renderReminderEmail(input: {
       ctaLabel: 'Open your invoice',
       ctaUrl: input.viewUrl,
       ctaStyle: 'link',
+      layout: 'plain',
       footerNote:
         'Che Xu Studio · Transactional payment reminder · Reply to this email with questions.',
     }),

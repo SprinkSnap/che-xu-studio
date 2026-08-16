@@ -45,6 +45,8 @@ export type SendEmailInput = {
   idempotencyKey?: string;
   /** Disable Resend click/open tracking for capability-link emails. */
   disableTracking?: boolean;
+  /** Optional MIME headers forwarded to Resend (transactional classifiers). */
+  headers?: Record<string, string>;
   tags?: Array<{ name: string; value: string }>;
   /**
    * Optional PDF attachments fetched at send time.

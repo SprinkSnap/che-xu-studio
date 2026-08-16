@@ -20,6 +20,10 @@ import { insertQueuedEmailLog, markEmailLogFailed, markEmailLogSent } from './lo
 import { renderProposalDeliveryEmail } from './templates';
 import { formatDateOnly } from '../clients/format';
 import { resolveDeliveryRecipient } from './resolve-recipient';
+import {
+  isMicrosoftConsumerMailbox,
+  transactionalDeliveryHeaders,
+} from './deliverability';
 
 export class ProposalSendError extends Error {
   readonly code: 'not_found' | 'invalid' | 'conflict' | 'provider' | 'failed';
@@ -168,13 +172,17 @@ export async function sendProposalEmail(
     .update({ subject: rendered.subject, recipient_email: recipient })
     .eq('id', log.id);
 
-  const { maybeProposalPdfAttachment } = await import('../pdf/attachments');
-  const { proposalPdfFilename } = await import('../pdf/filenames');
-  const pdfAttachment = await maybeProposalPdfAttachment(supabase, {
-    proposalId: proposal.id,
-    versionId: version.id,
-    filename: proposalPdfFilename(proposal.proposal_number, version.version_number),
-  });
+  // PDF attachments raise Hotmail junk scores; keep link-only for Microsoft consumer mail.
+  let pdfAttachment = null;
+  if (!isMicrosoftConsumerMailbox(recipient)) {
+    const { maybeProposalPdfAttachment } = await import('../pdf/attachments');
+    const { proposalPdfFilename } = await import('../pdf/filenames');
+    pdfAttachment = await maybeProposalPdfAttachment(supabase, {
+      proposalId: proposal.id,
+      versionId: version.id,
+      filename: proposalPdfFilename(proposal.proposal_number, version.version_number),
+    });
+  }
 
   const sendResult = await sendViaResend(
     {
@@ -185,6 +193,7 @@ export async function sendProposalEmail(
       idempotencyKey,
       disableTracking: true,
       bcc: getStudioDeliveryBcc(emailEnv),
+      headers: transactionalDeliveryHeaders(`proposal:${proposal.id}:${version.id}`),
       tags: [
         { name: 'email_type', value: 'proposal_sent' },
         { name: 'proposal_id', value: proposal.id },
@@ -389,13 +398,16 @@ export async function resendProposalEmail(
     metadata: { resend: true, proposal_version_id: version.id },
   });
 
-  const { maybeProposalPdfAttachment } = await import('../pdf/attachments');
-  const { proposalPdfFilename } = await import('../pdf/filenames');
-  const pdfAttachment = await maybeProposalPdfAttachment(supabase, {
-    proposalId: proposal.id,
-    versionId: version.id,
-    filename: proposalPdfFilename(proposal.proposal_number, version.version_number),
-  });
+  let pdfAttachment = null;
+  if (!isMicrosoftConsumerMailbox(recipient)) {
+    const { maybeProposalPdfAttachment } = await import('../pdf/attachments');
+    const { proposalPdfFilename } = await import('../pdf/filenames');
+    pdfAttachment = await maybeProposalPdfAttachment(supabase, {
+      proposalId: proposal.id,
+      versionId: version.id,
+      filename: proposalPdfFilename(proposal.proposal_number, version.version_number),
+    });
+  }
 
   const sendResult = await sendViaResend(
     {
@@ -406,6 +418,7 @@ export async function resendProposalEmail(
       idempotencyKey,
       disableTracking: true,
       bcc: getStudioDeliveryBcc(emailEnv),
+      headers: transactionalDeliveryHeaders(`proposal-resend:${proposal.id}:${version.id}`),
       tags: [
         { name: 'email_type', value: 'proposal_resent' },
         { name: 'proposal_id', value: proposal.id },

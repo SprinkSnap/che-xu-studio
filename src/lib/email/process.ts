@@ -15,6 +15,10 @@ import {
 } from './config';
 import { sendViaResend, classifyProviderFailure } from './client';
 import {
+  isMicrosoftConsumerMailbox,
+  transactionalDeliveryHeaders,
+} from './deliverability';
+import {
   claimOutboxBatch,
   markOutboxFailed,
   markOutboxSent,
@@ -206,7 +210,12 @@ async function processOneOutboxRow(
   }
 
   let attachments: import('./types').EmailAttachment[] | undefined;
-  if (emailType === 'payment_received' && str(payload, 'audience') !== 'studio' && row.payment_id) {
+  if (
+    emailType === 'payment_received' &&
+    str(payload, 'audience') !== 'studio' &&
+    row.payment_id &&
+    !isMicrosoftConsumerMailbox(row.recipient_email)
+  ) {
     const { maybeReceiptPdfAttachment } = await import('../pdf/attachments');
     const { receiptPdfFilename } = await import('../pdf/filenames');
     const receipt = await maybeReceiptPdfAttachment(service, {
@@ -224,6 +233,7 @@ async function processOneOutboxRow(
       text,
       idempotencyKey: row.idempotency_key,
       disableTracking,
+      headers: transactionalDeliveryHeaders(`${emailType}:${row.id}`),
       attachments,
     },
     emailEnv,

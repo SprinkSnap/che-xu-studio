@@ -98,6 +98,50 @@ describe('sendViaResend payload', () => {
     expect(body.from).toContain('info@chexustudio.com');
     expect(body.tracking).toBeUndefined();
   });
+
+  it('forwards transactional headers to Resend', async () => {
+    const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async () =>
+        new Response(JSON.stringify({ id: 'msg_headers' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await sendViaResend(
+      {
+        to: 'client@hotmail.com',
+        subject: 'Test',
+        html: '<p>Hi</p>',
+        text: 'Hi',
+        headers: {
+          'Auto-Submitted': 'auto-generated',
+          'X-Entity-Ref-ID': 'invoice:1',
+        },
+      },
+      {
+        RESEND_API_KEY: 're_test',
+        CONTACT_FROM_EMAIL: 'Che Xu Studio <info@chexustudio.com>',
+      },
+    );
+
+    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+    expect(body.headers['Auto-Submitted']).toBe('auto-generated');
+    expect(body.headers['X-Entity-Ref-ID']).toBe('invoice:1');
+  });
+});
+
+describe('Microsoft consumer mailbox detection', () => {
+  it('flags hotmail/outlook consumer hosts', async () => {
+    const { isMicrosoftConsumerMailbox, transactionalDeliveryHeaders } = await import(
+      '../../src/lib/email/deliverability'
+    );
+    expect(isMicrosoftConsumerMailbox('a@hotmail.com')).toBe(true);
+    expect(isMicrosoftConsumerMailbox('a@outlook.com')).toBe(true);
+    expect(isMicrosoftConsumerMailbox('a@gmail.com')).toBe(false);
+    expect(transactionalDeliveryHeaders('invoice:abc')['Auto-Submitted']).toBe('auto-generated');
+  });
 });
 
 describe('sendProposalEmail already-delivered behavior', () => {

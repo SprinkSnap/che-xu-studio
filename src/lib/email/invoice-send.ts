@@ -17,6 +17,10 @@ import { sendViaResend } from './client';
 import { insertQueuedEmailLog, markEmailLogFailed, markEmailLogSent } from './logging';
 import { renderInvoiceDeliveryEmail } from './templates';
 import { resolveDeliveryRecipient } from './resolve-recipient';
+import {
+  isMicrosoftConsumerMailbox,
+  transactionalDeliveryHeaders,
+} from './deliverability';
 
 export class InvoiceSendError extends Error {
   readonly code: 'not_found' | 'invalid' | 'provider' | 'failed';
@@ -152,12 +156,15 @@ export async function sendInvoiceEmail(
     .update({ subject: rendered.subject, recipient_email: recipient })
     .eq('id', log.id);
 
-  const { maybeInvoicePdfAttachment } = await import('../pdf/attachments');
-  const { invoicePdfFilename } = await import('../pdf/filenames');
-  const pdfAttachment = await maybeInvoicePdfAttachment(supabase, {
-    invoiceId: invoice.id,
-    filename: invoicePdfFilename(invoice.invoice_number),
-  });
+  let pdfAttachment = null;
+  if (!isMicrosoftConsumerMailbox(recipient)) {
+    const { maybeInvoicePdfAttachment } = await import('../pdf/attachments');
+    const { invoicePdfFilename } = await import('../pdf/filenames');
+    pdfAttachment = await maybeInvoicePdfAttachment(supabase, {
+      invoiceId: invoice.id,
+      filename: invoicePdfFilename(invoice.invoice_number),
+    });
+  }
 
   const sendResult = await sendViaResend(
     {
@@ -168,6 +175,7 @@ export async function sendInvoiceEmail(
       idempotencyKey,
       disableTracking: true,
       bcc: getStudioDeliveryBcc(emailEnv),
+      headers: transactionalDeliveryHeaders(`invoice:${invoice.id}`),
       tags: [
         { name: 'email_type', value: emailType },
         { name: 'invoice_id', value: invoice.id },
@@ -309,12 +317,15 @@ export async function resendInvoiceEmail(
     metadata: { resend: true },
   });
 
-  const { maybeInvoicePdfAttachment } = await import('../pdf/attachments');
-  const { invoicePdfFilename } = await import('../pdf/filenames');
-  const pdfAttachment = await maybeInvoicePdfAttachment(supabase, {
-    invoiceId: invoice.id,
-    filename: invoicePdfFilename(invoice.invoice_number),
-  });
+  let pdfAttachment = null;
+  if (!isMicrosoftConsumerMailbox(recipient)) {
+    const { maybeInvoicePdfAttachment } = await import('../pdf/attachments');
+    const { invoicePdfFilename } = await import('../pdf/filenames');
+    pdfAttachment = await maybeInvoicePdfAttachment(supabase, {
+      invoiceId: invoice.id,
+      filename: invoicePdfFilename(invoice.invoice_number),
+    });
+  }
 
   const sendResult = await sendViaResend(
     {
@@ -325,6 +336,7 @@ export async function resendInvoiceEmail(
       idempotencyKey,
       disableTracking: true,
       bcc: getStudioDeliveryBcc(emailEnv),
+      headers: transactionalDeliveryHeaders(`invoice-resend:${invoice.id}`),
       tags: [
         { name: 'email_type', value: emailType },
         { name: 'invoice_id', value: invoice.id },

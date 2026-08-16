@@ -62,15 +62,25 @@ jobs:
           fi
           # Cloudflare token *names* (e.g. WorkersBuilds-2026-08-0323:43) are not valid
           # credentials and produce auth 9106 / Authorization header 6111.
+          # Reject known display-name shapes only — do not ban ':' globally in case
+          # token formats change.
           if printf '%s' "$token" | grep -Eqi '^(WorkersBuilds|Edit Cloudflare|Create Token|API Token)' \
-            || printf '%s' "$token" | grep -Eq '[0-9]{4}-[0-9]{2}-[0-9]{2}[0-9]{2}:[0-9]{2}$' \
-            || printf '%s' "$token" | grep -Fq ':'; then
-            echo "::error::CLOUDFLARE_API_TOKEN looks like a token display name (or contains ':'), not the secret value. Recreate the Cloudflare API token, copy the long secret string shown once, and update the GitHub Actions secret."
+            || printf '%s' "$token" | grep -Eqi 'WorkersBuilds-[0-9]' \
+            || printf '%s' "$token" | grep -Eq '[0-9]{4}-[0-9]{2}-[0-9]{2}[0-9]{2}:[0-9]{2}$'; then
+            echo "::error::CLOUDFLARE_API_TOKEN looks like a token display name, not the secret value. Recreate the Cloudflare API token, copy the long secret string shown once (often starts with cfut_), and update the GitHub Actions secret."
             exit 1
           fi
 
           echo "token_len=${#token}"
           echo "account_len=${#account}"
+          # Safe diagnostics only — never print the token.
+          if printf '%s' "$token" | grep -Eqi '^cfut_'; then
+            echo "token_format=cfut_prefix"
+          elif printf '%s' "$token" | grep -Fq ':'; then
+            echo "token_format=contains_colon"
+          else
+            echo "token_format=other"
+          fi
           {
             echo "token<<CF_EOF"
             printf '%s\n' "$token"

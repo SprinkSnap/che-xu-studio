@@ -68,10 +68,12 @@ test.describe('Studio OS foundation', () => {
     expect(xml).not.toContain('/invoice');
   });
 
-  test('robots.txt disallows private families', async ({ request }) => {
+  test('robots.txt allows public crawl and disallows private families', async ({ request }) => {
     const response = await request.get('/robots.txt');
     expect(response.ok()).toBeTruthy();
     const body = await response.text();
+    expect(body).toContain('Allow: /');
+    expect(body).not.toMatch(/^Disallow: \/$/m);
     expect(body).toContain('Disallow: /admin/');
     expect(body).toContain('Disallow: /proposal/');
     expect(body).toContain('Disallow: /invoice/');

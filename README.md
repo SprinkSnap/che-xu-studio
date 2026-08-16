@@ -332,7 +332,7 @@ PRODUCTION_SMOKE_BASE_URL=https://chexustudio.com npm run check:production-smoke
 2. Create DNS records as prompted (proxied orange-cloud recommended).
 3. Confirm TLS is active.
 4. Set `PUBLIC_SITE_URL` to the production origin.
-5. Set `siteConfig.allowIndexing = true` only when ready to index.
+5. `siteConfig.allowIndexing` is enabled so public marketing pages can be crawled.
 
 ## Owner review still required
 
@@ -341,7 +341,7 @@ Before launch, the business owner (or qualified legal counsel) must supply/revie
 - Verified email, phone, booking URL, address, social profiles (`src/config/site.ts`)
 - Optional SVG/vector version of the logo (PNG lockups are already wired in header/footer)
 - Legal text on Privacy, Terms, and Refund/Cancellation pages
-- Whether `allowIndexing` should be enabled
+- Indexing is enabled via `allowIndexing` for public marketing pages (Studio routes remain noindex)
 - Any verified testimonials, logos, case studies, or metrics (otherwise leave arrays empty)
 - Retention periods for leads
 - Whether/when to add online card checkout later

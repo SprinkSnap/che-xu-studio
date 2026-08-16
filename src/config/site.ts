@@ -377,8 +377,8 @@ export const siteConfig = {
     x: undefined as string | undefined,
   },
 
-  /** When true, robots meta and sitemap allow indexing. Keep false until launch. */
-  allowIndexing: false,
+  /** When true, robots meta and sitemap allow indexing. */
+  allowIndexing: true,
 
   /**
    * Primary header navigation.

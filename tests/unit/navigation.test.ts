@@ -72,7 +72,7 @@ describe('site navigation integrity', () => {
     expect(siteConfig.cta.secondary.label).toBe('Find My Best Package');
     expect(siteConfig.defaultSiteUrl).toBe('https://chexustudio.com');
     expect(siteConfig.contact.email).toBe('info@chexustudio.com');
-    expect(siteConfig.allowIndexing).toBe(false);
+    expect(siteConfig.allowIndexing).toBe(true);
   });
 
   it('includes the NorthLine HOME SERVICES portfolio concept with brief and mockup', () => {

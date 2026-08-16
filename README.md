@@ -155,7 +155,8 @@ but GitHub already has them, use the **Deploy Worker** workflow instead:
 
 If deploy fails with Authorization header `6111` / auth `9106`, recreate the API
 token and update `CLOUDFLARE_API_TOKEN` — the secret value is malformed or is the
-token name instead of the secret.
+token **display name** (e.g. `WorkersBuilds-…`) instead of the secret string.
+The Deploy Worker workflow now fails fast when the secret looks like a name.
 
 Verify after deploy: `/work` should show the NorthLine HOME SERVICES portfolio card (not the empty
 placeholder). Confirm file content on GitHub:

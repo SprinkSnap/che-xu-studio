@@ -275,8 +275,8 @@ const noticeMap: Record<string, string> = {
   saved: 'Proposal draft saved.',
   link_revoked: 'Client link revoked.',
   email_sent: noticeTo
-    ? `Resend accepted the proposal email for ${noticeTo}. Check the client inbox and Junk/Spam (Hotmail/Outlook often quarantine until DMARC is published). A delivery copy was BCC’d to the studio From mailbox when configured.`
-    : 'Resend accepted the proposal email. Check the client inbox and Junk/Spam.',
+    ? `Resend accepted the email for ${noticeTo}. If it is not in Inbox or Junk (Hotmail/Outlook), Microsoft may be discarding it until DMARC is published on chexustudio.com — see docs/operations/email-deliverability.md. A studio BCC copy is also sent to the From mailbox.`
+    : 'Resend accepted the proposal email. If Hotmail shows nothing in Inbox or Junk, publish DMARC on chexustudio.com.',
   already_sent:
     'Proposal delivery was already recorded for this version. Use Resend Proposal to email again.',
   pdf_ready: 'Proposal PDF is ready to download.',
@@ -712,9 +712,9 @@ const defaultRecipient =
             </button>
             <p class="text-sm text-ink-muted">
               Marks the proposal Sent only after Resend accepts the message. A fresh exact-version
-              secure link is minted. Confirm the recipient address before submitting. If the client
-              uses Hotmail/Outlook, ask them to check Junk — publish a DMARC TXT on chexustudio.com
-              if mail is accepted here but never arrives.
+              secure link is minted. Confirm the recipient address before submitting. Hotmail/Outlook
+              may drop mail entirely (not only Junk) when `_dmarc.chexustudio.com` is missing — publish
+              that TXT record, then resend.
             </p>
           </form>
         )

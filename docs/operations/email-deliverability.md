@@ -26,15 +26,16 @@ _dmarc.chexustudio.com.  TXT  "v=DMARC1; p=none; rua=mailto:info@chexustudio.com
 
 Start with `p=none` (monitor). After reports look clean, tighten to `p=quarantine` then `p=reject`.
 
-## How to verify a Resend Proposal click
+## Hotmail / Outlook: accepted by Resend but missing from Inbox and Junk
 
-1. Admin → Proposal → **Recent email attempts** should show `sent` and a `Resend <id>`.
-2. Open that id in the Resend dashboard (full-access API key; send-only keys cannot read events).
-3. Check the client **Junk/Spam** folder (especially `@hotmail.com` / `@outlook.com`).
-4. Confirm a BCC copy arrived at the studio From mailbox (`info@chexustudio.com`) when using the latest Worker.
+This is expected when **DMARC is unpublished**. Microsoft consumer mail (`hotmail.com`, `outlook.com`, `live.com`) can accept the SMTP handoff from Resend and then **discard** the message — it never appears in Inbox or Junk.
 
-## Do not
+Checklist:
 
-- Replace apex Microsoft SPF with only `include:amazonses.com` (breaks M365).
-- Point apex MX at Resend/Amazon (hijacks inbound mail).
-- Enable Resend click tracking for capability-link templates (domain setting).
+1. Confirm Studio Email history shows `sent` + a Resend id (provider accepted the message).
+2. Confirm `dig +short TXT _dmarc.chexustudio.com` returns a policy (at least `p=none`). If empty, publish DMARC before further debugging.
+3. In the Resend dashboard (full-access key), open that message id → look for delivered / bounced / failed / suppressed.
+4. After DMARC propagates, Resend Proposal again.
+5. Ask the recipient to check Focused vs Other, Junk, Deleted, and Blocked — but missing DMARC is the first fix.
+
+Do not keep re-sending to Hotmail before DMARC is live; that can worsen sender reputation.

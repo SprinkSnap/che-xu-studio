@@ -14,6 +14,18 @@ export default defineConfig({
     prerenderEnvironment: 'node',
     persistState: true,
   }),
+  // Astro's built-in checkOrigin rejects form POSTs when the Origin header is
+  // missing (common in Outlook/Hotmail in-app browsers). CSRF for mutations is
+  // enforced in app code via isSameOriginMutation (Origin / Referer /
+  // Sec-Fetch-Site). allowedDomains keeps forwarded-host validation aligned.
+  security: {
+    checkOrigin: false,
+    allowedDomains: [
+      { hostname: 'chexustudio.com', protocol: 'https' },
+      { hostname: 'www.chexustudio.com', protocol: 'https' },
+      { hostname: 'studio.chexustudio.com', protocol: 'https' },
+    ],
+  },
   // This site does not use Astro.session. Without an explicit non-KV driver,
   // @astrojs/cloudflare auto-enables cloudflareKVBinding("SESSION"), and
   // Workers Builds repeatedly tries to create that namespace (API error 10014

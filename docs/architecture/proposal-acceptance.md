@@ -32,7 +32,8 @@ Invalid, revoked, or malformed tokens all return the same unavailable page (no e
 - Renders exclusively from the immutable Proposal Version snapshot
 - `Cache-Control: private, no-store`
 - `X-Robots-Tag: noindex, nofollow, noarchive`
-- `Referrer-Policy: no-referrer`
+- `Referrer-Policy: strict-origin-when-cross-origin` (keeps same-origin Referer for CSRF fallback; does not leak the token URL to third parties)
+- Accept/Request Changes CSRF: Astro `security.checkOrigin` is disabled (it 403s when `Origin` is omitted, which Outlook/Hotmail in-app browsers often do). App uses `isSameOriginMutation` (Origin, Referer, or `Sec-Fetch-Site: same-origin`).
 - No marketing analytics / chat widgets
 - Absent from sitemap (allowlist) and robots Disallow
 

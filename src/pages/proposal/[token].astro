@@ -22,7 +22,7 @@ export const prerender = false;
 const privateHeaders = {
   'Cache-Control': 'private, no-store',
   'X-Robots-Tag': 'noindex, nofollow, noarchive',
-  'Referrer-Policy': 'no-referrer',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
 };
 
 const rawToken = Astro.params.token ?? '';
@@ -40,10 +40,16 @@ if (service) {
   if (Astro.request.method === 'POST') {
     const origin = requestSiteOrigin(Astro.request, Astro.url);
     if (!isSameOriginMutation(Astro.request, origin)) {
-      return new Response('Invalid request origin.', {
-        status: 403,
-        headers: privateHeaders,
-      });
+      return new Response(
+        'Unable to verify this request came from the proposal page. Open the proposal link in your browser (Safari/Chrome), then try Accept again.',
+        {
+          status: 403,
+          headers: {
+            ...privateHeaders,
+            'Content-Type': 'text/plain; charset=utf-8',
+          },
+        },
+      );
     }
 
     let capabilityLimiter: { limit: (o: { key: string }) => Promise<{ success: boolean }> } | undefined;

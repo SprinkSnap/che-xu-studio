@@ -205,9 +205,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     );
   }
 
-  // Capability document pages: never send full token URLs as referrers.
+  // Capability document pages: do not leak the raw token URL to third-party
+  // navigations, but keep a same-origin Referer so form CSRF checks can fall
+  // back when Origin is omitted (Outlook/Hotmail in-app browsers).
   if (isClientDocumentPath(path)) {
-    response.headers.set('Referrer-Policy', 'no-referrer');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   }
 
   return response;

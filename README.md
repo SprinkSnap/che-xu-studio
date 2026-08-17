@@ -149,8 +149,11 @@ but GitHub already has them, use the **Deploy Worker** workflow instead:
      (no `Bearer `, no quotes, no token display name, no spaces/newlines)
    - `CLOUDFLARE_ACCOUNT_ID` (required)
    - optional: `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`
+   - Hotmail Inbox (Microsoft Graph): `MICROSOFT_GRAPH_CLIENT_SECRET` (secret)
 2. Optional repo **Variables**: `PUBLIC_SITE_URL`, `PUBLIC_TURNSTILE_SITE_KEY`,
-   `CONTACT_FROM_EMAIL`
+   `CONTACT_FROM_EMAIL`, plus Graph vars when using M365 send:
+   `MICROSOFT_GRAPH_TENANT_ID`, `MICROSOFT_GRAPH_CLIENT_ID`,
+   `MICROSOFT_GRAPH_MAILBOX` (`info@chexustudio.com`), `STUDIO_EMAIL_TRANSPORT` (`auto`)
 3. GitHub → **Actions** → **Deploy Worker** → **Run workflow** (branch `main`)
 
 If deploy fails with Authorization header `6111` / auth `9106`, recreate the API
@@ -270,6 +273,23 @@ Common failures:
 | Resend delivered, inbox empty | `info@` mailbox missing/misconfigured in Microsoft 365 |
 
 Until `RESEND_API_KEY` is set, leads still save in D1; only the inbox email is skipped.
+
+### Studio Proposal/Invoice email (Microsoft Graph — Hotmail Inbox)
+
+Resend often lands in Hotmail Junk. For Inbox, send via Microsoft Graph from the M365 mailbox.
+Full steps: `docs/operations/email-deliverability.md`.
+
+**Workers Builds → Settings → Variables** (same names as GitHub Actions):
+
+| Name | Type | Notes |
+| --- | --- | --- |
+| `MICROSOFT_GRAPH_TENANT_ID` | Variable | Entra Directory (tenant) ID |
+| `MICROSOFT_GRAPH_CLIENT_ID` | Variable | Entra Application (client) ID |
+| `MICROSOFT_GRAPH_CLIENT_SECRET` | **Encrypt secret** | Entra client secret value |
+| `MICROSOFT_GRAPH_MAILBOX` | Variable | `info@chexustudio.com` |
+| `STUDIO_EMAIL_TRANSPORT` | Variable | `auto` (Graph when configured) |
+
+App permission required: Microsoft Graph **Mail.Send** (application) + admin consent. Redeploy after setting. Settings → Email delivery should show **Microsoft Graph (M365)**.
 
 ## Development and test commands
 

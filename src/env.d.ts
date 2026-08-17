@@ -46,6 +46,16 @@ interface CloudflareEnv {
   /** Shared secret for scheduled job HTTP endpoint (server-only). */
   CRON_SECRET?: string;
 
+  /** Microsoft Graph (Entra) — preferred Studio client email transport for Hotmail Inbox. */
+  MICROSOFT_GRAPH_TENANT_ID?: string;
+  MICROSOFT_GRAPH_CLIENT_ID?: string;
+  /** Server-only. Never prefix with PUBLIC_. */
+  MICROSOFT_GRAPH_CLIENT_SECRET?: string;
+  /** Mailbox UPN to send as (defaults to From). */
+  MICROSOFT_GRAPH_MAILBOX?: string;
+  /** auto | graph | resend */
+  STUDIO_EMAIL_TRANSPORT?: string;
+
   PUBLIC_TURNSTILE_SITE_KEY?: string;
   PUBLIC_SITE_URL?: string;
   PUBLIC_CF_WEB_ANALYTICS_TOKEN?: string;
@@ -107,6 +117,12 @@ interface ImportMetaEnv {
   readonly RESEND_API_KEY?: string;
   readonly CONTACT_FROM_EMAIL?: string;
   readonly CONTACT_NOTIFY_EMAIL?: string;
+  readonly MICROSOFT_GRAPH_TENANT_ID?: string;
+  readonly MICROSOFT_GRAPH_CLIENT_ID?: string;
+  /** Server-only — never PUBLIC_. */
+  readonly MICROSOFT_GRAPH_CLIENT_SECRET?: string;
+  readonly MICROSOFT_GRAPH_MAILBOX?: string;
+  readonly STUDIO_EMAIL_TRANSPORT?: string;
 }
 
 interface ImportMeta {

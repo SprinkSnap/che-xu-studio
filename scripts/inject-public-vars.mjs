@@ -17,6 +17,11 @@ const WORKER_VAR_KEYS = [
   'STUDIO_FROM_EMAIL',
   'STUDIO_REPLY_TO_EMAIL',
   'STUDIO_NOTIFY_EMAIL',
+  // Microsoft Graph sendMail (plain IDs; secret stays encrypted).
+  'MICROSOFT_GRAPH_TENANT_ID',
+  'MICROSOFT_GRAPH_CLIENT_ID',
+  'MICROSOFT_GRAPH_MAILBOX',
+  'STUDIO_EMAIL_TRANSPORT',
   // Studio OS — browser-safe Supabase public config (never SUPABASE_SECRET_KEY).
   'PUBLIC_SUPABASE_URL',
   'PUBLIC_SUPABASE_PUBLISHABLE_KEY',
@@ -63,7 +68,8 @@ export function injectPublicWorkerVars(config, env = process.env, { log = true }
         '  PUBLIC_STRIPE_PUBLISHABLE_KEY',
         'And Encrypt secrets (never plain Worker vars):',
         '  TURNSTILE_SECRET_KEY, RESEND_API_KEY, SUPABASE_SECRET_KEY,',
-        '  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CRON_SECRET',
+        '  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CRON_SECRET,',
+        '  MICROSOFT_GRAPH_CLIENT_SECRET',
         'If any of those appear as plain text bindings, move to encrypted secrets and rotate.',
       ].join('\n'),
     );

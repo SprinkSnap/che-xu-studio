@@ -2,12 +2,14 @@
 
 Studio transactional email is centralized under `src/lib/email/`. The public marketing Contact form continues to use `src/lib/notify-email.ts` and is intentionally separate.
 
-## Resend client boundary
+## Resend / Graph client boundary
 
-- Server-only: `src/lib/email/client.ts` calls Resend over HTTPS with `RESEND_API_KEY`.
-- Config: `src/lib/email/config.ts` resolves From / Reply-To / Notify / public URL / Studio URL / `CRON_SECRET`.
+- Client Proposal/Invoice/reminder delivery uses `src/lib/email/send.ts`, which prefers **Microsoft Graph** (`graph-client.ts`) when Entra credentials are set, otherwise **Resend** (`client.ts`).
+- Contact-form notify stays on Resend (`src/lib/notify-email.ts`).
+- Config: `src/lib/email/config.ts` resolves From / Reply-To / Notify / Graph IDs / public URL / Studio URL / `CRON_SECRET`.
 - Prefer `STUDIO_FROM_EMAIL`, falling back to `CONTACT_FROM_EMAIL`. Reply-To prefers `STUDIO_REPLY_TO_EMAIL`.
 - Never import the email client into browser bundles. Never log API keys or raw capability tokens.
+- Hotmail Inbox: use Graph (see `docs/operations/email-deliverability.md`). Resend alone often lands in Junk.
 
 ## Delivery-state semantics
 

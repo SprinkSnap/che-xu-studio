@@ -24,6 +24,13 @@ PUBLIC_CF_WEB_ANALYTICS_TOKEN=
 # Scheduled outbox/reminder job (POST /api/studio/jobs/process):
 # CRON_SECRET=generate-a-long-random-string
 
+# Microsoft Graph sendMail (preferred for Hotmail Inbox — see docs/operations/email-deliverability.md)
+# MICROSOFT_GRAPH_TENANT_ID=
+# MICROSOFT_GRAPH_CLIENT_ID=
+# MICROSOFT_GRAPH_CLIENT_SECRET=
+# MICROSOFT_GRAPH_MAILBOX=info@chexustudio.com
+# STUDIO_EMAIL_TRANSPORT=auto
+
 # Studio OS foundation (Phase 2+)
 # Local `astro dev` always allows /admin. For `astro preview` / production Workers,
 # set STUDIO_OS_ENABLED=true. Phase 5 requires Supabase Auth + active profiles membership.

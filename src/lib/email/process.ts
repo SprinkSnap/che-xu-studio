@@ -13,11 +13,12 @@ import {
   getStudioAdminOrigin,
   type StudioEmailEnvSource,
 } from './config';
-import { sendViaResend, classifyProviderFailure } from './client';
+import { classifyProviderFailure } from './client';
 import {
   isMicrosoftConsumerMailbox,
   transactionalDeliveryHeaders,
 } from './deliverability';
+import { sendStudioEmail } from './send';
 import {
   claimOutboxBatch,
   markOutboxFailed,

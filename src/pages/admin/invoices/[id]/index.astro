@@ -550,9 +550,10 @@ function qtyLabel(quantity: number): string {
               recipient before submitting.
             </p>
             <p class="text-sm text-ink-muted">
-              Hotmail/Outlook Junk: client opens Junk → Not junk, adds info@chexustudio.com to
-              contacts, then Resend once. For Inbox now, Create Payment Link below and send that URL
-              from your Microsoft 365 Outlook mailbox instead of Resend.
+              Hotmail Inbox requires Microsoft Graph send from info@ (Exchange Online), not Resend.
+              Until Graph is configured in Worker secrets, create a payment link and email it from
+              Outlook, or expect Junk. See Settings → Email delivery and
+              docs/operations/email-deliverability.md.
             </p>
           </form>
         )

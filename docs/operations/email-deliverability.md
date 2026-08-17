@@ -1,59 +1,65 @@
-# Email deliverability (Resend + Microsoft 365)
+# Email deliverability (Resend + Microsoft 365 Graph)
 
-Studio sends Proposal/Invoice mail through Resend (`From: info@chexustudio.com`). Mailboxes for the same domain are hosted on Microsoft 365.
+Studio can send Proposal/Invoice mail two ways:
 
-**Important:** `email_logs.status=sent` means Resend accepted the message. It does **not** mean Hotmail placed it in Inbox. Consumer Hotmail/Outlook often files cold Resend/Amazon SES mail in Junk even when SPF, DKIM, and DMARC all pass.
-
-## What production already has
-
-| Record | Purpose | Observed |
+| Transport | When used | Hotmail Inbox |
 | --- | --- | --- |
-| `resend._domainkey.chexustudio.com` TXT | Resend DKIM | Present |
-| `send.chexustudio.com` MX → `feedback-smtp.us-east-1.amazonses.com` | Resend Return-Path | Present |
-| `send.chexustudio.com` TXT `v=spf1 include:amazonses.com ~all` | SPF for Return-Path | Present |
-| Apex TXT `v=spf1 include:spf.protection.outlook.com -all` | Microsoft 365 mailbox SPF | Present |
-| `_dmarc.chexustudio.com` TXT | DMARC policy | Present (`p=none; rua=mailto:info@chexustudio.com; fo=1`) |
+| **Microsoft Graph** (`info@` via Exchange Online) | Preferred when Graph env is configured | Usually Inbox (same Microsoft ecosystem) |
+| **Resend** (Amazon SES) | Fallback / contact form / Graph unset | Often **Junk** on consumer Hotmail even with SPF/DKIM/DMARC |
 
-Resend SPF is evaluated on the `send.` Return-Path host, not the apex. Leave the Microsoft 365 apex SPF in place.
+`email_logs.status=sent` means the provider accepted the message — not Inbox placement.
 
-## Publish DMARC in Cloudflare (not Porkbun)
+## Fix Hotmail Junk (required ops)
 
-Nameservers for `chexustudio.com` are Cloudflare. Add DNS only:
+Resend template tweaks cannot force Hotmail Inbox. Configure Graph send from your M365 mailbox:
 
-| Field | Value |
+### 1. Entra app registration
+
+1. [Entra admin](https://entra.microsoft.com/) → App registrations → New registration (`Che Xu Studio Mail`)
+2. Application permission: **Microsoft Graph → Mail.Send** → Grant admin consent
+3. Certificates & secrets → New client secret → copy value once
+4. Note **Directory (tenant) ID** and **Application (client) ID**
+
+### 2. Restrict the app to `info@chexustudio.com` (recommended)
+
+In Exchange Online PowerShell (or Entra application access policy), scope the app so it can only send as `info@chexustudio.com`.
+
+### 3. Cloudflare Worker secrets / vars
+
+| Binding | Type | Example |
+| --- | --- | --- |
+| `MICROSOFT_GRAPH_TENANT_ID` | Variable | tenant GUID |
+| `MICROSOFT_GRAPH_CLIENT_ID` | Variable | app GUID |
+| `MICROSOFT_GRAPH_CLIENT_SECRET` | **Secret** | client secret value |
+| `MICROSOFT_GRAPH_MAILBOX` | Variable (optional) | `info@chexustudio.com` |
+| `STUDIO_EMAIL_TRANSPORT` | Variable (optional) | `auto` (default), `graph`, or `resend` |
+
+Redeploy after setting bindings. Settings → Email tools shows whether Graph is active.
+
+### 4. Verify
+
+1. Resend Proposal / Invoice to the Hotmail address
+2. Message should appear in **Inbox** (and in Sent Items of `info@`)
+3. Email history provider id starts with `graph:`
+
+Until Graph is configured, Studio keeps using Resend and Hotmail will likely stay Junk.
+
+## DNS already in place
+
+| Record | Purpose |
 | --- | --- |
-| Type | TXT |
-| Name | `_dmarc` (exactly — Cloudflare already appends `.chexustudio.com`) |
-| Content | `v=DMARC1; p=none; rua=mailto:info@chexustudio.com; fo=1` |
-| Proxy | DNS only |
+| `resend._domainkey` | Resend DKIM |
+| `send.` MX/TXT | Resend Return-Path SPF |
+| Apex SPF `include:spf.protection.outlook.com -all` | M365 mailbox SPF (do not replace with SES-only) |
+| `_dmarc` | `p=none; rua=mailto:info@chexustudio.com; fo=1` |
 
-If Name is set to `_dmarc.chexustudio.com`, Cloudflare creates `_dmarc.chexustudio.com.chexustudio.com` and DMARC stays broken.
+## Temporary workaround without Graph
 
-Verify:
-
-```bash
-dig +short TXT _dmarc.chexustudio.com
-```
-
-## Hotmail / Outlook Junk (auth is fine)
-
-When Proposal and Invoice resends both land in Junk:
-
-1. **Train the recipient (required for Inbox):** Junk → open the message → **Not junk**, then add `info@chexustudio.com` to contacts / safe senders. Microsoft learns per mailbox.
-2. **Resend once** after that — do not hammer the same Hotmail address.
-3. **Immediate Inbox workaround:** Create Client / Payment Link in Studio, then email that URL from your **Microsoft 365 Outlook** mailbox (`info@chexustudio.com`). Same-ecosystem mail usually reaches Hotmail Inbox when Resend/SES does not.
-4. **Studio mitigations already shipping:** plain-link CTA, plain HTML layout, transactional MIME headers, no PDF attachments to Hotmail/Outlook/Live, studio BCC copy.
-5. **Keep `attach_pdf_by_default` off** in Studio settings (PDF attachments raise junk scores).
-6. Optional reputation: [Microsoft SNDS](https://sendersupport.olc.protection.outlook.com/snds/), [sender support](https://sender.office.com/), Resend dashboard bounces/complaints.
-
-## Hotmail missing from Inbox and Junk
-
-Microsoft can discard after SMTP accept when DMARC is unpublished. With DMARC live, check studio BCC + Resend dashboard before assuming discard.
+Create Client / Payment Link → email the URL from Outlook web (`info@`) manually.
 
 ## Do not
 
-- Replace apex Microsoft SPF with only `include:amazonses.com` (breaks M365).
-- Point apex MX at Resend/Amazon (hijacks inbound mail).
-- Enable Resend click tracking for capability-link templates (domain setting).
-- Keep resending to the same Hotmail address before the client marks Not junk.
-- Expect Resend alone to guarantee Inbox on first contact with consumer Microsoft mailboxes.
+- Replace apex Microsoft SPF with only `include:amazonses.com`
+- Point apex MX at Resend/Amazon
+- Expect Resend alone to guarantee Hotmail Inbox
+- Hammer the same Hotmail address via Resend before Graph is live

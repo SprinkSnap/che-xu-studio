@@ -13,7 +13,7 @@ import {
   readStudioEmailEnvFromRuntime,
   type StudioEmailEnvSource,
 } from './config';
-import { sendViaResend } from './client';
+import { sendStudioEmail } from './send';
 import { insertQueuedEmailLog, markEmailLogFailed, markEmailLogSent } from './logging';
 import { renderInvoiceDeliveryEmail } from './templates';
 import { resolveDeliveryRecipient } from './resolve-recipient';
@@ -166,7 +166,7 @@ export async function sendInvoiceEmail(
     });
   }
 
-  const sendResult = await sendViaResend(
+  const sendResult = await sendStudioEmail(
     {
       to: recipient,
       subject: rendered.subject,
@@ -198,7 +198,7 @@ export async function sendInvoiceEmail(
     });
     throw new InvoiceSendError(
       'provider',
-      `Unable to send invoice email (${sendResult.error}). Check Email history and Resend.`,
+      `Unable to send invoice email (${sendResult.error}). Check Email history and provider (Graph/Resend).`,
     );
   }
 
@@ -327,7 +327,7 @@ export async function resendInvoiceEmail(
     });
   }
 
-  const sendResult = await sendViaResend(
+  const sendResult = await sendStudioEmail(
     {
       to: recipient,
       subject: rendered.subject,
@@ -359,7 +359,7 @@ export async function resendInvoiceEmail(
     });
     throw new InvoiceSendError(
       'provider',
-      `Unable to resend invoice email (${sendResult.error}). Check Email history and Resend.`,
+      `Unable to resend invoice email (${sendResult.error}). Check Email history and provider (Graph/Resend).`,
     );
   }
 

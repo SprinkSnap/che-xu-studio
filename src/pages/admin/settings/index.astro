@@ -9,6 +9,11 @@ import {
   getStudioSettings,
   updateReminderSettings,
 } from '../../../lib/studio/settings';
+import {
+  readStudioEmailEnvFromRuntime,
+  resolveStudioEmailTransport,
+} from '../../../lib/email/config';
+import { isMicrosoftGraphConfigured } from '../../../lib/email/graph-client';
 
 export const prerender = false;
 
@@ -59,6 +64,9 @@ if (Astro.url.searchParams.get('notice') === 'saved') {
 }
 
 const settings = await getStudioSettings(supabase);
+const emailEnv = await readStudioEmailEnvFromRuntime();
+const emailTransport = resolveStudioEmailTransport(emailEnv);
+const graphReady = isMicrosoftGraphConfigured(emailEnv);
 ---
 
 <StudioLayout title="Settings" description="Studio OS configuration.">
@@ -148,17 +156,31 @@ const settings = await getStudioSettings(supabase);
   </div>
 
   <div class="mb-6">
-    <StudioPanel title="Email tools">
-      <p class="mb-3 text-sm text-ink-muted">
+    <StudioPanel title="Email delivery">
+      <p class="text-sm text-navy-900">
+        Active transport:{' '}
+        <strong>{emailTransport === 'graph' ? 'Microsoft Graph (M365)' : 'Resend'}</strong>
+        {graphReady ? ' · Graph credentials present' : ' · Graph not configured'}
+      </p>
+      {
+        emailTransport === 'resend' ? (
+          <p class="mt-3 text-sm text-ink-muted">
+            Resend/Amazon SES mail often lands in Hotmail Junk even when authentication is correct.
+            Configure Microsoft Graph (Mail.Send from info@chexustudio.com) so Proposal/Invoice
+            buttons send through Exchange Online instead. Setup:
+            docs/operations/email-deliverability.md
+          </p>
+        ) : (
+          <p class="mt-3 text-sm text-ink-muted">
+            Proposal and Invoice client mail is sent via Microsoft Graph from your M365 mailbox.
+            Contact-form notifications may still use Resend.
+          </p>
+        )
+      }
+      <p class="mt-4 mb-3 text-sm text-ink-muted">
         Preview branded transactional templates without sending.
       </p>
       <a class="studio-action" href="/admin/settings/email-preview">Email previews</a>
-      <p class="mt-4 text-sm text-ink-muted">
-        Hotmail/Outlook Junk is usually mailbox reputation, not a Studio send failure. Prefer Create
-        Client/Payment Link + send from Microsoft 365 when Inbox placement matters immediately.
-        Details: <code>docs/operations/email-deliverability.md</code>. Keep PDF email attachments
-        disabled for better deliverability.
-      </p>
     </StudioPanel>
   </div>
 </StudioLayout>

@@ -15,7 +15,7 @@ import {
   readStudioEmailEnvFromRuntime,
   type StudioEmailEnvSource,
 } from './config';
-import { sendViaResend } from './client';
+import { sendStudioEmail } from './send';
 import { insertQueuedEmailLog, markEmailLogFailed, markEmailLogSent } from './logging';
 import { renderProposalDeliveryEmail } from './templates';
 import { formatDateOnly } from '../clients/format';
@@ -184,7 +184,7 @@ export async function sendProposalEmail(
     });
   }
 
-  const sendResult = await sendViaResend(
+  const sendResult = await sendStudioEmail(
     {
       to: recipient,
       subject: rendered.subject,
@@ -216,7 +216,7 @@ export async function sendProposalEmail(
     });
     throw new ProposalSendError(
       'provider',
-      `Unable to send proposal email (${sendResult.error}). Check Email history and Resend.`,
+      `Unable to send proposal email (${sendResult.error}). Check Email history and provider (Graph/Resend).`,
     );
   }
 
@@ -409,7 +409,7 @@ export async function resendProposalEmail(
     });
   }
 
-  const sendResult = await sendViaResend(
+  const sendResult = await sendStudioEmail(
     {
       to: recipient,
       subject: rendered.subject,
@@ -441,7 +441,7 @@ export async function resendProposalEmail(
     });
     throw new ProposalSendError(
       'provider',
-      `Unable to resend proposal email (${sendResult.error}). Check Email history and Resend.`,
+      `Unable to resend proposal email (${sendResult.error}). Check Email history and provider (Graph/Resend).`,
     );
   }
 

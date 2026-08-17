@@ -715,10 +715,10 @@ const defaultRecipient =
               secure link is minted. Confirm the recipient address before submitting.
             </p>
             <p class="text-sm text-ink-muted">
-              Hotmail/Outlook Junk: ask the client to open Junk → Not junk, then add
-              info@chexustudio.com to contacts, then Resend once. For guaranteed Inbox now, create a
-              client link below and send that URL from your Microsoft 365 Outlook mailbox instead of
-              Resend.
+              Hotmail Inbox requires Microsoft Graph send from info@ (Exchange Online), not Resend.
+              Until Graph is configured in Worker secrets, create a client link and email it from
+              Outlook, or expect Junk. See Settings → Email delivery and
+              docs/operations/email-deliverability.md.
             </p>
           </form>
         )
